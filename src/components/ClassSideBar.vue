@@ -23,7 +23,7 @@ const activeIndex = ref(`/class-basic-info${queryParams.value}`)
 <template>
   <el-aside width="250px">
     <div class="class-name">
-      Course: {{ $route.query.className }}
+      Course: {{ route.query.className }}
     </div>
     <!-- el-menu的高度设置为100%减去class-name的高度和边框的高度，class-name的高度为60px，边框高度为1px（设置组件高度不要忘记边框高度） -->
     <el-menu

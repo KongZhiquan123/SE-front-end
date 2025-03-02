@@ -51,4 +51,14 @@ export interface BasicInfo {
     courseDescription: string;
 }
 
+//Register.vue
+export interface RegisterForm {
+    username: string
+    email: string
+    password: string
+    confirmPassword: string
+    role: 'ADMIN' | 'STUDENT' | 'TEACHER'
+    verificationCode: string
+}
+
 

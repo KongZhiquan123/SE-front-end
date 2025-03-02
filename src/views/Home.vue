@@ -31,17 +31,11 @@
 </template>
 
 <script setup lang="ts">
-import {onBeforeMount} from 'vue'
 import {ElButton, ElRow, ElCol, ElCard} from 'element-plus'
 import {ref} from "vue"
 import {useRouter} from 'vue-router'
 import type {ClassItem} from "../types/interfaces.ts";
-//按照后端返回的数据结构定义接口
 
-onBeforeMount(() => {
-  //axios请求后端数据。当然，如果没有登录，可以把welcome message显示出来（classes数组为空）
-  console.log('Home page mounted')
-})
 const classes = ref<ClassItem[]>(
     [{id: '1', name: 'Math', description: 'Mathematics class'},
       {id: '2', name: 'Science', description: 'Science class'},
@@ -53,7 +47,8 @@ const classes = ref<ClassItem[]>(
       {id: '8', name: 'Chemistry', description: 'Chemistry class'},
       {id: '9', name: 'Biology', description: 'Biology class'},
       {id: '10', name: 'Economics', description: 'Economics class'}]
-)
+) //axios请求后端数据。当然，如果没有登录，可以把welcome message显示出来（classes数组为空）
+//request.get('/classes').then(res => classes.value = res.data)
 
 //创建班级
 const createClass = () => {
@@ -69,7 +64,7 @@ const router = useRouter()
 //查看班级详情
 const viewClass = (classId: string, className: string) => {
   router.push({
-    name: 'class-basic-info',
+    path: '/class-basic-info',
     query: { classID: classId, className: className }
   })
   console.log('View Class clicked, ','classId:',classId,'className:',className)

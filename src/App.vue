@@ -1,11 +1,16 @@
 <template>
-  <el-container class="common-layout" direction="vertical">
-    <HeaderContent @toggle-collapse="toggleSidebar" />
-    <el-container class="main-content" direction="horizontal">
-      <component :is="SideBarType ? ClassSideBar : HomeSidebar" :is-collapse="isCollapse" />
-      <router-view />
+  <template v-if="!route.meta.hideLayout">
+    <el-container class="common-layout" direction="vertical">
+      <HeaderContent @toggle-collapse="toggleSidebar" />
+      <el-container class="main-content" direction="horizontal">
+        <component :is="SideBarType ? ClassSideBar : HomeSidebar" :is-collapse="isCollapse" />
+        <router-view />
+      </el-container>
     </el-container>
-  </el-container>
+  </template>
+  <template v-else>
+    <router-view />
+  </template>
 </template>
 
 <script setup lang="ts">
@@ -13,8 +18,8 @@ import { ref, computed } from 'vue'
 import HomeSidebar from './components/HomeSidebar.vue'
 import ClassSideBar from "./components/ClassSideBar.vue"
 import HeaderContent from "./components/HeaderContent.vue"
-import {useRoute} from "vue-router";
-//判断当前路由是home还是class，以便显示不同的侧边栏
+import { useRoute } from "vue-router"
+//判断当前路由是否是课程相关的界面，用于判断侧边栏的类型
 const route = useRoute()
 const SideBarType = computed((): boolean => {
   return route.path.includes('class')
