@@ -46,12 +46,12 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const login = () => {
-  router.push('/login')
+  router.push('/auth/login')
 }
 
 const logout = () => {
   userStore.clearUser()
-  router.push('/login')
+  router.push('/auth/login')
 }
 </script>
 

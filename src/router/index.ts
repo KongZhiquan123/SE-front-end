@@ -9,54 +9,61 @@ const router = createRouter({
     routes: [
         {
             path: '/',
-            component: () => import('../views/Home.vue')
+            component: () => import('../views/WithLayoutWrapper.vue'),
+            children: [
+                {
+                    path: '',
+                    component: () => import('../views/Home.vue')
+                },
+                {
+                    path: 'calendar',
+                    component: () => import('../views/Calendar.vue'),
+                    meta: { requiresAuth: true }
+                },
+                {
+                    path: 'archived-classes',
+                    component: () => import('../views/ArchivedClasses.vue'),
+                    meta: { requiresAuth: true }
+                },
+                {
+                    path: 'settings',
+                    component: () => import('../views/Settings.vue'),
+                    meta: { requiresAuth: true }
+                },
+                {
+                    path: 'class-materials',
+                    component: () => import('../views/ClassMaterials.vue'),
+                    meta: { requiresAuth: true }
+                },
+                {
+                    path: 'class-basic-info',
+                    component: () => import('../views/ClassBasicInformation.vue'),
+                    meta: { requiresAuth: true }
+                },
+                {
+                    path: 'class-grades',
+                    component: () => import('../views/ClassGrades.vue'),
+                    meta: { requiresAuth: true }
+                }
+            ]
         },
         {
-            path: '/calendar',
-            component: () => import('../views/Calendar.vue'),
-            meta: { requiresAuth: true }
+            path: '/auth',
+            children: [
+                {
+                    path: 'login',
+                    component: () => import('../views/Login.vue')
+                },
+                {
+                    path: 'register',
+                    component: () => import('../views/Register.vue')
+                },
+                {
+                    path: 'reset-password',
+                    component: () => import('../views/ResetPassword.vue')
+                }
+            ]
         },
-        {
-            path: '/archived-classes',
-            component: () => import('../views/ArchivedClasses.vue'),
-            meta: { requiresAuth: true }
-        },
-        {
-            path: '/settings',
-            component: () => import('../views/Settings.vue'),
-            meta: { requiresAuth: true }
-        },
-        {
-            path: '/class-materials',
-            component: () => import('../views/ClassMaterials.vue'),
-            meta: { requiresAuth: true }
-        },
-        {
-            path: '/class-basic-info',
-            component: () => import('../views/ClassBasicInformation.vue'),
-            meta: { requiresAuth: true }
-        },
-        {
-            path: '/class-grades',
-            component: () => import('../views/ClassGrades.vue'),
-            meta: { requiresAuth: true }
-        },
-        {
-            path: '/login',
-            component: () => import('../views/Login.vue'),
-            meta: { hideLayout: true }
-        },
-        {
-            path: '/register',
-            component: () => import('../views/Register.vue'),
-            meta: { hideLayout: true }
-        },
-        {
-            path: '/reset-password',
-            component: () => import('../views/ResetPassword.vue'),
-            meta: { hideLayout: true }
-        },
-        //其他的所有路由都会跳转到404页面
         {
             path: '/:pathMatch(.*)*',
             name: 'not-found',
@@ -64,11 +71,12 @@ const router = createRouter({
         }
     ]
 })
+
 //路由守卫，检查是否登录
 router.beforeEach((to, from, next) => {
     const isAuthenticated = localStorage.getItem('token')
     if (to.meta.requiresAuth && !isAuthenticated) {
-        next('/login')
+        next('/auth/login')
         console.log(`You can't access this page from ${from.fullPath} without logging in`)
     } else {
         next()

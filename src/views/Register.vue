@@ -185,7 +185,7 @@ const handleRegister = async (formEl?: FormInstance) => {
         </el-form-item>
 
         <div class="register-links">
-          <el-link type="primary" :underline="false" href="/login">
+          <el-link type="primary" :underline="false" href="/auth/login">
             Already have an account? Login
           </el-link>
         </div>

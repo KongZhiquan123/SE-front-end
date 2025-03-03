@@ -107,10 +107,10 @@ const handleLogin = async (formEl?: FormInstance) => {
         </el-form-item>
 
         <div class="login-links">
-          <el-link type="primary" :underline="false" href="/register">
+          <el-link type="primary" :underline="false" href="/auth/register">
             register
           </el-link>
-          <el-link type="primary" :underline="false" href="/reset-password">
+          <el-link type="primary" :underline="false" href="/auth/reset-password">
             forget password?
           </el-link>
         </div>

@@ -169,7 +169,7 @@ const handleResetPassword = async (formEl?: FormInstance) => {
         </el-form-item>
 
         <div class="reset-links">
-          <el-link type="primary" :underline="false" href="/login">
+          <el-link type="primary" :underline="false" href="/auth/login">
             Back to Login
           </el-link>
         </div>
