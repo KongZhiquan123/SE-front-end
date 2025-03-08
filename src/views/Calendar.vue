@@ -33,7 +33,7 @@
           <div class="task-dots">
             <template v-for="task in getTasksForDate(data.day)" :key="task.id">
               <el-tooltip
-                  :content="`${task.className}: ${task.title} (${task.completed ? 'Completed' : 'Pending'})`"
+                  :content="`${task.courseName}: ${task.title} (${task.completed ? 'Completed' : 'Pending'})`"
                   placement="top"
               >
                 <div
@@ -58,7 +58,7 @@
         width="30%"
     >
       <template v-if="selectedTask">
-        <p><strong>Class:</strong> {{ selectedTask.className }}</p>
+        <p><strong>Class:</strong> {{ selectedTask.courseName }}</p>
         <p><strong>Deadline:</strong> {{ formatDate(selectedTask.deadline) }}</p>
         <p><strong>Description:</strong> {{ selectedTask.description }}</p>
         <p><strong>Status:</strong> {{ selectedTask.completed ? 'Completed' : 'Pending' }}</p>
@@ -95,8 +95,8 @@ const tasks = ref<Task[]>([
     title: 'Math Assignment',
     deadline: '2025-03-20',
     completed: false,
-    classId: '1',
-    className: 'Mathematics',
+    courseId: '1',
+    courseName: 'Mathematics',
     description: 'Complete exercises 1-10'
   },
   {
@@ -104,8 +104,8 @@ const tasks = ref<Task[]>([
     title: 'Physics Lab Report',
     deadline: '2025-03-22',
     completed: true,
-    classId: '7',
-    className: 'Physics',
+    courseId: '7',
+    courseName: 'Physics',
     description: 'Write lab report for experiment #3'
   },
 ])

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import VueMarkdownRender from 'vue-markdown-render';
-import type {BasicInfo} from "../types/interfaces.ts";
+import type {CourseBasicInfo} from "../types/interfaces.ts";
 
 
-const basicInfo = ref<BasicInfo>({
-  className: "CS",
+const basicInfo = ref<CourseBasicInfo>({
+  courseName: "CS",
   teacher: "JC, ZHQ, LYF, KZQ, PJW",
   email: "1111@gmail.com",
   courseDescription: `# Course Overview
@@ -25,7 +25,7 @@ def hello():
     <div class="info-section">
       <h2>Basic Information</h2>
       <el-descriptions :column="1" border label-width="300px">
-        <el-descriptions-item label="Class Name">{{ basicInfo.className }}</el-descriptions-item>
+        <el-descriptions-item label="Course Name">{{ basicInfo.courseName }}</el-descriptions-item>
         <el-descriptions-item label="Teacher">{{ basicInfo.teacher }}</el-descriptions-item>
         <el-descriptions-item label="Email">{{ basicInfo.email }}</el-descriptions-item>
       </el-descriptions>

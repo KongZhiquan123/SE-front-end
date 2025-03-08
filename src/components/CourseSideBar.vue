@@ -15,15 +15,15 @@ defineProps<{
 const route = useRoute()
 
 const queryParams = computed(() => {
-  return `?classID=${route.query.classID}&className=${route.query.className}`
+  return `?courseId=${route.query.courseId}&courseCode=${route.query.courseCode}`
 })
-const activeIndex = ref(`/class-basic-info${queryParams.value}`)
+const activeIndex = ref(`/course-basic-info${queryParams.value}`)
 </script>
 
 <template>
   <el-aside width="250px">
     <div class="class-name">
-      Course: {{ route.query.className }}
+      Course: {{ route.query.courseCode }}
     </div>
     <!-- el-menu的高度设置为100%减去class-name的高度和边框的高度，class-name的高度为60px，边框高度为1px（设置组件高度不要忘记边框高度） -->
     <el-menu
@@ -33,19 +33,19 @@ const activeIndex = ref(`/class-basic-info${queryParams.value}`)
         :collapse="isCollapse"
         router
     >
-      <el-menu-item :index="`/class-basic-info${queryParams}`">
+      <el-menu-item :index="`/course-basic-info${queryParams}`">
         <el-icon>
           <info-filled/>
         </el-icon>
         <span>Basic Information</span>
       </el-menu-item>
-      <el-menu-item :index="`/class-materials${queryParams}`">
+      <el-menu-item :index="`/course-materials${queryParams}`">
         <el-icon>
           <files/>
         </el-icon>
         <span>Class Materials</span>
       </el-menu-item>
-      <el-menu-item :index="`/class-grades${queryParams}`">
+      <el-menu-item :index="`/course-grades${queryParams}`">
         <el-icon>
           <gold-medal/>
         </el-icon>

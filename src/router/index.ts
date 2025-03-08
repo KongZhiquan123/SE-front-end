@@ -31,18 +31,18 @@ const router = createRouter({
                     meta: { requiresAuth: true }
                 },
                 {
-                    path: 'class-materials',
-                    component: () => import('../views/ClassMaterials.vue'),
+                    path: 'course-materials',
+                    component: () => import('../views/CourseMaterials.vue'),
                     meta: { requiresAuth: true }
                 },
                 {
-                    path: 'class-basic-info',
-                    component: () => import('../views/ClassBasicInformation.vue'),
+                    path: 'course-basic-info',
+                    component: () => import('../views/CourseBasicInformation.vue'),
                     meta: { requiresAuth: true }
                 },
                 {
-                    path: 'class-grades',
-                    component: () => import('../views/ClassGrades.vue'),
+                    path: 'course-grades',
+                    component: () => import('../views/CourseGrades.vue'),
                     meta: { requiresAuth: true }
                 }
             ]

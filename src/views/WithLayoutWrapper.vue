@@ -2,7 +2,7 @@
   <el-container class="common-layout" direction="vertical">
     <HeaderContent @toggle-collapse="toggleSidebar" />
     <el-container class="main-content" direction="horizontal">
-      <component :is="SideBarType ? ClassSideBar : HomeSidebar" :is-collapse="isCollapse" />
+      <component :is="SideBarType ? CourseSideBar : HomeSidebar" :is-collapse="isCollapse" />
       <router-view />
     </el-container>
   </el-container>
@@ -11,13 +11,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import HomeSidebar from '../components/HomeSidebar.vue'
-import ClassSideBar from "../components/ClassSideBar.vue"
+import CourseSideBar from "../components/CourseSideBar.vue"
 import HeaderContent from "../components/HeaderContent.vue"
 import { useRoute } from "vue-router"
 
 const route = useRoute()
 const SideBarType = computed((): boolean => {
-  return route.path.includes('class')
+  return route.path.includes('course')
 })
 const isCollapse = ref(false)
 const toggleSidebar = () => {

@@ -1,4 +1,4 @@
-//ClassGrades.vue
+//CourseGrades.vue
 export interface Assignment {
     id: number;
     name: string;
@@ -11,7 +11,7 @@ export interface Assignment {
     status: 'graded' | 'upcoming' | 'submitted' | 'missing';
 }
 
-//ClassMaterial.vue
+//CourseMaterial.vue
 export interface Attachment {
     id: string
     name: string
@@ -31,21 +31,25 @@ export interface Task {
     title: string;
     deadline: string;
     completed: boolean;
-    classId: string;
-    className: string;
+    courseId: string;
+    courseName: string;
     description?: string;
 }
 
 //Home.vue
-export interface ClassItem {
-    id: string
-    name: string
+export interface CourseItem {
+    id: number
+    courseCode: string
+    courseName: string
+    semester: string
     description: string
+    isActive: boolean
+    createdAt: string
 }
 
-//ClassBasicInformation.vue
-export interface BasicInfo {
-    className: string;
+//CourseBasicInformation.vue
+export interface CourseBasicInfo {
+    courseName: string;
     teacher: string;
     email: string;
     courseDescription: string;

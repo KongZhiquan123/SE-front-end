@@ -89,7 +89,7 @@ const handleRegister = async (formEl?: FormInstance) => {
       })
 
       ElMessage.success('Registration successful')
-      await router.push('/login')
+      await router.push('/auth/login')
     } catch (error) {
       const axiosError = error as AxiosError
       ElMessage.error(axiosError.response?.data || 'Registration failed')
