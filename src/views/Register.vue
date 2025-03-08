@@ -24,7 +24,7 @@ const registerForm = reactive<RegisterForm>({
 
 const { countdown, sendCode } = useVerificationCode()
 
-const rules = reactive<FormRules>({
+const rules: FormRules = {
   username: [
     { required: true, message: 'Please enter username', trigger: 'blur' },
     { min: 3, max: 20, message: 'Length should be 3 to 20 characters', trigger: 'blur' }
@@ -54,7 +54,7 @@ const rules = reactive<FormRules>({
     { required: true, message: 'Please enter verification code', trigger: 'blur' },
     { len: 6, message: 'Verification code must be 6 digits', trigger: 'blur' }
   ]
-})
+}
 
 
 const sendVerificationCode = async () => {

@@ -1,14 +1,17 @@
 //CourseGrades.vue
-export interface Assignment {
+export interface Grade {
     id: number;
     name: string;
     type: string;
     score: number | null;
     totalPoints: number;
     dueDate: string;
-    submittedDate: string | null;
-    gradedDate: string | null;
-    status: 'graded' | 'upcoming' | 'submitted' | 'missing';
+    submittedDate?: string | null;
+    gradedDate?: string | null;
+    feedback?: string | null;
+    appealReason?: string | null;
+    appealTime?: string | null;
+    status: 'graded' | 'upcoming' | 'submitted' | 'missing' | 'appealing' | 'appealed';
 }
 
 //CourseMaterial.vue
@@ -23,6 +26,15 @@ export interface CourseMaterial {
     type: string
     description: string
     attachments: Attachment[]
+}
+
+//Assignment.vue
+export interface Assignment extends CourseMaterial {
+    dueDate: string;
+    maxScore: number;
+    status: 'open' | 'closed' | 'upcoming';
+    instructions?: string;
+    submissionUrl: string;
 }
 
 //Calendar.vue
@@ -44,7 +56,7 @@ export interface CourseItem {
     semester: string
     description: string
     isActive: boolean
-    createdAt: string
+    createdTime: string
 }
 
 //CourseBasicInformation.vue

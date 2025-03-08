@@ -4,11 +4,11 @@
     <div v-if="!courses.length" class="empty-state">
       <el-empty description="No courses yet">
         <div class="empty-state-actions">
-          <el-button type="primary" size="large" @click="createCourse">
-            <el-icon><Plus /></el-icon>Create Class
+          <el-button type="primary" size="large" @click="openCreateDialog">
+            <el-icon><Plus /></el-icon>Create Course
           </el-button>
-          <el-button size="large" @click="joinCourse">
-            <el-icon><Link /></el-icon>Join Class
+          <el-button size="large" @click="openJoinDialog">
+            <el-icon><Link /></el-icon>Join Course
           </el-button>
         </div>
       </el-empty>
@@ -19,10 +19,10 @@
       <div class="courses-header">
         <h2>Your Courses</h2>
         <div class="header-actions">
-          <el-button type="primary" @click="createCourse">
+          <el-button type="primary" @click="openCreateDialog">
             <el-icon><Plus /></el-icon>Create
           </el-button>
-          <el-button @click="joinCourse">
+          <el-button @click="openJoinDialog">
             <el-icon><Link /></el-icon>Join
           </el-button>
         </div>
@@ -45,7 +45,7 @@
             <h3 class="course-name">{{ course.courseName }}</h3>
             <p class="course-description">{{ course.description }}</p>
             <div class="course-footer">
-              <span class="created-date">Created: {{ formatDate(course.createdAt) }}</span>
+              <span class="created-date">Created: {{ formatDate(course.createdTime) }}</span>
               <el-tag size="small" :type="course.isActive ? 'success' : 'info'">
                 {{ course.isActive ? 'Active' : 'Inactive' }}
               </el-tag>
@@ -54,6 +54,10 @@
         </el-col>
       </el-row>
     </div>
+
+    <!-- 基于el-dialog的加入和创建班级的对话框，组件在components里 -->
+    <CreateCourseDialog ref="createDialogRef" @course-created="handleCourseCreated" />
+    <JoinCourseDialog ref="joinDialogRef" @course-joined="handleCourseJoined" />
   </el-main>
 </template>
 
@@ -61,9 +65,22 @@
 import { ref } from "vue"
 import { useRouter } from 'vue-router'
 import { Plus, Link } from '@element-plus/icons-vue'
+import CreateCourseDialog from "../components/CreateCourseDialog.vue";
+import JoinCourseDialog from "../components/JoinCourseDialog.vue";
 import type { CourseItem } from "../types/interfaces"
+import {ElMessage} from "element-plus";
+import request from "../utils/request.ts";
 
 const router = useRouter()
+const createDialogRef = ref()
+const joinDialogRef = ref()
+
+request.get('/students/courses/current').then((response) => {
+  courses.value = response.data
+}).catch(error => {
+  ElMessage.error(error.response?.data)
+})
+
 const courses = ref<CourseItem[]>([
   {
     id: 1,
@@ -72,7 +89,7 @@ const courses = ref<CourseItem[]>([
     semester: "Spring 2024",
     description: "Fundamental concepts of programming, algorithms, and computer systems. Learn Python programming and basic CS principles.",
     isActive: true,
-    createdAt: "2024-01-15T08:00:00.000Z"
+    createdTime: "2025-01-15T08:00:00.000Z"
   },
   {
     id: 2,
@@ -81,34 +98,7 @@ const courses = ref<CourseItem[]>([
     semester: "Spring 2024",
     description: "Study of linear equations, matrices, vector spaces, and linear transformations. Applications in various fields.",
     isActive: true,
-    createdAt: "2024-01-20T09:30:00.000Z"
-  },
-  {
-    id: 3,
-    courseCode: "PHYS102",
-    courseName: "Physics II: Electricity & Magnetism",
-    semester: "Fall 2023",
-    description: "Advanced study of electrical and magnetic phenomena, including Maxwell's equations and electromagnetic waves.",
-    isActive: false,
-    createdAt: "2023-09-05T10:15:00.000Z"
-  },
-  {
-    id: 4,
-    courseCode: "ENG205",
-    courseName: "Technical Writing",
-    semester: "Spring 2024",
-    description: "Development of technical writing skills for engineering and scientific documentation, reports, and presentations.",
-    isActive: true,
-    createdAt: "2024-02-01T14:20:00.000Z"
-  },
-  {
-    id: 5,
-    courseCode: "CS305",
-    courseName: "Database Systems",
-    semester: "Fall 2023",
-    description: "Design and implementation of database systems, including SQL, data modeling, and database management systems.",
-    isActive: false,
-    createdAt: "2023-08-28T11:45:00.000Z"
+    createdTime: "2025-01-20T09:30:00.000Z"
   }
 ])
 
@@ -129,12 +119,23 @@ const formatDate = (date: string): string => {
   return new Date(date).toLocaleDateString()
 }
 
-const createCourse = () => {
-  console.log('Create Course clicked')
+
+const openCreateDialog = () => {
+  createDialogRef.value.open()
 }
 
-const joinCourse = () => {
-  console.log('Join Course clicked')
+const openJoinDialog = () => {
+  joinDialogRef.value.open()
+}
+
+const handleCourseCreated = (newCourse: CourseItem) => {
+  courses.value.unshift(newCourse)
+  ElMessage.success(`Course ${newCourse.courseCode} was created successfully`)
+}
+
+const handleCourseJoined = (newCourse: CourseItem) => {
+  courses.value.unshift(newCourse)
+  ElMessage.success(`Course ${newCourse.courseCode} was joined successfully`)
 }
 
 const viewCourse = (courseId: number, courseCode: string) => {

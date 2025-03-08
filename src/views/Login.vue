@@ -19,7 +19,7 @@ const loginForm = reactive({
   password: ''
 })
 
-const rules = reactive<FormRules>({
+const rules: FormRules = {
   identifier: [
     { required: true, message: 'Please input username or email', trigger: 'blur' },
     { min: 3, message: 'Length should be at least 3 characters', trigger: 'blur' }
@@ -28,7 +28,7 @@ const rules = reactive<FormRules>({
     { required: true, message: 'Please input password', trigger: 'blur' },
     { min: 6, message: 'Password must be at least 6 characters', trigger: 'blur' }
   ]
-})
+}
 
 const handleLogin = async (formEl?: FormInstance) => {
   if (!formEl) return

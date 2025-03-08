@@ -30,7 +30,7 @@ const resetForm = reactive<ResetPasswordForm>({
   confirmPassword: ''
 })
 
-const rules = reactive<FormRules>({
+const rules: FormRules = {
   email: [
     { required: true, message: 'Please enter email', trigger: 'blur' },
     { type: 'email', message: 'Please enter valid email', trigger: 'blur' }
@@ -56,7 +56,7 @@ const rules = reactive<FormRules>({
     { required: true, message: 'Please enter verification code', trigger: 'blur' },
     { len: 6, message: 'Verification code must be 6 digits', trigger: 'blur' }
   ]
-})
+}
 
 const sendVerificationCode = async () => {
   if (!resetForm.email) {

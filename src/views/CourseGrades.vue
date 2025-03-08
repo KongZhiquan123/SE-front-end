@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { Assignment } from '../types/interfaces.ts'
+import type { Grade } from '../types/interfaces.ts'
 
 const activeTab = ref('all')
 const sortBy = ref('dueDate')
 const sortOrder = ref('ascending')
-const assignments = ref<Assignment[]>([
+const assignments = ref<Grade[]>([
   {
     id: 1,
     name: 'Midterm Exam',
@@ -15,7 +15,10 @@ const assignments = ref<Assignment[]>([
     dueDate: '2024-03-15',
     submittedDate: '2024-03-15',
     gradedDate: '2024-03-18',
-    status: 'graded'
+    feedback: 'Great job!',
+    appealReason: null,
+    appealTime: null,
+    status: 'graded',
   },
   {
     id: 2,
@@ -26,9 +29,19 @@ const assignments = ref<Assignment[]>([
     dueDate: '2024-04-20',
     submittedDate: null,
     gradedDate: null,
+    feedback: null,
+    appealReason: null,
+    appealTime: null,
     status: 'upcoming'
   },
 ])
+
+// Format date function
+const formatDate = (dateString: string | null) => {
+  if (!dateString) return '-'
+  return new Date(dateString).toLocaleDateString()
+}
+
 //自定义排序规则
 const filteredAssignments = computed(() => {
   //浅拷贝assignments数组，避免直接修改assignments
@@ -41,8 +54,8 @@ const filteredAssignments = computed(() => {
   return filtered.sort((a, b) => {
     //如果Assignment对象的sortBy.value属性为null或者undefined，则默认为空字符串
     //as keyof Assignment表示断言sortBy.value的类型是Assignment的key
-    const aValue = a[sortBy.value as keyof Assignment] ?? ''
-    const bValue = b[sortBy.value as keyof Assignment] ?? ''
+    const aValue = a[sortBy.value as keyof Grade] ?? ''
+    const bValue = b[sortBy.value as keyof Grade] ?? ''
 
     //根据sortBy.value的值进行排序，一种是字符串，一种是数字
     if (sortBy.value === 'score') {
@@ -66,7 +79,6 @@ const calculateGrade = computed(() => {
   const totalPossible = gradedAssignments.reduce((sum, a) => sum + a.totalPoints, 0)
   return ((totalEarned / totalPossible) * 100).toFixed(2)
 })
-
 </script>
 
 <template>
@@ -99,6 +111,37 @@ const calculateGrade = computed(() => {
     </div>
 
     <el-table :data="filteredAssignments" stripe>
+      <el-table-column type="expand">
+        <template #default="props">
+          <div class="expanded-details">
+            <el-descriptions :column="1" label-width="150px" border title="Assignment Dates">
+              <el-descriptions-item  label="Submitted Date">
+                {{ formatDate(props.row.submittedDate) }}
+              </el-descriptions-item>
+              <el-descriptions-item label="Graded Date">
+                {{ formatDate(props.row.gradedDate) }}
+              </el-descriptions-item>
+            </el-descriptions>
+
+            <el-descriptions label-width="150px" title="Feedback" :column="1" border class="mt-3">
+              <el-descriptions-item  label="Feedback">
+                <template v-if="props.row.feedback">{{ props.row.feedback }}</template>
+                <template v-else><span class="no-data">No feedback provided</span></template>
+              </el-descriptions-item>
+            </el-descriptions>
+
+            <el-descriptions label-width="150px" title="Appeal Information" :column="1" border class="mt-3">
+              <el-descriptions-item label-width="" label="Appeal Time">
+                {{ formatDate(props.row.appealTime) }}
+              </el-descriptions-item>
+              <el-descriptions-item label="Appeal Reason">
+                <template v-if="props.row.appealReason">{{ props.row.appealReason }}</template>
+                <template v-else><span class="no-data">You have not submitted an appeal</span></template>
+              </el-descriptions-item>
+            </el-descriptions>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column prop="name" label="Assignment" />
       <el-table-column prop="type" label="Type" width="120" />
       <el-table-column label="Score" width="120">
@@ -148,4 +191,21 @@ const calculateGrade = computed(() => {
 .sort-select, .sort-order {
   width: 150px;
 }
+
+
+.expanded-details {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.mt-3 {
+  margin-top: 12px;
+}
+
+.no-data {
+  color: #909399;
+  font-style: italic;
+}
+
 </style>
