@@ -3,7 +3,7 @@ export interface Grade {
     id: number;
     name: string;
     type: string;
-    score: number | null;
+    score?: number | null;
     maxScore: number;
     dueDate: string;
     submittedDate?: string | null;
@@ -26,7 +26,7 @@ export interface CourseMaterial {
     title: string
     type: string
     description: string
-    attachments?: Attachment[]
+    attachments?: Attachment[] | null
 }
 
 //Assignment.vue
@@ -35,12 +35,19 @@ export interface Assignment extends CourseMaterial {
     maxScore: number;
     status: 'open' | 'closed' | 'upcoming';
     instructions?: string;
-    submissionUrl: string;
+}
+
+export interface Submission {
+    id: number,
+    submitTime: string,
+    status: 'PENDING' | 'ACCEPTED' | 'REJECTED',
+    attempts: number
+    attachments: Attachment[]
 }
 
 //Calendar.vue
 export interface Task {
-    id: string;
+    id: number;
     title: string;
     deadline: string;
     completed: boolean;

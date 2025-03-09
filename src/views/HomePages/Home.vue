@@ -65,11 +65,11 @@
 import { ref } from "vue"
 import { useRouter } from 'vue-router'
 import { Plus, Link } from '@element-plus/icons-vue'
-import CreateCourseDialog from "../components/CreateCourseDialog.vue";
-import JoinCourseDialog from "../components/JoinCourseDialog.vue";
-import type { CourseItem } from "../types/interfaces"
+import CreateCourseDialog from "../../components/CreateCourseDialog.vue";
+import JoinCourseDialog from "../../components/JoinCourseDialog.vue";
+import type { CourseItem } from "../../types/interfaces.ts"
 import {ElMessage} from "element-plus";
-import request from "../utils/request.ts";
+import request from "../../utils/request.ts";
 
 const router = useRouter()
 const createDialogRef = ref()
@@ -140,7 +140,7 @@ const handleCourseJoined = (newCourse: CourseItem) => {
 
 const viewCourse = (courseId: number, courseCode: string) => {
   router.push({
-    path: '/course-basic-info',
+    path: '/course/course-basic-info',
     query: { courseId: courseId, courseCode: courseCode }
   })
 }

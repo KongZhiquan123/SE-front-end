@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '../stores/user'
+import { useUserStore } from '../../stores/user.ts'
 import { ElMessage } from 'element-plus'
-import request from "../utils/request.ts";
+import request from "../../utils/request.ts";
 import type { FormInstance, FormRules } from 'element-plus'
 import {UserFilled, Lock} from "@element-plus/icons-vue";
 import type {AxiosError} from "axios";

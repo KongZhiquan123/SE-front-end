@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { Grade } from '../types/interfaces.ts'
+import type { Grade } from '../../types/interfaces.ts'
 
 const activeTab = ref('all')
-const sortBy = ref('dueDate')
-const sortOrder = ref('ascending')
+const sortBy = ref<'dueDate'|'score'|'name'>('dueDate')
+const sortOrder = ref<'ascending'|'descending'>('ascending')
 const assignments = ref<Grade[]>([
   {
     id: 1,
@@ -37,39 +37,28 @@ const assignments = ref<Grade[]>([
 ])
 
 // Format date function
-const formatDate = (dateString: string | null) => {
+const formatDate = (dateString?: string | null) => {
   if (!dateString) return '-'
   return new Date(dateString).toLocaleDateString()
 }
 
 //自定义排序规则
-const filteredAssignments = computed(() => {
-  //浅拷贝assignments数组，避免直接修改assignments
-  let filtered = [...assignments.value]
+const filteredGrades = computed(() => {
+  return assignments.value.filter(
+    assignment => activeTab.value === 'all' || assignment.status === activeTab.value
+    ).sort((a, b) => {
+      if (sortBy.value === 'score') {
+        const aScore = a.score ?? -1
+        const bScore = b.score ?? -1
+        return sortOrder.value === 'ascending' ? aScore - bScore : bScore - aScore
+      }
 
-  if (activeTab.value !== 'all') {
-    filtered = filtered.filter(a => a.status === activeTab.value)
-  }
-
-  return filtered.sort((a, b) => {
-    //如果Assignment对象的sortBy.value属性为null或者undefined，则默认为空字符串
-    //as keyof Assignment表示断言sortBy.value的类型是Assignment的key
-    const aValue = a[sortBy.value as keyof Grade] ?? ''
-    const bValue = b[sortBy.value as keyof Grade] ?? ''
-
-    //根据sortBy.value的值进行排序，一种是字符串，一种是数字
-    if (sortBy.value === 'score') {
-      const aScore = a.score ?? -1
-      const bScore = b.score ?? -1
-      return sortOrder.value === 'ascending' ? aScore - bScore : bScore - aScore
-    }
-
-    const aStr = String(aValue)
-    const bStr = String(bValue)
-    return sortOrder.value === 'ascending'
-        ? aStr.localeCompare(bStr)
-        : bStr.localeCompare(aStr)
-  })
+      const aValue = a[sortBy.value] ?? ''
+      const bValue = b[sortBy.value] ?? ''
+      return sortOrder.value === 'ascending'
+        ? String(aValue).localeCompare(String(bValue))
+        : String(bValue).localeCompare(String(aValue))
+    })
 })
 
 //也许计算总成绩时需要加上权重，这里只是简单的计算
@@ -110,7 +99,7 @@ const calculateGrade = computed(() => {
       </el-select>
     </div>
 
-    <el-table :data="filteredAssignments" stripe>
+    <el-table :data="filteredGrades" stripe>
       <el-table-column type="expand">
         <template #default="props">
           <div class="expanded-details">
@@ -125,7 +114,7 @@ const calculateGrade = computed(() => {
                 <template v-if="props.row.feedback">{{ props.row.feedback }}</template>
                 <template v-else><span class="no-data">No feedback provided</span></template>
               </el-descriptions-item>
-              <el-descriptions-item label-width="" label="Appeal Time">
+              <el-descriptions-item label="Appeal Time">
                 {{ formatDate(props.row.appealTime) }}
               </el-descriptions-item>
               <el-descriptions-item label="Appeal Reason">
@@ -140,7 +129,7 @@ const calculateGrade = computed(() => {
       <el-table-column prop="type" label="Type" width="120" />
       <el-table-column label="Score" width="120">
         <template #default="{ row }">
-          {{ row.score === null ? '-' : `${row.score}/${row.totalPoints}` }}
+          {{ row.score ? `${row.score}/${row.maxScore}` : '-' }}
         </template>
       </el-table-column>
       <el-table-column prop="dueDate" label="Due Date" width="120" />

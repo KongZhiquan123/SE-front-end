@@ -27,8 +27,8 @@ request.interceptors.request.use(
 request.interceptors.response.use(
     response => response,
     (error: AxiosError) => {
+        console.error('Error Request:', error.request)
         console.error('Error Message:', error.response)
-        console.error('Error Request:', error.config)
         console.error('Error Response:', error.response?.data)
         return Promise.reject(error)
     }

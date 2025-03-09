@@ -9,58 +9,69 @@ const router = createRouter({
     routes: [
         {
             path: '/',
-            component: () => import('../views/WithLayoutWrapper.vue'),
+            component: () => import('../views/HomeLayout.vue'),
             children: [
                 {
                     path: '',
-                    component: () => import('../views/Home.vue')
+                    component: () => import('../views/HomePages/Home.vue')
                 },
                 {
                     path: 'calendar',
-                    component: () => import('../views/Calendar.vue'),
+                    component: () => import('../views/HomePages/Calendar.vue'),
                     meta: { requiresAuth: true }
                 },
                 {
                     path: 'archived-classes',
-                    component: () => import('../views/ArchivedClasses.vue'),
+                    component: () => import('../views/HomePages/ArchivedClasses.vue'),
                     meta: { requiresAuth: true }
                 },
                 {
                     path: 'settings',
-                    component: () => import('../views/Settings.vue'),
+                    component: () => import('../views/HomePages/Settings.vue'),
                     meta: { requiresAuth: true }
                 },
-                {
-                    path: 'course-materials',
-                    component: () => import('../views/CourseMaterials.vue'),
-                    meta: { requiresAuth: true }
-                },
-                {
-                    path: 'course-basic-info',
-                    component: () => import('../views/CourseBasicInformation.vue'),
-                    meta: { requiresAuth: true }
-                },
-                {
-                    path: 'course-grades',
-                    component: () => import('../views/CourseGrades.vue'),
-                    meta: { requiresAuth: true }
-                }
             ]
+        },
+        {
+          path: '/course',
+          component: () => import('../views/CourseLayout.vue'),
+          children: [
+              {
+                  path: 'course-materials',
+                  component: () => import('../views/CoursePages/CourseMaterials.vue'),
+                  meta: { requiresAuth: true }
+              },
+              {
+                  path: 'course-basic-info',
+                  component: () => import('../views/CoursePages/CourseBasicInformation.vue'),
+                  meta: { requiresAuth: true }
+              },
+              {
+                  path: 'course-grades',
+                  component: () => import('../views/CoursePages/CourseGrades.vue'),
+                  meta: { requiresAuth: true }
+              },
+              {
+                  path: 'course-assignments',
+                  component: () => import('../views/CoursePages/CourseAssignments.vue'),
+                  meta: { requiresAuth: true }
+              }
+          ]
         },
         {
             path: '/auth',
             children: [
                 {
                     path: 'login',
-                    component: () => import('../views/Login.vue')
+                    component: () => import('../views/AuthPages/Login.vue')
                 },
                 {
                     path: 'register',
-                    component: () => import('../views/Register.vue')
+                    component: () => import('../views/AuthPages/Register.vue')
                 },
                 {
                     path: 'reset-password',
-                    component: () => import('../views/ResetPassword.vue')
+                    component: () => import('../views/AuthPages/ResetPassword.vue')
                 }
             ]
         },

@@ -12,7 +12,7 @@
 
         <p class="material-description">{{ material.description }}</p>
 
-        <div class="attachments-section" v-if="material.attachments.length">
+        <div class="attachments-section" v-if="material.attachments?.length">
           <h4>Attachments:</h4>
           <el-card v-for="file in material.attachments"
                    :key="file.id"
@@ -33,7 +33,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Document } from '@element-plus/icons-vue'
-import type {CourseMaterial} from '../types/interfaces.ts'
+import type {CourseMaterial} from '../../types/interfaces.ts'
 
 
 

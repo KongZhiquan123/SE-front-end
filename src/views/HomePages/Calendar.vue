@@ -82,7 +82,7 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 import {ArrowLeft, ArrowRight} from "@element-plus/icons-vue";
-import type {Task} from '../types/interfaces.ts'
+import type {Task} from '../../types/interfaces.ts'
 
 const currentDate = ref(new Date())
 const viewType = ref('month')
@@ -91,7 +91,7 @@ const selectedTask = ref<Task | null>(null)
 
 const tasks = ref<Task[]>([
   {
-    id: '1',
+    id: 1,
     title: 'Math Assignment',
     deadline: '2025-03-20',
     completed: false,
@@ -100,7 +100,7 @@ const tasks = ref<Task[]>([
     description: 'Complete exercises 1-10'
   },
   {
-    id: '2',
+    id: 2,
     title: 'Physics Lab Report',
     deadline: '2025-03-22',
     completed: true,

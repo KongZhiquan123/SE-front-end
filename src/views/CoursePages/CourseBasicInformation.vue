@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import VueMarkdownRender from 'vue-markdown-render';
-import type {CourseBasicInfo} from "../types/interfaces.ts";
+import type {CourseBasicInfo} from "../../types/interfaces.ts";
 
 
 const basicInfo = ref<CourseBasicInfo>({
