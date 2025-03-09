@@ -11,7 +11,7 @@ const assignments = ref<Grade[]>([
     name: 'Midterm Exam',
     type: 'Exam',
     score: 90,
-    totalPoints: 100,
+    maxScore: 100,
     dueDate: '2024-03-15',
     submittedDate: '2024-03-15',
     gradedDate: '2024-03-18',
@@ -25,7 +25,7 @@ const assignments = ref<Grade[]>([
     name: 'Final Project',
     type: 'Project',
     score: null,
-    totalPoints: 100,
+    maxScore: 100,
     dueDate: '2024-04-20',
     submittedDate: null,
     gradedDate: null,
@@ -76,7 +76,7 @@ const filteredAssignments = computed(() => {
 const calculateGrade = computed(() => {
   const gradedAssignments = assignments.value.filter(a => a.status === 'graded')
   const totalEarned = gradedAssignments.reduce((sum, a) => sum + (a.score ?? 0), 0)
-  const totalPossible = gradedAssignments.reduce((sum, a) => sum + a.totalPoints, 0)
+  const totalPossible = gradedAssignments.reduce((sum, a) => sum + a.maxScore, 0)
   return ((totalEarned / totalPossible) * 100).toFixed(2)
 })
 </script>
@@ -114,23 +114,17 @@ const calculateGrade = computed(() => {
       <el-table-column type="expand">
         <template #default="props">
           <div class="expanded-details">
-            <el-descriptions :column="1" label-width="150px" border title="Assignment Dates">
+            <el-descriptions :column="1" label-width="150px" border title="Assignment Details">
               <el-descriptions-item  label="Submitted Date">
                 {{ formatDate(props.row.submittedDate) }}
               </el-descriptions-item>
               <el-descriptions-item label="Graded Date">
                 {{ formatDate(props.row.gradedDate) }}
               </el-descriptions-item>
-            </el-descriptions>
-
-            <el-descriptions label-width="150px" title="Feedback" :column="1" border class="mt-3">
               <el-descriptions-item  label="Feedback">
                 <template v-if="props.row.feedback">{{ props.row.feedback }}</template>
                 <template v-else><span class="no-data">No feedback provided</span></template>
               </el-descriptions-item>
-            </el-descriptions>
-
-            <el-descriptions label-width="150px" title="Appeal Information" :column="1" border class="mt-3">
               <el-descriptions-item label-width="" label="Appeal Time">
                 {{ formatDate(props.row.appealTime) }}
               </el-descriptions-item>
@@ -153,7 +147,7 @@ const calculateGrade = computed(() => {
       <el-table-column prop="status" label="Status" width="120">
         <template #default="{ row }">
           <el-tag :type="row.status === 'graded' ? 'success' :
-                        row.status === 'submitted' ? 'warning' :
+                        row.status === 'submitted' || row.status === 'appealed' ? 'warning' :
                         row.status === 'upcoming' ? 'info' : 'danger'">
             {{ row.status }}
           </el-tag>
@@ -197,10 +191,6 @@ const calculateGrade = computed(() => {
   padding: 20px;
   max-width: 800px;
   margin: 0 auto;
-}
-
-.mt-3 {
-  margin-top: 12px;
 }
 
 .no-data {

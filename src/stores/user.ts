@@ -4,6 +4,7 @@ interface UserState {
     id?: string | null
     username: string | null
     email: string | null
+    role: string | null
     token: string | null
 }
 
@@ -12,6 +13,7 @@ export const useUserStore = defineStore('user', {
         id: null,
         username: null,
         email: null,
+        role: null,
         token: null
     }),
     actions: {
@@ -26,6 +28,7 @@ export const useUserStore = defineStore('user', {
             this.id = null
             this.username = null
             this.email = null
+            this.role = null
             this.token = null
             localStorage.removeItem('token')
         }

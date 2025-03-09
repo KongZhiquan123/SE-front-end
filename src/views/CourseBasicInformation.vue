@@ -6,7 +6,7 @@ import type {CourseBasicInfo} from "../types/interfaces.ts";
 
 const basicInfo = ref<CourseBasicInfo>({
   courseName: "CS",
-  teacher: "JC, ZHQ, LYF, KZQ, PJW",
+  instructor: "JC, ZHQ, LYF, KZQ, PJW",
   email: "1111@gmail.com",
   courseDescription: `# Course Overview
 * This is a markdown example
@@ -26,7 +26,7 @@ def hello():
       <h2>Basic Information</h2>
       <el-descriptions :column="1" border label-width="300px">
         <el-descriptions-item label="Course Name">{{ basicInfo.courseName }}</el-descriptions-item>
-        <el-descriptions-item label="Teacher">{{ basicInfo.teacher }}</el-descriptions-item>
+        <el-descriptions-item label="Teacher">{{ basicInfo.instructor }}</el-descriptions-item>
         <el-descriptions-item label="Email">{{ basicInfo.email }}</el-descriptions-item>
       </el-descriptions>
     </div>

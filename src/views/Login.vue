@@ -48,6 +48,7 @@ const handleLogin = async (formEl?: FormInstance) => {
         id: null,
         username: loginForm.identifier,
         email: null,
+        role: null,
         token: data.jwt
       })
 

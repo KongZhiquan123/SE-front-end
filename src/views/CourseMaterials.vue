@@ -39,23 +39,23 @@ import type {CourseMaterial} from '../types/interfaces.ts'
 
 const courseMaterials = ref<CourseMaterial[]>([
   {
-    id: '1',
+    id: 1,
     title: 'Course Syllabus',
     type: 'Document',
     description: 'Complete course syllabus including grading criteria and schedule.',
     attachments: [
-      { id: '1', name: 'syllabus.pdf', size: '2.3 MB' },
-      { id: '2', name: 'schedule.xlsx', size: '156 KB' }
+      { id: 1, name: 'syllabus.pdf', size: '2.3 MB' , url: 'https://example.com/syllabus.pdf'},
+      { id: 2, name: 'schedule.xlsx', size: '156 KB' , url: 'https://example.com/schedule.xlsx'}
     ]
   },
   {
-    id: '2',
+    id: 2,
     title: 'Week 1 Materials',
     type: 'Lecture',
     description: 'Introduction to the course topics and basic concepts.',
     attachments: [
-      { id: '3', name: 'lecture_slides.pptx', size: '5.1 MB' },
-      { id: '4', name: 'reading_material.pdf', size: '1.8 MB' }
+      { id: 3, name: 'lecture_slides.pptx', size: '5.1 MB' , url: 'https://example.com/lecture_slides.pptx'},
+      { id: 4, name: 'reading_material.pdf', size: '1.8 MB' , url: 'https://example.com/reading_material.pdf'}
     ]
   }
 ])

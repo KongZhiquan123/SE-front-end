@@ -4,7 +4,7 @@ export interface Grade {
     name: string;
     type: string;
     score: number | null;
-    totalPoints: number;
+    maxScore: number;
     dueDate: string;
     submittedDate?: string | null;
     gradedDate?: string | null;
@@ -16,16 +16,17 @@ export interface Grade {
 
 //CourseMaterial.vue
 export interface Attachment {
-    id: string
+    id: number
     name: string
     size: string
+    url: string
 }
 export interface CourseMaterial {
-    id: string
+    id: number
     title: string
     type: string
     description: string
-    attachments: Attachment[]
+    attachments?: Attachment[]
 }
 
 //Assignment.vue
@@ -62,7 +63,7 @@ export interface CourseItem {
 //CourseBasicInformation.vue
 export interface CourseBasicInfo {
     courseName: string;
-    teacher: string;
+    instructor: string;
     email: string;
     courseDescription: string;
 }
