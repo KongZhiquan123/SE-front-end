@@ -82,7 +82,8 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 import {ArrowLeft, ArrowRight} from "@element-plus/icons-vue";
-import type {Task} from '../../types/interfaces.ts'
+import type {Task} from '@/types/interfaces.ts'
+import {formatDate} from "@/utils/formatDate.ts";
 
 const currentDate = ref(new Date())
 const viewType = ref('month')
@@ -116,9 +117,6 @@ const getTasksForDate = (date: string) => {
 
 const isOverdue = (task: Task) => {
   return !task.completed && new Date(task.deadline) < new Date()
-}
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString()
 }
 
 const openTaskDetails = (task: Task) => {

@@ -65,11 +65,12 @@
 import { ref } from "vue"
 import { useRouter } from 'vue-router'
 import { Plus, Link } from '@element-plus/icons-vue'
-import CreateCourseDialog from "../../components/CreateCourseDialog.vue";
-import JoinCourseDialog from "../../components/JoinCourseDialog.vue";
-import type { CourseItem } from "../../types/interfaces.ts"
+import CreateCourseDialog from "@/components/CreateCourseDialog.vue";
+import JoinCourseDialog from "@/components/JoinCourseDialog.vue";
+import type { CourseItem } from "@/types/interfaces.ts"
 import {ElMessage} from "element-plus";
-import request from "../../utils/request.ts";
+import request from "@/utils/request.ts";
+import {formatDate} from "@/utils/formatDate.ts";
 
 const router = useRouter()
 const createDialogRef = ref()
@@ -114,11 +115,6 @@ const colors = [
 const getCardColor = (index: number): string => {
   return colors[index % colors.length]
 }
-
-const formatDate = (date: string): string => {
-  return new Date(date).toLocaleDateString()
-}
-
 
 const openCreateDialog = () => {
   createDialogRef.value.open()

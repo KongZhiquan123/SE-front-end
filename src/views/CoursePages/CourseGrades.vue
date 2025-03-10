@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { Grade } from '../../types/interfaces.ts'
+import type { Grade } from '@/types/interfaces'
 import {ChatLineRound, Document, View, Warning, Timer, InfoFilled} from "@element-plus/icons-vue";
+import {formatDate} from "@/utils/formatDate";
 
 const activeTab = ref('all')
 const sortBy = ref<'dueDate'|'score'|'title'>('dueDate')
@@ -37,12 +38,6 @@ const grades = ref<Grade[]>([
   },
 ])
 
-// Format date function
-const formatDate = (dateString?: string | null) => {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-}
 
 // 自定义排序规则
 const filteredGrades = computed(() => {
@@ -143,7 +138,7 @@ const showDetails = (row: Grade) => {
       </div>
 
       <el-table :data="filteredGrades" stripe class="grade-table" @row-click="showDetails">
-        <el-table-column prop="title" label="Assignment" min-width="180">
+        <el-table-column prop="title" label="Assignment or Exam" min-width="180">
           <template #default="{ row }">
             <div class="assignment-title">
               <el-icon class="icon"><Document /></el-icon>

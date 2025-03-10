@@ -33,7 +33,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Document } from '@element-plus/icons-vue'
-import type {CourseMaterial} from '../../types/interfaces.ts'
+import type {CourseMaterial} from '@/types/interfaces'
 
 
 

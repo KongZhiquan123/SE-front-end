@@ -2,7 +2,8 @@
 import {ref, computed} from 'vue'
 import {ElMessage, ElDivider} from 'element-plus'
 import {Document, Download, Upload} from "@element-plus/icons-vue";
-import type {Assignment, Submission, Attachment} from '../../types/interfaces.ts'
+import {formatDate} from "@/utils/formatDate";
+import type {Assignment, Submission, Attachment} from '@/types/interfaces'
 
 const assignments = ref<Assignment[]>([])
 const submissions = ref<Submission[]>([])
@@ -132,11 +133,6 @@ const filteredAssignments = computed(() => {
             : b[sortBy.value].localeCompare(a[sortBy.value])
       })
 })
-
-const formatDate = (dateString: string) => {
-  if (!dateString) return '-'
-  return new Date(dateString).toLocaleString()
-}
 
 const showSubmissionHistory = (assignment: Assignment) => {
   activeAssignment.value = assignment
