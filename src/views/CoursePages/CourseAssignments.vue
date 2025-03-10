@@ -116,19 +116,20 @@ const filteredAssignments = computed(() => {
           return sortOrder.value === 'ascending'
               ? a.maxScore - b.maxScore
               : b.maxScore - a.maxScore
+
+        }
         //日期排序
-        } else if (sortBy.value === 'dueDate') {
+        if (sortBy.value === 'dueDate') {
           const aDate = new Date(a.dueDate).getTime()
           const bDate = new Date(b.dueDate).getTime()
           return sortOrder.value === 'ascending'
               ? aDate - bDate
               : bDate - aDate
-        //名字字符串排序
-        } else {
-          return sortOrder.value === 'ascending'
-              ? a[sortBy.value].localeCompare(b[sortBy.value])
-              : b[sortBy.value].localeCompare(a[sortBy.value])
         }
+        //名字字符串排序
+        return sortOrder.value === 'ascending'
+            ? a[sortBy.value].localeCompare(b[sortBy.value])
+            : b[sortBy.value].localeCompare(a[sortBy.value])
       })
 })
 
@@ -151,24 +152,18 @@ const closeSubmissionPanel = () => {
   activeAssignment.value = null
   drawerVisible.value = false
 }
-
+//获取状态类型
 const getStatusType = (status: string) => {
-  switch (status) {
-    case 'open':
-      return 'success'
-    case 'upcoming':
-      return 'info'
-    case 'closed':
-      return 'danger'
-    case 'ACCEPTED':
-      return 'success'
-    case 'PENDING':
-      return 'warning'
-    case 'REJECTED':
-      return 'danger'
-    default:
-      return 'info'
+  const statusMap: Record<string, string> = {
+    open: 'success',
+    upcoming: 'info',
+    closed: 'danger',
+    ACCEPTED: 'success',
+    PENDING: 'warning',
+    REJECTED: 'danger'
   }
+
+  return statusMap[status] || 'info'
 }
 
 const getStatusText = (status: string) => {

@@ -1,7 +1,7 @@
 //CourseGrades.vue
 export interface Grade {
     id: number;
-    name: string;
+    title: string;
     type: string;
     score?: number | null;
     maxScore: number;
@@ -34,7 +34,7 @@ export interface Assignment extends CourseMaterial {
     dueDate: string;
     maxScore: number;
     status: 'open' | 'closed' | 'upcoming';
-    instructions?: string;
+    instructions?: string | null;
 }
 
 export interface Submission {
@@ -53,7 +53,7 @@ export interface Task {
     completed: boolean;
     courseId: string;
     courseName: string;
-    description?: string;
+    description?: string | null;
 }
 
 //Home.vue
