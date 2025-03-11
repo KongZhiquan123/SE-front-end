@@ -4,10 +4,10 @@ import { ElMessage } from 'element-plus'
 import { UserFilled, Lock, Message } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useRouter } from 'vue-router'
-import request from "../../utils/request.ts";
-import type { RegisterForm } from '../../types/interfaces.ts'
+import request from "@/utils/request.ts";
+import type { RegisterForm } from '@/types/interfaces'
 import type {AxiosError} from "axios";
-import useVerificationCode from "../../utils/useVerificationCode.ts";
+import useVerificationCode from "@/utils/useVerificationCode.ts";
 
 const router = useRouter()
 const loading = ref(false)

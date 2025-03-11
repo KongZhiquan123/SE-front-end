@@ -4,9 +4,9 @@ import { ElMessage } from 'element-plus'
 import { Lock, Message } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useRouter } from 'vue-router'
-import request from "../../utils/request.ts"
+import request from "@/utils/request.ts"
 import type { AxiosError } from "axios"
-import useVerificationCode from '../../utils/useVerificationCode.ts'
+import useVerificationCode from '@/utils/useVerificationCode.ts'
 
 // 定义重置密码表单接口
 interface ResetPasswordForm {
