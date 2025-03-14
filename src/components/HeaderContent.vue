@@ -30,7 +30,7 @@
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <el-button v-if="userStore.token" link type="primary" @click="logout">Log Out</el-button>
+      <el-button v-if="userStore.authorized" link type="primary" @click="logout">Log Out</el-button>
       <el-button v-else link type="primary" @click="login">Log In</el-button>
     </div>
   </el-header>
@@ -39,7 +39,7 @@
 <script setup lang="ts">
 import { Fold, Grid, Plus } from '@element-plus/icons-vue'
 import { useRouter } from "vue-router"
-import { useUserStore } from '../stores/user'
+import { useUserStore } from '@/stores/user'
 //向父组件发送事件toggle-collapse，父组件监听到事件后，执行toggleCollapse方法，实现侧边栏的展开和收缩
 defineEmits(['toggle-collapse'])
 const router = useRouter()

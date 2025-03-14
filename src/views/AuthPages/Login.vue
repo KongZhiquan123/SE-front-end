@@ -49,9 +49,9 @@ const handleLogin = async (formEl?: FormInstance) => {
         username: loginForm.identifier,
         email: null,
         role: null,
-        token: data.jwt
+        token: data.jwt,
+        authorized: true
       })
-
       ElMessage.success('Login successful')
       await router.push('/')
     } catch (error) {
@@ -92,6 +92,7 @@ const handleLogin = async (formEl?: FormInstance) => {
               type="password"
               placeholder="Please enter your password"
               :prefix-icon="Lock"
+              @keydown.enter="handleLogin(loginFormRef)"
               show-password
           />
         </el-form-item>

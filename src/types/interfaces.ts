@@ -64,13 +64,13 @@ export interface CourseItem {
     semester: string
     description: string
     isActive: boolean
-    createdTime: string
+    createdAt: string
 }
 
 //CourseBasicInformation.vue
 export interface CourseBasicInfo {
     courseName: string;
-    instructor: string;
+    teacher: string;
     email: string;
     courseDescription: string;
 }

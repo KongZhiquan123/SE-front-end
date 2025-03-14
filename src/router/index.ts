@@ -1,4 +1,5 @@
 import {createRouter, createWebHistory} from 'vue-router'
+import {useUserStore} from "@/stores/user";
 /*
 路由元含义：
 requiresAuth: 是否需要登录才能访问
@@ -85,8 +86,8 @@ const router = createRouter({
 
 //路由守卫，检查是否登录
 router.beforeEach((to, from, next) => {
-    const isAuthenticated = localStorage.getItem('token')
-    if (to.meta.requiresAuth && !isAuthenticated) {
+    const userStore = useUserStore()
+    if (to.meta.requiresAuth && !userStore.authorized) {
         next('/auth/login')
         console.log(`You can't access this page from ${from.fullPath} without logging in`)
     } else {

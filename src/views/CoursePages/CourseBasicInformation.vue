@@ -2,22 +2,22 @@
 import { ref } from "vue";
 import VueMarkdownRender from 'vue-markdown-render';
 import type {CourseBasicInfo} from "@/types/interfaces";
+import {useRoute} from "vue-router";
+import fetchData from "@/utils/apiUtils";
 
-
+const courseId = useRoute().query.courseId;
 const basicInfo = ref<CourseBasicInfo>({
-  courseName: "CS",
-  instructor: "JC, ZHQ, LYF, KZQ, PJW",
-  email: "1111@gmail.com",
-  courseDescription: `# Course Overview
-* This is a markdown example
-* Support **bold** and *italic* text
-* Support code blocks:
-\`\`\`python
-def hello():
-    print("Hello World")
-\`\`\`
-`
+  courseName: "",
+  teacher: "",
+  email: "",
+  courseDescription: "",
 });
+
+fetchData<CourseBasicInfo>(`/students/courses/${courseId}`).then((res) => {
+  basicInfo.value = res;
+})
+
+
 </script>
 
 <template>
@@ -26,7 +26,7 @@ def hello():
       <h2>Basic Information</h2>
       <el-descriptions :column="1" border label-width="300px">
         <el-descriptions-item label="Course Name">{{ basicInfo.courseName }}</el-descriptions-item>
-        <el-descriptions-item label="Teacher">{{ basicInfo.instructor }}</el-descriptions-item>
+        <el-descriptions-item label="Teacher">{{ basicInfo.teacher }}</el-descriptions-item>
         <el-descriptions-item label="Email">{{ basicInfo.email }}</el-descriptions-item>
       </el-descriptions>
     </div>

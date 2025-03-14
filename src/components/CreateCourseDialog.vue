@@ -52,7 +52,7 @@
 import { ref, reactive } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
-import request from "../utils/request.ts";
+import request from "@/utils/request.ts";
 
 const dialogVisible = ref(false)
 const loading = ref(false)
@@ -98,7 +98,6 @@ const submitForm = async () => {
       closeDialog()
     } catch (error) {
       ElMessage.error('Failed to create course')
-      console.error(error)
     } finally {
       loading.value = false
     }

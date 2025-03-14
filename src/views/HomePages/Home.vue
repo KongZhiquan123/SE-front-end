@@ -45,7 +45,7 @@
             <h3 class="course-name">{{ course.courseName }}</h3>
             <p class="course-description">{{ course.description }}</p>
             <div class="course-footer">
-              <span class="created-date">Created: {{ formatDate(course.createdTime) }}</span>
+              <span class="created-date">Created: {{ formatDate(course.createdAt) }}</span>
               <el-tag size="small" :type="course.isActive ? 'success' : 'info'">
                 {{ course.isActive ? 'Active' : 'Inactive' }}
               </el-tag>
@@ -69,39 +69,21 @@ import CreateCourseDialog from "@/components/CreateCourseDialog.vue";
 import JoinCourseDialog from "@/components/JoinCourseDialog.vue";
 import type { CourseItem } from "@/types/interfaces.ts"
 import {ElMessage} from "element-plus";
-import request from "@/utils/request.ts";
 import {formatDate} from "@/utils/formatDate.ts";
+import {useUserStore} from "@/stores/user";
+import fetchData from "@/utils/apiUtils";
 
 const router = useRouter()
 const createDialogRef = ref()
 const joinDialogRef = ref()
+const userStore = useUserStore()
 
-request.get('/students/courses/current').then((response) => {
-  courses.value = response.data
-}).catch(error => {
-  ElMessage.error(error.response?.data)
-})
-
-const courses = ref<CourseItem[]>([
-  {
-    id: 1,
-    courseCode: "CS101",
-    courseName: "Introduction to Computer Science",
-    semester: "Spring 2024",
-    description: "Fundamental concepts of programming, algorithms, and computer systems. Learn Python programming and basic CS principles.",
-    isActive: true,
-    createdTime: "2025-01-15T08:00:00.000Z"
-  },
-  {
-    id: 2,
-    courseCode: "MATH201",
-    courseName: "Linear Algebra",
-    semester: "Spring 2024",
-    description: "Study of linear equations, matrices, vector spaces, and linear transformations. Applications in various fields.",
-    isActive: true,
-    createdTime: "2025-01-20T09:30:00.000Z"
-  }
-])
+const courses = ref<CourseItem[]>([])
+if (userStore.authorized) {
+  fetchData<CourseItem[]>('/students/courses/current').then((response) => {
+    courses.value = response ?? []
+  })
+}
 
 const colors = [
   '#4CAF50', // Green

@@ -18,7 +18,9 @@
                    :key="file.id"
                    class="attachment-card">
             <div class="attachment-info">
-              <el-icon><Document /></el-icon>
+              <el-icon>
+                <Document/>
+              </el-icon>
               <span class="filename">{{ file.name }}</span>
               <span class="filesize">{{ file.size }}</span>
               <el-button type="primary" link>Download</el-button>
@@ -31,34 +33,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Document } from '@element-plus/icons-vue'
+import {ref} from 'vue'
+import {Document} from '@element-plus/icons-vue'
 import type {CourseMaterial} from '@/types/interfaces'
+import fetchData from "@/utils/apiUtils";
+import {useRoute} from "vue-router";
 
-
-
-const courseMaterials = ref<CourseMaterial[]>([
-  {
-    id: 1,
-    title: 'Course Syllabus',
-    type: 'Document',
-    description: 'Complete course syllabus including grading criteria and schedule.',
-    attachments: [
-      { id: 1, name: 'syllabus.pdf', size: '2.3 MB' , url: 'https://example.com/syllabus.pdf'},
-      { id: 2, name: 'schedule.xlsx', size: '156 KB' , url: 'https://example.com/schedule.xlsx'}
-    ]
-  },
-  {
-    id: 2,
-    title: 'Week 1 Materials',
-    type: 'Lecture',
-    description: 'Introduction to the course topics and basic concepts.',
-    attachments: [
-      { id: 3, name: 'lecture_slides.pptx', size: '5.1 MB' , url: 'https://example.com/lecture_slides.pptx'},
-      { id: 4, name: 'reading_material.pdf', size: '1.8 MB' , url: 'https://example.com/reading_material.pdf'}
-    ]
-  }
-])
+const courseMaterials = ref<CourseMaterial[]>([])
+const route = useRoute()
+fetchData<CourseMaterial[]>(`/students/courses/${route.query.courseId}/resources`)
+    .then((data) => {
+      courseMaterials.value = data ?? []
+    })
 </script>
 
 <style scoped>

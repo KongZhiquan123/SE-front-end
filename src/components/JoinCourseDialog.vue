@@ -80,7 +80,6 @@ const submitForm = async () => {
 
     } catch (error) {
       ElMessage.error('Failed to join course')
-      console.error(error)
     } finally {
       loading.value = false
     }

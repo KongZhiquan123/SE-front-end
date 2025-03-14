@@ -6,6 +6,7 @@ import App from './App.vue'
 import router from './router'
 import {createPinia} from "pinia";
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import {useUserStore} from "@/stores/user";
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
@@ -13,3 +14,12 @@ pinia.use(piniaPluginPersistedstate)
 const app = createApp(App)
 app.use(ElementPlus).use(router).use(pinia)
 app.mount('#app')
+
+const userStore = useUserStore()
+userStore.autoLogin().then((loggedIn) => {
+    if (loggedIn) {
+        console.log('Auto login successful')
+    } else {
+        console.log('No token or invalid token')
+    }
+})
