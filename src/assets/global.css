@@ -3,6 +3,7 @@
     --section-heading-margin: 20px;
     --header-content-height: 8vh;
     --main-content-height: calc(100vh - var(--header-content-height));
+    --background-color: #f5f7fa;
 }
 
 .info-section {

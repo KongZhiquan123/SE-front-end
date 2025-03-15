@@ -24,6 +24,10 @@
         <el-icon><Setting /></el-icon>
         <span>Settings</span>
       </el-menu-item>
+      <el-menu-item index="/notifications">
+        <el-icon><Notification /></el-icon>
+        <span>Notifications</span>
+      </el-menu-item>
     </el-menu>
   </el-aside>
 </template>
@@ -31,7 +35,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ElMenu, ElMenuItem } from 'element-plus'
-import { House, Calendar, Files, Setting } from '@element-plus/icons-vue'
+import {House, Calendar, Files, Setting, Notification} from '@element-plus/icons-vue'
 
 defineProps<{
   isCollapse: boolean

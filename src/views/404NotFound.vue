@@ -13,15 +13,17 @@ const goBack = () => {
 </script>
 
 <template>
-  <el-main class="not-found-container">
-    <div class="not-found-content">
-      <!-- 记得尽量让配色与element-plus保持一致 -->
-      <h1 class="error-code">404</h1>
-      <h2 class="error-title">Page Not Found</h2>
-      <p class="error-description">The page you're looking for doesn't exist or has been moved.</p>
-      <p class="back-link" @click="goBack">← Click here to go back</p>
-    </div>
-  </el-main>
+  <el-container style="height: 100vh;">
+    <el-main class="not-found-container">
+      <div class="not-found-content">
+        <!-- 记得尽量让配色与element-plus保持一致 -->
+        <h1 class="error-code">404</h1>
+        <h2 class="error-title">Page Not Found</h2>
+        <p class="error-description">The page you're looking for doesn't exist or has been moved.</p>
+        <p class="back-link" @click="goBack">← Click here to go back</p>
+      </div>
+    </el-main>
+</el-container>
 </template>
 
 <style scoped>

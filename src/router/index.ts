@@ -31,10 +31,15 @@ const router = createRouter({
                     component: () => import('../views/HomePages/Settings.vue'),
                     meta: { requiresAuth: true }
                 },
+                {
+                    path: 'notifications',
+                    component: () => import('../views/HomePages/Notifications.vue'),
+                    meta: { requiresAuth: true }
+                }
             ]
         },
         {
-          path: '/course',
+          path: '/student-course',
           component: () => import('../views/CourseLayout.vue'),
           children: [
               {

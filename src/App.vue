@@ -17,4 +17,7 @@
 .fade-leave-to {
   opacity: 0;
 }
+:deep(.el-container) {
+  background: var(--background-color);
+}
 </style>

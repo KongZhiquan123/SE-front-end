@@ -85,4 +85,15 @@ export interface RegisterForm {
     verificationCode: string
 }
 
+//Notifications.vue
+export interface Notification {
+    id: number;
+    title: string;
+    content: string;
+    isRead: boolean;
+    createdAt: string;
+    sender?: string;                 // 发送者名称
+    relatedCourse?: string;          // 相关课程代码
+    priority: 'low' | 'medium' | 'high'; // 优先级
+}
 

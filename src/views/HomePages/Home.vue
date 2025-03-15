@@ -69,9 +69,9 @@ import CreateCourseDialog from "@/components/CreateCourseDialog.vue";
 import JoinCourseDialog from "@/components/JoinCourseDialog.vue";
 import type { CourseItem } from "@/types/interfaces.ts"
 import {ElMessage} from "element-plus";
-import {formatDate} from "@/utils/formatDate.ts";
+import {formatDate} from "@/utils/formatDate";
 import {useUserStore} from "@/stores/user";
-import fetchData from "@/utils/apiUtils";
+import apiRequest from "@/utils/apiUtils";
 
 const router = useRouter()
 const createDialogRef = ref()
@@ -80,7 +80,7 @@ const userStore = useUserStore()
 
 const courses = ref<CourseItem[]>([])
 if (userStore.authorized) {
-  fetchData<CourseItem[]>('/students/courses/current').then((response) => {
+  apiRequest<CourseItem[]>('/students/courses/current').then((response) => {
     courses.value = response ?? []
   })
 }
@@ -118,7 +118,7 @@ const handleCourseJoined = (newCourse: CourseItem) => {
 
 const viewCourse = (courseId: number, courseCode: string) => {
   router.push({
-    path: '/course/course-basic-info',
+    path: '/student-course/course-basic-info',
     query: { courseId: courseId, courseCode: courseCode }
   })
 }

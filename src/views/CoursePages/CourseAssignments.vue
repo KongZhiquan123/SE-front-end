@@ -174,7 +174,7 @@ const downloadFile = (file: Attachment) => {
 </script>
 
 <template>
-  <el-main class="assignment-container">
+  <el-main>
     <el-card class="assignment-card">
       <div class="header">
         <h2>Assignments</h2>
@@ -353,11 +353,6 @@ const downloadFile = (file: Attachment) => {
 </template>
 
 <style scoped>
-.assignment-container {
-  padding: 20px;
-  background-color: #f5f7fa;
-}
-
 .assignment-card {
   margin-bottom: 20px;
 }

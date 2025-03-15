@@ -17,7 +17,7 @@ const route = useRoute()
 const queryParams = computed(() => {
   return `?courseId=${route.query.courseId}&courseCode=${route.query.courseCode}`
 })
-const activeIndex = ref(`/course/course-basic-info${queryParams.value}`)
+const activeIndex = ref(`/student-course/course-basic-info${queryParams.value}`)
 </script>
 
 <template>
@@ -33,25 +33,25 @@ const activeIndex = ref(`/course/course-basic-info${queryParams.value}`)
         :collapse="isCollapse"
         router
     >
-      <el-menu-item :index="`/course/course-basic-info${queryParams}`">
+      <el-menu-item :index="`/student-course/course-basic-info${queryParams}`">
         <el-icon>
           <info-filled/>
         </el-icon>
         <span>Basic Information</span>
       </el-menu-item>
-      <el-menu-item :index="`/course/course-materials${queryParams}`">
+      <el-menu-item :index="`/student-course/course-materials${queryParams}`">
         <el-icon>
           <files/>
         </el-icon>
         <span>Class Materials</span>
       </el-menu-item>
-      <el-menu-item :index="`/course/course-assignments${queryParams}`">
+      <el-menu-item :index="`/student-course/course-assignments${queryParams}`">
         <el-icon>
           <files/>
         </el-icon>
         <span>Assignments</span>
       </el-menu-item>
-      <el-menu-item :index="`/course/course-grades${queryParams}`">
+      <el-menu-item :index="`/student-course/course-grades${queryParams}`">
         <el-icon>
           <gold-medal/>
         </el-icon>

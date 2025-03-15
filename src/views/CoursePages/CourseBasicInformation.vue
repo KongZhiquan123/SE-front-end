@@ -3,7 +3,7 @@ import { ref } from "vue";
 import VueMarkdownRender from 'vue-markdown-render';
 import type {CourseBasicInfo} from "@/types/interfaces";
 import {useRoute} from "vue-router";
-import fetchData from "@/utils/apiUtils";
+import apiRequest from "@/utils/apiUtils";
 
 const courseId = useRoute().query.courseId;
 const basicInfo = ref<CourseBasicInfo>({
@@ -13,7 +13,7 @@ const basicInfo = ref<CourseBasicInfo>({
   courseDescription: "",
 });
 
-fetchData<CourseBasicInfo>(`/students/courses/${courseId}`).then((res) => {
+apiRequest<CourseBasicInfo>(`/students/courses/${courseId}`).then((res) => {
   basicInfo.value = res;
 })
 

@@ -36,12 +36,12 @@
 import {ref} from 'vue'
 import {Document} from '@element-plus/icons-vue'
 import type {CourseMaterial} from '@/types/interfaces'
-import fetchData from "@/utils/apiUtils";
+import apiRequest from "@/utils/apiUtils";
 import {useRoute} from "vue-router";
 
 const courseMaterials = ref<CourseMaterial[]>([])
 const route = useRoute()
-fetchData<CourseMaterial[]>(`/students/courses/${route.query.courseId}/resources`)
+apiRequest<CourseMaterial[]>(`/students/courses/${route.query.courseId}/resources`)
     .then((data) => {
       courseMaterials.value = data ?? []
     })
