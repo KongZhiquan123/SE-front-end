@@ -4,7 +4,9 @@ import {ElMessage, ElDivider} from 'element-plus'
 import {Document, Download, Upload} from "@element-plus/icons-vue";
 import {formatDate} from "@/utils/formatDate";
 import type {Assignment, Submission, Attachment} from '@/types/interfaces'
+import {useRouter} from "vue-router";
 
+const router = useRouter()
 const assignments = ref<Assignment[]>([])
 const submissions = ref<Submission[]>([])
 const activeAssignment = ref<Assignment | null>(null)
@@ -12,67 +14,73 @@ const filterStatus = ref<string>('all')
 const sortBy = ref<'dueDate' | 'title' | 'maxScore'>('dueDate')
 const sortOrder = ref<'ascending' | 'descending'>('ascending')
 const drawerVisible = ref(false)
-
+const loading = ref<boolean>(true)
 // Fetch methods to be implemented
 const fetchAssignments = async (): Promise<Assignment[]> => {
-  // Replace with actual API call
-  return [
-    {
-      id: 1,
-      title: 'Midterm Essay',
-      type: 'Essay',
-      description: 'Write a 5-page essay on the topic provided',
-      dueDate: '2023-11-15T23:59:59',
-      maxScore: 100,
-      status: 'open',
-      instructions: 'Please follow MLA format',
-      attachments: [
+  // Use a Promise to properly handle the async operation
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([
         {
           id: 1,
-          name: 'Essay Guidelines.pdf',
-          size: '245 KB',
-          url: '/files/essay-guidelines.pdf'
+          title: 'Midterm Essay',
+          type: 'Essay',
+          description: 'Write a 5-page essay on the topic provided',
+          dueDate: '2023-11-15T23:59:59',
+          maxScore: 100,
+          status: 'open',
+          instructions: 'Please follow MLA format',
+          attachments: [
+            {
+              id: 1,
+              name: 'Essay Guidelines.pdf',
+              size: '245 KB',
+              url: '/files/essay-guidelines.pdf'
+            },
+            {
+              id: 2,
+              name: 'Rubric.docx',
+              size: '132 KB',
+              url: '/files/rubric.docx'
+            }
+          ]
         },
+        // other assignments...
         {
           id: 2,
-          name: 'Rubric.docx',
-          size: '132 KB',
-          url: '/files/rubric.docx'
+          title: 'Final Project',
+          type: 'Project',
+          description: 'Create a final project based on course material',
+          dueDate: '2023-12-10T23:59:59',
+          maxScore: 200,
+          status: 'upcoming',
+          instructions: 'Create a project plan before starting',
+          attachments: null
+        },
+        {
+          id: 3,
+          title: 'Weekly Quiz',
+          type: 'Quiz',
+          description: 'Test your knowledge of week 3 material',
+          dueDate: '2023-10-20T23:59:59',
+          maxScore: 50,
+          status: 'closed',
+          attachments: []
         }
-      ]
-    },
-    {
-      id: 2,
-      title: 'Final Project',
-      type: 'Project',
-      description: 'Create a final project based on course material',
-      dueDate: '2023-12-10T23:59:59',
-      maxScore: 200,
-      status: 'upcoming',
-      instructions: 'Create a project plan before starting',
-      attachments: null
-    },
-    {
-      id: 3,
-      title: 'Weekly Quiz',
-      type: 'Quiz',
-      description: 'Test your knowledge of week 3 material',
-      dueDate: '2023-10-20T23:59:59',
-      maxScore: 50,
-      status: 'closed',
-      attachments: []
-    }
-  ]
-}
+      ]);
+    }, 1000);
+  });
+};
 
-fetchAssignments().then(
-    data => assignments.value = data
-).catch(
+fetchAssignments().then(data => {
+      assignments.value = data;
+      loading.value = false;
+}).catch(
     _ => ElMessage.error('Failed to fetch assignments')
 )
 
 const fetchSubmissions = async (assignmentID: number): Promise<Submission[]> => {
-  // Replace with actual API call
+  // TODO: 使用实际的API调用替换
   if (assignmentID != 1) {
     return [];
   }
@@ -133,7 +141,7 @@ const filteredAssignments = computed(() => {
             : b[sortBy.value].localeCompare(a[sortBy.value])
       })
 })
-
+//展示作业历史
 const showSubmissionHistory = (assignment: Assignment) => {
   activeAssignment.value = assignment
   drawerVisible.value = true
@@ -166,6 +174,15 @@ const getStatusText = (status: string) => {
   return status.charAt(0).toUpperCase() + status.slice(1)
 }
 
+
+const submitAssignment = (activeAssignmentId: number) => {
+  router.push({
+    path: '/student-course/submit-assignments',
+    query: {assignmentId: activeAssignmentId,
+      courseId: router.currentRoute.value.query.courseId,
+      courseCode: router.currentRoute.value.query.courseCode}
+  })
+}
 
 const downloadFile = (file: Attachment) => {
   ElMessage.success(`Downloading ${file.name}`)
@@ -200,7 +217,7 @@ const downloadFile = (file: Attachment) => {
         </div>
       </div>
       <!-- 作业列表，与CourseGrades.vue中的filterMaterials很相似 -->
-      <el-table :data="filteredAssignments" stripe class="assignment-table">
+      <el-table :data="filteredAssignments" stripe class="assignment-table" v-loading="loading">
         <el-table-column prop="title" label="Title" min-width="200">
           <template #default="{ row }">
             <div class="title-cell">
@@ -342,7 +359,7 @@ const downloadFile = (file: Attachment) => {
         <!--此按钮仅用于跳转到提交作业页面-->
         <el-divider content-position="left">Submit Your Work</el-divider>
         <div class="submission-form">
-          <el-button size="large">
+          <el-button size="large" @click="submitAssignment(activeAssignment.id)" type="primary">
             <el-icon size="20"><Upload/></el-icon>Submit Assignment
           </el-button>
           <el-button size="large" @click="closeSubmissionPanel">Close</el-button>

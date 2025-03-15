@@ -61,6 +61,11 @@ const router = createRouter({
                   path: 'course-assignments',
                   component: () => import('../views/CoursePages/CourseAssignments.vue'),
                   meta: { requiresAuth: true }
+              },
+              {
+                  path: 'submit-assignments',
+                  component: () => import('../views/CoursePages/CourseSubmission.vue'),
+                  meta: { requiresAuth: true }
               }
           ]
         },

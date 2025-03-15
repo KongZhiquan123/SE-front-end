@@ -1,10 +1,10 @@
 <template>
-  <el-main class="class-info-container">
+  <el-main class="class-info-container" >
     <div class="info-section">
       <h2>Course Materials</h2>
       <el-card v-for="material in courseMaterials"
                :key="material.id"
-               class="material-card">
+               class="material-card" v-loading="loading">
         <div class="material-header">
           <h3>{{ material.title }}</h3>
           <el-tag size="small">{{ material.type }}</el-tag>
@@ -41,9 +41,11 @@ import {useRoute} from "vue-router";
 
 const courseMaterials = ref<CourseMaterial[]>([])
 const route = useRoute()
+const loading = ref<boolean>(true)
 apiRequest<CourseMaterial[]>(`/students/courses/${route.query.courseId}/resources`)
     .then((data) => {
       courseMaterials.value = data ?? []
+      loading.value = false
     })
 </script>
 

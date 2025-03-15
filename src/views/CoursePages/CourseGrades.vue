@@ -7,6 +7,7 @@ import {formatDate} from "@/utils/formatDate";
 const activeTab = ref('all')
 const sortBy = ref<'dueDate'|'score'|'title'>('dueDate')
 const sortOrder = ref<'ascending'|'descending'>('ascending')
+const loading = ref<boolean>(true)
 const grades = ref<Grade[]>([
   {
     id: 1,
@@ -37,7 +38,7 @@ const grades = ref<Grade[]>([
     status: 'upcoming'
   },
 ])
-
+loading.value = false
 
 // 自定义排序规则
 const filteredGrades = computed(() => {
@@ -137,8 +138,8 @@ const showDetails = (row: Grade) => {
         </div>
       </div>
 
-      <el-table :data="filteredGrades" stripe class="grade-table" @row-click="showDetails">
-        <el-table-column prop="title" label="Assignment or Exam" min-width="180">
+      <el-table :data="filteredGrades" stripe class="grade-table" @row-click="showDetails" v-loading="loading">
+        <el-table-column prop="title" label="Assignment or Exam" min-width="180" >
           <template #default="{ row }">
             <div class="assignment-title">
               <el-icon class="icon"><Document /></el-icon>

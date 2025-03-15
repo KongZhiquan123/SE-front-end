@@ -12,16 +12,17 @@ const basicInfo = ref<CourseBasicInfo>({
   email: "",
   courseDescription: "",
 });
-
+const loading = ref<boolean>(true);
 apiRequest<CourseBasicInfo>(`/students/courses/${courseId}`).then((res) => {
   basicInfo.value = res;
+  loading.value = false;
 })
 
 
 </script>
 
 <template>
-  <el-main class="class-info-container">
+  <el-main class="class-info-container" v-loading="loading">
     <div class="info-section">
       <h2>Basic Information</h2>
       <el-descriptions :column="1" border label-width="300px">

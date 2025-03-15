@@ -37,7 +37,7 @@ const rules: FormRules = {
   ],
   newPassword: [
     { required: true, message: 'Please enter new password', trigger: 'blur' },
-    { min: 6, message: 'Password must be at least 6 characters', trigger: 'blur' }
+    { min: 4, message: 'Password must be at least 4 characters', trigger: 'blur' }
   ],
   confirmPassword: [
     { required: true, message: 'Please confirm password', trigger: 'blur' },

@@ -1,5 +1,5 @@
 <template>
-  <el-main class="main-content-container">
+  <el-main class="main-content-container" v-loading="loading">
     <!-- 没有课程时的欢迎界面 -->
     <div v-if="!courses.length" class="empty-state">
       <el-empty description="No courses yet">
@@ -79,10 +79,14 @@ const joinDialogRef = ref()
 const userStore = useUserStore()
 
 const courses = ref<CourseItem[]>([])
+const loading = ref<boolean>(true)
 if (userStore.authorized) {
   apiRequest<CourseItem[]>('/students/courses/current').then((response) => {
     courses.value = response ?? []
+    loading.value = false
   })
+} else {
+  loading.value = false
 }
 
 const colors = [
