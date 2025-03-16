@@ -43,6 +43,7 @@
 import { ref, reactive } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
+import request from "@/utils/request";
 
 const dialogVisible = ref(false)
 const loading = ref(false)
@@ -69,15 +70,11 @@ const submitForm = async () => {
 
     try {
       loading.value = true
-
-      //测试用，模拟加入课程成功
-      setTimeout(() => {
-        emit('course-joined', {
-          courseCode: joinForm.courseCode
-        })
-        closeDialog()
-      }, 1000)
-
+      const {data} = await request.post(
+          `/students/courses/join?courseCode=${encodeURIComponent(joinForm.courseCode)}`
+      )
+      emit('course-joined', data)
+      closeDialog()
     } catch (error) {
       ElMessage.error('Failed to join course')
     } finally {

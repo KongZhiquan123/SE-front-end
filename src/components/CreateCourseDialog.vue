@@ -23,10 +23,6 @@
         />
       </el-form-item>
 
-      <el-form-item label="Semester" prop="semester">
-        <el-input v-model="courseForm.semester" placeholder="e.g., Spring 2024" />
-      </el-form-item>
-
       <el-form-item label="Description" prop="description">
         <el-input
             v-model="courseForm.description"
@@ -61,7 +57,6 @@ const formRef = ref<FormInstance>()
 const courseForm = reactive({
   courseCode: '',
   courseName: '',
-  semester: '',
   description: ''
 })
 
@@ -93,8 +88,8 @@ const submitForm = async () => {
     try {
       loading.value = true
       const submittedForm = { ...courseForm, isActive: true }
-      const response = await request.post('/teachers/courses', submittedForm)
-      emit('course-created', response.data)
+      const {data} = await request.post('/teachers/courses', submittedForm)
+      emit('course-created', data)
       closeDialog()
     } catch (error) {
       ElMessage.error('Failed to create course')

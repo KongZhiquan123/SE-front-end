@@ -1,10 +1,10 @@
 <template>
-  <el-main class="class-info-container" >
+  <el-main class="class-info-container" v-loading="loading">
     <div class="info-section">
       <h2>Course Materials</h2>
       <el-card v-for="material in courseMaterials"
                :key="material.id"
-               class="material-card" v-loading="loading">
+               class="material-card">
         <div class="material-header">
           <h3>{{ material.title }}</h3>
           <el-tag size="small">{{ material.type }}</el-tag>
