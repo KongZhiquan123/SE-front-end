@@ -18,7 +18,7 @@ export interface Grade {
 export interface Attachment {
     id: number
     name: string
-    size: string
+    size: number
     url: string
 }
 export interface CourseMaterial {
@@ -33,6 +33,7 @@ export interface CourseMaterial {
 export interface Assignment extends CourseMaterial {
     dueDate: string;
     maxScore: number;
+    openDate: string;
     status: 'open' | 'closed' | 'upcoming';
     instructions?: string | null;
 }

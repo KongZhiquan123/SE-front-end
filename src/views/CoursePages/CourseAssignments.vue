@@ -4,9 +4,12 @@ import {ElMessage, ElDivider} from 'element-plus'
 import {Document, Download, Upload} from "@element-plus/icons-vue";
 import {formatDate} from "@/utils/formatDate";
 import type {Assignment, Submission, Attachment} from '@/types/interfaces'
-import {useRouter} from "vue-router";
+import {useRouter, useRoute} from "vue-router";
+import apiRequest from "@/utils/apiUtils";
+import formatFileSize from "@/utils/formatFileSize";
 
 const router = useRouter()
+const route = useRoute()
 const assignments = ref<Assignment[]>([])
 const submissions = ref<Submission[]>([])
 const activeAssignment = ref<Assignment | null>(null)
@@ -15,105 +18,32 @@ const sortBy = ref<'dueDate' | 'title' | 'maxScore'>('dueDate')
 const sortOrder = ref<'ascending' | 'descending'>('ascending')
 const drawerVisible = ref(false)
 const loading = ref<boolean>(true)
-// Fetch methods to be implemented
-const fetchAssignments = async (): Promise<Assignment[]> => {
-  // Use a Promise to properly handle the async operation
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        {
-          id: 1,
-          title: 'Midterm Essay',
-          type: 'Essay',
-          description: 'Write a 5-page essay on the topic provided',
-          dueDate: '2023-11-15T23:59:59',
-          maxScore: 100,
-          status: 'open',
-          instructions: 'Please follow MLA format',
-          attachments: [
-            {
-              id: 1,
-              name: 'Essay Guidelines.pdf',
-              size: '245 KB',
-              url: '/files/essay-guidelines.pdf'
-            },
-            {
-              id: 2,
-              name: 'Rubric.docx',
-              size: '132 KB',
-              url: '/files/rubric.docx'
-            }
-          ]
-        },
-        // other assignments...
-        {
-          id: 2,
-          title: 'Final Project',
-          type: 'Project',
-          description: 'Create a final project based on course material',
-          dueDate: '2023-12-10T23:59:59',
-          maxScore: 200,
-          status: 'upcoming',
-          instructions: 'Create a project plan before starting',
-          attachments: null
-        },
-        {
-          id: 3,
-          title: 'Weekly Quiz',
-          type: 'Quiz',
-          description: 'Test your knowledge of week 3 material',
-          dueDate: '2023-10-20T23:59:59',
-          maxScore: 50,
-          status: 'closed',
-          attachments: []
-        }
-      ]);
-    }, 1000);
-  });
-};
 
-fetchAssignments().then(data => {
-      assignments.value = data;
-      loading.value = false;
-}).catch(
-    _ => ElMessage.error('Failed to fetch assignments')
-)
+apiRequest<Assignment[]>(`students/assignments/course/${route.query.courseId}/active`).then(data => {
+  if (!data) return;
+  assignments.value = data.map(assignment => ({
+    ...assignment,
+    status: determineAssignmentStatus(assignment),
+    attachments: assignment.attachments?.map(attachment => ({
+      ...attachment,
+      size: formatFileSize(attachment.size)
+    }))
+  }));
+  loading.value = false;
+})
 
-const fetchSubmissions = async (assignmentID: number): Promise<Submission[]> => {
-  // TODO: 使用实际的API调用替换
-  if (assignmentID != 1) {
-    return [];
+const determineAssignmentStatus = (assignment: Assignment): 'open' | 'closed' | 'upcoming' => {
+  const now = new Date();
+  const dueDate = new Date(assignment.dueDate);
+  const openDate = new Date(assignment.openDate);
+
+  if (now < openDate) {
+    return 'upcoming';
+  } else if (now > dueDate) {
+    return 'closed';
+  } else {
+    return 'open';
   }
-  return [
-    {
-      id: 1, // assignment ID
-      submitTime: '2023-11-10T14:30:00',
-      status: 'ACCEPTED',
-      attempts: 1,
-      attachments: [
-        {
-          id: 101,
-          name: 'my-essay-final.pdf',
-          size: '1.2 MB',
-          url: '/files/submissions/my-essay-final.pdf'
-        }
-      ]
-    },
-    {
-      id: 1,
-      submitTime: '2023-11-09T10:15:00',
-      status: 'REJECTED',
-      attempts: 2,
-      attachments: [
-        {
-          id: 100,
-          name: 'my-essay-draft.pdf',
-          size: '1.1 MB',
-          url: '/files/submissions/my-essay-draft.pdf'
-        }
-      ]
-    }
-  ]
 }
 
 const filteredAssignments = computed(() => {
@@ -144,12 +74,17 @@ const filteredAssignments = computed(() => {
 //展示作业历史
 const showSubmissionHistory = (assignment: Assignment) => {
   activeAssignment.value = assignment
+  apiRequest<Submission[]>(`students/assignments/${assignment.id}/submissions`).then(data => {
+    if (!data) return;
+    submissions.value = data.map(submission => ({
+      ...submission,
+      attachments: submission.attachments?.map(attachment => ({
+        ...attachment,
+        size: formatFileSize(attachment.size)
+      }))
+    }))
+  })
   drawerVisible.value = true
-  fetchSubmissions(assignment.id).then(
-      data => submissions.value = data
-  ).catch(
-      _ => ElMessage.error('Failed to fetch submissions')
-  )
 }
 
 const closeSubmissionPanel = () => {
@@ -192,7 +127,7 @@ const downloadFile = (file: Attachment) => {
 
 <template>
   <el-main>
-    <el-card class="assignment-card">
+    <el-card>
       <div class="header">
         <h2>Assignments</h2>
 
@@ -370,10 +305,6 @@ const downloadFile = (file: Attachment) => {
 </template>
 
 <style scoped>
-.assignment-card {
-  margin-bottom: 20px;
-}
-
 .header {
   display: flex;
   justify-content: space-between;

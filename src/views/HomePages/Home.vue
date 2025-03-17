@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import {onMounted, ref} from "vue"
 import { useRouter } from 'vue-router'
 import { Plus, Link } from '@element-plus/icons-vue'
 import CreateCourseDialog from "@/components/CreateCourseDialog.vue";
@@ -80,14 +80,16 @@ const userStore = useUserStore()
 
 const courses = ref<CourseItem[]>([])
 const loading = ref<boolean>(true)
-if (userStore.authorized) {
-  apiRequest<CourseItem[]>('/students/courses/current').then((response) => {
-    courses.value = response ?? []
+onMounted(() => {
+  if (userStore.authorized) {
+    apiRequest<CourseItem[]>('/students/courses/current').then((response) => {
+      courses.value = response ?? []
+      loading.value = false
+    })
+  } else {
     loading.value = false
-  })
-} else {
-  loading.value = false
-}
+  }
+})
 
 const colors = [
   '#4CAF50', // Green

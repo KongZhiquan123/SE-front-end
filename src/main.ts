@@ -16,10 +16,4 @@ app.use(ElementPlus).use(router).use(pinia)
 app.mount('#app')
 
 const userStore = useUserStore()
-userStore.autoLogin().then((loggedIn) => {
-    if (loggedIn) {
-        console.log('Auto login successful')
-    } else {
-        console.log('No token or invalid token')
-    }
-})
+await userStore.autoLogin()

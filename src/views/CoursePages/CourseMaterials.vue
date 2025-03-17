@@ -7,7 +7,7 @@
                class="material-card">
         <div class="material-header">
           <h3>{{ material.title }}</h3>
-          <el-tag size="small">{{ material.type }}</el-tag>
+          <el-tag size="large" style="font-size: 20px">{{ material.type }}</el-tag>
         </div>
 
         <p class="material-description">{{ material.description }}</p>
@@ -18,12 +18,12 @@
                    :key="file.id"
                    class="attachment-card">
             <div class="attachment-info">
-              <el-icon>
+              <el-icon size="30px">
                 <Document/>
               </el-icon>
               <span class="filename">{{ file.name }}</span>
               <span class="filesize">{{ file.size }}</span>
-              <el-button type="primary" link>Download</el-button>
+              <el-button type="primary" link @click="downloadFile(file.url)">Download</el-button>
             </div>
           </el-card>
         </div>
@@ -38,13 +38,22 @@ import {Document} from '@element-plus/icons-vue'
 import type {CourseMaterial} from '@/types/interfaces'
 import apiRequest from "@/utils/apiUtils";
 import {useRoute} from "vue-router";
+import downloadFile from "@/utils/downloadFile";
+import formatFileSize from "@/utils/formatFileSize";
 
 const courseMaterials = ref<CourseMaterial[]>([])
 const route = useRoute()
 const loading = ref<boolean>(true)
 apiRequest<CourseMaterial[]>(`/students/courses/${route.query.courseId}/resources`)
     .then((data) => {
+      if (!courseMaterials) return
       courseMaterials.value = data ?? []
+      // 将附件的大小转换为更友好的格式，如 1MB
+      courseMaterials.value.forEach(material => {
+        material.attachments?.forEach(attachment => {
+          attachment.size = formatFileSize(attachment.size)
+        })
+      })
       loading.value = false
     })
 </script>

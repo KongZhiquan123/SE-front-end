@@ -1,61 +1,126 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Document, Upload, Close } from '@element-plus/icons-vue';
+import {Document, Upload, Close, ArrowLeft, InfoFilled, View, Download} from '@element-plus/icons-vue';
 import { formatDate } from '@/utils/formatDate';
+import type { Assignment } from "@/types/interfaces";
+import downloadFile from "@/utils/downloadFile";
+
+// 定义上传文件的接口
+interface UploadFile {
+  uid: string;
+  name: string;
+  size: number;
+  raw: File;
+  url?: string; // 为预览添加URL属性
+}
+
 const route = useRoute();
 const router = useRouter();
-const assignmentId = route.query.assignmentId;
-console.log(typeof assignmentId)
-const assignment = ref<any>(null);
+const assignmentId: string = route.query.assignmentId;
+const assignment = ref<Assignment | null>(null);
 const loading = ref(true);
 const submitting = ref(false);
-
 const textResponse = ref('');
-const uploadedFiles = ref<any[]>([]);
-const fileList = ref<any[]>([]);
+const uploadedFiles = ref<File[]>([]);
+const fileList = ref<UploadFile[]>([]);
+const previewVisible = ref(false);
+const previewFile = ref<UploadFile | null>(null);
 
-
-onMounted(async () => {
+const fetchAssignmentDetail = async () => {
   try {
     loading.value = true;
-    // TODO: 使用实际的 API 调用替换
+    // 模拟API调用
+    assignment.value = {
+      id: 1,
+      title: 'Assignment 1',
+      dueDate: '2024-09-30T23:59:59.000Z',
+      maxScore: 100,
+      instructions: 'Write a 500-word essay on the importance of education in society.',
+      description: 'Write a 500-word essay on the importance of education in society.',
+      status: 'open',
+    };
   } catch (error) {
     ElMessage.error('Failed to load assignment details');
     console.error(error);
   } finally {
     loading.value = false;
   }
-});
+};
+fetchAssignmentDetail()
 
-
-const handleFileUpload = (file: any) => {
-
+// 处理文件上传
+const handleFileUpload = (file: UploadFile) => {
   const isLessThan10MB = file.size / 1024 / 1024 < 10;
   if (!isLessThan10MB) {
     ElMessage.error('File size cannot exceed 10MB');
     return false;
   }
 
-  uploadedFiles.value.push(file);
-  return false;
+  // 确保文件未被重复添加
+  const isDuplicate = uploadedFiles.value.some(f => f.name === file.raw.name && f.size === file.raw.size);
+  if (!isDuplicate) {
+    uploadedFiles.value.push(file.raw);
+
+    // 为文件创建一个临时URL以供预览
+    file.url = URL.createObjectURL(file.raw);
+    fileList.value.push(file);
+  }
+
+  return false; // 阻止自动上传
 };
 
-const removeFile = (file: any) => {
-  uploadedFiles.value = uploadedFiles.value.filter(f => f !== file);
+const removeFile = (file: UploadFile) => {
+  // 根据文件uid从fileList移除
   fileList.value = fileList.value.filter(f => f.uid !== file.uid);
+
+  // 从uploadedFiles中移除对应的文件
+  const fileIndex = uploadedFiles.value.findIndex(f =>
+      f.name === file.name && f.size === file.size
+  );
+
+  if (fileIndex !== -1) {
+    uploadedFiles.value.splice(fileIndex, 1);
+  }
+
+  // 如果文件有URL，释放它
+  if (file.url) {
+    URL.revokeObjectURL(file.url);
+  }
 };
 
+// 预览文件
+const previewFileHandler = (file: UploadFile) => {
+  if (!file.url && file.raw) {
+    file.url = URL.createObjectURL(file.raw);
+  }
 
-const isDeadlinePassed = () => {
+  previewFile.value = file;
+  previewVisible.value = true;
+};
+
+// 关闭预览
+const closePreview = () => {
+  previewVisible.value = false;
+};
+
+// 判断文件是否可预览
+const isPreviewable = (fileName: string) => {
+  const extension = fileName.split('.').pop()?.toLowerCase() || '';
+  const previewableExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'txt', 'html', 'htm'];
+  return previewableExtensions.includes(extension);
+};
+
+// 判断截止日期是否已过
+const isDeadlinePassed = computed(() => {
   if (!assignment.value?.dueDate) return false;
   return new Date(assignment.value.dueDate) < new Date();
-};
+});
 
-
+// 提交作业
 const submitAssignment = async () => {
-  if (isDeadlinePassed()) {
+  if (isDeadlinePassed.value) {
     ElMessageBox.confirm(
         'The deadline has passed. Late submissions may be penalized. Continue?',
         'Warning',
@@ -64,16 +129,19 @@ const submitAssignment = async () => {
           cancelButtonText: 'Cancel',
           type: 'warning',
         }
-    ).then(() => {
-      processSubmission();
-    }).catch(() => {
-
-    });
+    )
+        .then(() => {
+          processSubmission();
+        })
+        .catch(() => {
+          // 用户取消操作
+        });
   } else {
     await processSubmission();
   }
 };
 
+// 处理提交过程
 const processSubmission = async () => {
   if (!textResponse.value && uploadedFiles.value.length === 0) {
     ElMessage.warning('Please provide a text response or upload files');
@@ -86,16 +154,16 @@ const processSubmission = async () => {
     const formData = new FormData();
     formData.append('assignmentId', assignmentId);
     formData.append('textResponse', textResponse.value);
+
     uploadedFiles.value.forEach(file => {
       formData.append('files', file);
     });
 
-    if (response.ok) {
-      ElMessage.success('Assignment submitted successfully');
-      goBack()
-    } else {
-      ElMessage.error('Error submitting assignment');
-    }
+    // 模拟API调用
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    ElMessage.success('Assignment submitted successfully!');
+    goBack();
   } catch (error) {
     ElMessage.error('Error submitting assignment');
     console.error(error);
@@ -104,27 +172,36 @@ const processSubmission = async () => {
   }
 };
 
+// 返回上一页
 const goBack = () => {
   router.push({
     path: '/student-course/course-assignments',
-    query: { courseId: route.query.courseId, courseCode: route.query.courseCode },
-  })
+    query: {
+      courseId: route.query.courseId,
+      courseCode: route.query.courseCode
+    },
+  });
 };
+
+
 </script>
 
 <template>
-  <el-main>
+  <el-main class="submission-container">
     <el-card v-loading="loading" class="submission-card">
       <template #header>
         <div class="card-header">
-          <h2>Assignment Submission</h2>
-          <el-button @click="goBack" text>Back to Assignments</el-button>
+          <h2 class="card-title">Assignment Submission</h2>
+          <el-button @click="goBack" text class="back-button">
+            <el-icon class="back-icon"><arrow-left /></el-icon>
+            Back to Assignments
+          </el-button>
         </div>
       </template>
 
-      <div v-if="assignment">
+      <div v-if="assignment" class="assignment-content">
         <el-alert
-            v-if="isDeadlinePassed()"
+            v-if="isDeadlinePassed"
             title="The deadline has passed! Late submissions may be penalized."
             type="warning"
             :closable="false"
@@ -133,29 +210,51 @@ const goBack = () => {
         />
 
         <el-descriptions :column="1" border size="large" class="assignment-info">
-          <el-descriptions-item label="Assignment Title">{{ assignment.title }}</el-descriptions-item>
+          <el-descriptions-item label="Assignment Title">
+            {{ assignment.title }}
+          </el-descriptions-item>
           <el-descriptions-item label="Due Date">
-            <span :class="{ 'text-danger': isDeadlinePassed() }">
+            <span :class="{ 'text-danger': isDeadlinePassed }">
               {{ formatDate(assignment.dueDate) }}
-              <el-tag v-if="isDeadlinePassed()" type="danger" size="small">Overdue</el-tag>
-              <el-tag v-else type="success" size="small">Open</el-tag>
+              <el-tag
+                  v-if="isDeadlinePassed"
+                  type="danger"
+                  size="small"
+                  class="status-tag"
+              >
+                Overdue
+              </el-tag>
+              <el-tag
+                  v-else
+                  type="success"
+                  size="small"
+                  class="status-tag"
+              >
+                Open
+              </el-tag>
             </span>
           </el-descriptions-item>
-          <el-descriptions-item label="Max Score">{{ assignment.maxScore }}</el-descriptions-item>
+          <el-descriptions-item label="Max Score">
+            {{ assignment.maxScore }} points
+          </el-descriptions-item>
           <el-descriptions-item label="Instructions">
             <div class="instructions">{{ assignment.instructions }}</div>
           </el-descriptions-item>
         </el-descriptions>
 
-        <el-divider content-position="left">Your Submission</el-divider>
+        <el-divider content-position="left" class="section-divider">
+          Your Submission
+        </el-divider>
 
-        <el-form label-position="top">
+        <el-form label-position="top" class="submission-form">
           <el-form-item label="Text Response (optional)">
             <el-input
                 v-model="textResponse"
                 type="textarea"
                 :rows="6"
                 placeholder="Enter your response here..."
+                resize="vertical"
+                class="response-textarea"
             />
           </el-form-item>
 
@@ -170,32 +269,76 @@ const goBack = () => {
                 :file-list="fileList"
                 :on-remove="removeFile"
             >
-              <el-icon class="el-icon--upload"><Upload /></el-icon>
-              <div class="el-upload__text">
+              <el-icon class="upload-icon"><Upload /></el-icon>
+              <div class="upload-text">
                 Drop files here or <em>click to upload</em>
               </div>
               <template #tip>
-                <div class="el-upload__tip">
+                <div class="upload-tip">
+                  <el-icon><info-filled /></el-icon>
                   Max 10 files, each less than 10MB
                 </div>
               </template>
             </el-upload>
           </el-form-item>
 
-          <div class="file-list" v-if="uploadedFiles.length > 0">
-            <h4>Files to submit ({{ uploadedFiles.length }})</h4>
-            <el-card v-for="file in uploadedFiles" :key="file.uid" class="file-item">
-              <div class="file-info">
-                <el-icon><Document /></el-icon>
-                <div class="file-details">
-                  <div class="file-name">{{ file.name }}</div>
-                  <div class="file-size">{{ (file.size / 1024).toFixed(1) }} KB</div>
+          <div v-if="uploadedFiles.length > 0" class="file-list-section">
+            <h4 class="file-list-title">
+              Files to submit ({{ uploadedFiles.length }})
+            </h4>
+            <div class="file-grid">
+              <el-card
+                  v-for="file in fileList"
+                  :key="file.uid"
+                  class="file-item"
+                  shadow="hover"
+              >
+                <div class="file-content">
+                  <div class="file-info">
+                    <el-icon class="file-icon"><Document /></el-icon>
+                    <div class="file-details">
+                      <div class="file-name" :title="file.name">{{ file.name }}</div>
+                      <div class="file-size">{{ (file.size / 1024).toFixed(1) }} KB</div>
+                    </div>
+                  </div>
+                  <div class="file-actions">
+                    <el-tooltip content="Preview file" placement="top" v-if="isPreviewable(file.name)">
+                      <el-button
+                          type="primary"
+                          text
+                          circle
+                          @click="previewFileHandler(file)"
+                          class="action-button"
+                      >
+                        <el-icon size="20"><View /></el-icon>
+                      </el-button>
+                    </el-tooltip>
+                    <el-tooltip content="Download file" placement="top">
+                      <el-button
+                          type="success"
+                          text
+                          circle
+                          @click="downloadFile(file?.url)"
+                          class="action-button"
+                      >
+                        <el-icon size="20"><Download /></el-icon>
+                      </el-button>
+                    </el-tooltip>
+                    <el-tooltip content="Remove file" placement="top">
+                      <el-button
+                          type="danger"
+                          text
+                          circle
+                          @click="removeFile(file)"
+                          class="action-button"
+                      >
+                        <el-icon size="20"><Close /></el-icon>
+                      </el-button>
+                    </el-tooltip>
+                  </div>
                 </div>
-              </div>
-              <el-button type="danger" text circle @click="removeFile(file)">
-                <el-icon><Close /></el-icon>
-              </el-button>
-            </el-card>
+              </el-card>
+            </div>
           </div>
 
           <div class="submission-actions">
@@ -205,85 +348,335 @@ const goBack = () => {
                 @click="submitAssignment"
                 :loading="submitting"
                 :disabled="submitting"
+                class="submit-button"
             >
               Submit Assignment
             </el-button>
-            <el-button size="large" @click="goBack">Cancel</el-button>
+            <el-button
+                size="large"
+                @click="goBack"
+                class="cancel-button"
+            >
+              Cancel
+            </el-button>
           </div>
         </el-form>
       </div>
 
-      <el-empty v-else description="Assignment not found" />
+      <el-empty
+          v-else
+          description="Assignment not found"
+          class="empty-state"
+      />
     </el-card>
   </el-main>
+
+  <!-- 文件预览对话框 -->
+  <el-dialog
+      v-model="previewVisible"
+      :title="previewFile?.name || 'File Preview'"
+      width="70%"
+      class="preview-dialog"
+      destroy-on-close
+  >
+    <div class="preview-container">
+      <iframe
+          v-if="previewFile?.url"
+          :src="previewFile.url"
+          class="preview-iframe"
+      ></iframe>
+      <div v-else class="preview-fallback">
+        Unable to preview file
+      </div>
+    </div>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="closePreview">Close</el-button>
+        <el-button
+            type="primary"
+            @click="downloadFile(previewFile?.url)"
+        >
+          Download
+        </el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped>
-.submission-card {
+/* 布局相关样式 */
+.submission-container {
+  padding: 20px;
   margin: 0 auto;
+}
+
+.submission-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0 10px;
 }
 
+.card-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.back-icon {
+  font-size: 14px;
+}
+
+.assignment-content {
+  padding: 0 10px;
+}
+
+/* 警告提示相关样式 */
 .deadline-alert {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  font-weight: 500;
 }
 
+/* 作业信息样式 */
 .assignment-info {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.status-tag {
+  margin-left: 8px;
 }
 
 .instructions {
   white-space: pre-line;
-  line-height: 1.5;
+  line-height: 1.6;
+  padding: 4px 0;
 }
 
 .text-danger {
   color: #f56c6c;
+  font-weight: 500;
+}
+
+.section-divider {
+  margin: 32px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* 表单相关样式 */
+.submission-form {
+  margin-top: 20px;
+}
+
+.response-textarea {
+  border-radius: 4px;
+  font-size: 14px;
 }
 
 .file-uploader {
   width: 100%;
+  border-radius: 6px;
 }
 
-.file-list {
-  margin-top: 16px;
+.upload-icon {
+  font-size: 48px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.upload-text {
+  font-size: 16px;
+  color: #606266;
+  margin-bottom: 8px;
+}
+
+.upload-tip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #909399;
+  font-size: 14px;
+  padding: 8px 0;
+}
+
+/* 文件列表相关样式 */
+.file-list-section {
+  margin-top: 24px;
+}
+
+.file-list-title {
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
 }
 
 .file-item {
-  margin-bottom: 10px;
+  height: auto;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+/* 文件项样式 */
+.file-content {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  gap: 12px;
 }
 
 .file-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 12px;
+  overflow: hidden;
+  width: 100%;
 }
 
+.file-icon {
+  font-size: 30px;
+  color: #409EFF;
+}
 .file-details {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .file-name {
   font-weight: 500;
+  font-size: 14px;
+  color: #303133;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
 }
 
 .file-size {
   color: #909399;
   font-size: 12px;
+  margin-top: 2px;
 }
 
+.file-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.action-button {
+  padding: 4px;
+  margin-right: 5px;
+}
+
+.action-button:hover {
+  background-color: #f5f7fa;
+  border-radius: 50%;
+}
+
+
+/* 按钮相关样式 */
 .submission-actions {
-  margin-top: 30px;
+  margin-top: 40px;
   display: flex;
   gap: 16px;
+  justify-content: flex-start;
+}
+
+.submit-button {
+  min-width: 160px;
+}
+
+.cancel-button {
+  min-width: 100px;
+}
+
+/* 空状态样式 */
+.empty-state {
+  padding: 40px 0;
+}
+
+@media (max-width: 768px) {
+  .file-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+  }
+
+  .submission-actions {
+    flex-direction: column;
+  }
+
+  .submit-button,
+  .cancel-button {
+    width: 100%;
+  }
+}
+
+/* 文件预览对话框样式 */
+.preview-dialog :deep(.el-dialog__header) {
+  border-bottom: 1px solid #e4e7ed;
+  padding-bottom: 15px;
+}
+
+.preview-dialog :deep(.el-dialog__body) {
+  padding: 0;
+}
+
+.preview-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  max-height: 70vh;
+  overflow: hidden;
+}
+
+.preview-iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 60vh;
+  border: none;
+}
+
+.preview-fallback {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 60vh;
+  color: #909399;
+  font-size: 16px;
+  background-color: #f5f7fa;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 10px 20px;
 }
 </style>

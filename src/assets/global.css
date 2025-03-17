@@ -20,3 +20,12 @@
     height: 100%;
     overflow-y: auto;
 }
+
+.main-content {
+    height: var(--main-content-height);
+    width: 100%;
+}
+.common-layout {
+    height: 100vh;
+    margin-top: 0;
+}

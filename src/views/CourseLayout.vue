@@ -20,12 +20,4 @@ const toggleSidebar = () => {
 </script>
 
 <style scoped>
-.main-content {
-  height: var(--main-content-height);
-  width: 100%;
-}
-.common-layout {
-  height: 100vh;
-  margin-top: 0;
-}
 </style>

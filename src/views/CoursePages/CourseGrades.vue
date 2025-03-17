@@ -3,41 +3,19 @@ import { ref, computed } from 'vue'
 import type { Grade } from '@/types/interfaces'
 import {ChatLineRound, Document, View, Warning, Timer, InfoFilled} from "@element-plus/icons-vue";
 import {formatDate} from "@/utils/formatDate";
-
+import apiRequest from "@/utils/apiUtils";
+import {useRoute} from "vue-router";
+const route = useRoute()
 const activeTab = ref('all')
 const sortBy = ref<'dueDate'|'score'|'title'>('dueDate')
 const sortOrder = ref<'ascending'|'descending'>('ascending')
 const loading = ref<boolean>(true)
-const grades = ref<Grade[]>([
-  {
-    id: 1,
-    title: 'Midterm Exam',
-    type: 'Exam',
-    score: 90,
-    maxScore: 100,
-    dueDate: '2024-03-15',
-    submittedDate: '2024-03-15',
-    gradedDate: '2024-03-18',
-    feedback: 'Great job! You demonstrated excellent understanding of the core concepts. Your analysis in section 3 was particularly insightful. Consider exploring the optional readings for even deeper insights into the subject matter.',
-    appealReason: null,
-    appealTime: null,
-    status: 'graded',
-  },
-  {
-    id: 2,
-    title: 'Final Project',
-    type: 'Project',
-    score: null,
-    maxScore: 100,
-    dueDate: '2024-04-20',
-    submittedDate: null,
-    gradedDate: null,
-    feedback: null,
-    appealReason: null,
-    appealTime: null,
-    status: 'upcoming'
-  },
-])
+const grades = ref<Grade[]>([])
+apiRequest<Grade[]>(`/students/courses/courses/${route.query.courseId}`).then(res => {
+  if(!grades) return
+  grades.value = res ?? []
+  loading.value = false
+})
 loading.value = false
 
 // 自定义排序规则
@@ -325,10 +303,6 @@ const showDetails = (row: Grade) => {
 </template>
 
 <style scoped>
-.grades-container {
-  min-height: 100%;
-}
-
 .header {
   display: flex;
   justify-content: space-between;
