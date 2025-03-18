@@ -7,6 +7,7 @@ import type {Assignment, Submission, Attachment} from '@/types/interfaces'
 import {useRouter, useRoute} from "vue-router";
 import apiRequest from "@/utils/apiUtils";
 import formatFileSize from "@/utils/formatFileSize";
+import downloadFile from "@/utils/downloadFile";
 
 const router = useRouter()
 const route = useRoute()
@@ -20,7 +21,7 @@ const drawerVisible = ref(false)
 const loading = ref<boolean>(true)
 
 apiRequest<Assignment[]>(`students/assignments/course/${route.query.courseId}/active`).then(data => {
-  if (!data) return;
+  assignments.value = data ?? []
   assignments.value = data.map(assignment => ({
     ...assignment,
     status: determineAssignmentStatus(assignment),
@@ -75,7 +76,7 @@ const filteredAssignments = computed(() => {
 const showSubmissionHistory = (assignment: Assignment) => {
   activeAssignment.value = assignment
   apiRequest<Submission[]>(`students/assignments/${assignment.id}/submissions`).then(data => {
-    if (!data) return;
+    submissions.value = data ?? []
     submissions.value = data.map(submission => ({
       ...submission,
       attachments: submission.attachments?.map(attachment => ({
@@ -117,11 +118,6 @@ const submitAssignment = (activeAssignmentId: number) => {
       courseId: router.currentRoute.value.query.courseId,
       courseCode: router.currentRoute.value.query.courseCode}
   })
-}
-
-const downloadFile = (file: Attachment) => {
-  ElMessage.success(`Downloading ${file.name}`)
-  window.open(file.url, '_blank')
 }
 </script>
 
@@ -240,7 +236,7 @@ const downloadFile = (file: Attachment) => {
                 <span class="file-name">{{ file.name }}</span>
                 <span class="file-size">{{ file.size }}</span>
               </div>
-              <el-button size="small" type="primary" text @click="downloadFile(file)" :icon="Download">
+              <el-button size="small" type="primary" text @click="downloadFile(file?.url)" :icon="Download">
                 Download
               </el-button>
             </div>
@@ -281,7 +277,7 @@ const downloadFile = (file: Attachment) => {
                       <Document/>
                     </el-icon>
                     <span>{{ file.name }}</span>
-                    <el-button size="small" type="primary" text @click="downloadFile(file)">
+                    <el-button size="small" type="primary" text @click="downloadFile(file?.url)">
                       Download
                     </el-button>
                   </div>

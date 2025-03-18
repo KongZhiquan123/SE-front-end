@@ -18,7 +18,7 @@ export interface Grade {
 export interface Attachment {
     id: number
     name: string
-    size: number
+    size: number | string
     url: string
 }
 export interface CourseMaterial {

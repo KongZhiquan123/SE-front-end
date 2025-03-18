@@ -14,7 +14,7 @@ const basicInfo = ref<CourseBasicInfo>({
 });
 const loading = ref<boolean>(true);
 apiRequest<CourseBasicInfo>(`/students/courses/${courseId}`).then((res) => {
-  basicInfo.value = res;
+  basicInfo.value = res ?? basicInfo.value;
   loading.value = false;
 })
 

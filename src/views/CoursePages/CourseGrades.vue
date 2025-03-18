@@ -12,11 +12,9 @@ const sortOrder = ref<'ascending'|'descending'>('ascending')
 const loading = ref<boolean>(true)
 const grades = ref<Grade[]>([])
 apiRequest<Grade[]>(`/students/courses/courses/${route.query.courseId}`).then(res => {
-  if(!grades) return
   grades.value = res ?? []
   loading.value = false
 })
-loading.value = false
 
 // 自定义排序规则
 const filteredGrades = computed(() => {
