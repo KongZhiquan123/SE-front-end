@@ -41,7 +41,7 @@ export interface Assignment extends CourseMaterial {
 export interface Submission {
     id: number,
     submitTime: string,
-    status: 'PENDING' | 'ACCEPTED' | 'REJECTED',
+    status: 'pending' | 'accepted' | 'rejected',
     attempts: number
     attachments: Attachment[]
 }
@@ -82,7 +82,7 @@ export interface RegisterForm {
     email: string
     password: string
     confirmPassword: string
-    role: 'ADMIN' | 'STUDENT' | 'TEACHER'
+    role: 'admin' | 'teacher' | 'student'
     verificationCode: string
 }
 

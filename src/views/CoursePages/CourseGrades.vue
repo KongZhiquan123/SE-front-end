@@ -66,6 +66,17 @@ const gradeLevel = computed(() => {
   return getGradeLevel(score)
 })
 
+
+const getStatusTagType = (status: string): string => {
+  const statusTagTypeMap: Record<string, string> = {
+    'graded': 'success',
+    'submitted': 'warning',
+    'appealed': 'warning',
+    'appealing': 'warning',
+    'upcoming': 'info'
+  }
+  return statusTagTypeMap[status] || 'danger'
+}
 // 控制详情抽屉
 const detailsDrawer = ref(false)
 const currentGrade = ref<Grade | null>(null)
@@ -79,7 +90,7 @@ const showDetails = (row: Grade) => {
 <template>
   <el-main class="grades-container">
     <div class="header">
-      <h2>Your Academic Progress</h2>
+      <h2 class="page-title">Your Academic Progress</h2>
       <div class="overall-grade">
         <div class="grade-circle" :style="{ backgroundColor: gradeLevel.color }">
           {{ gradeLevel.label }}
@@ -148,9 +159,7 @@ const showDetails = (row: Grade) => {
         </el-table-column>
         <el-table-column label="Status" width="120" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.status === 'graded' ? 'success' :
-                        row.status === 'submitted' || row.status === 'appealed' ? 'warning' :
-                        row.status === 'upcoming' ? 'info' : 'danger'"
+            <el-tag :type="getStatusTagType(row.status)"
                     effect="dark" size="small">
               {{ row.status.charAt(0).toUpperCase() + row.status.slice(1) }}
             </el-tag>

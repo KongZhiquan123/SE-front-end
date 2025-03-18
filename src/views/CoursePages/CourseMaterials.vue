@@ -80,7 +80,6 @@ apiRequest<CourseMaterial[]>(`/students/courses/${route.query.courseId}/resource
       courseMaterials.value = data ?? []
       // 将附件的大小转换为更友好的格式，如 1MB
       courseMaterials.value.forEach(material => {
-        console.log(material.attachments)
         material.attachments?.forEach(attachment => {
           attachment.size = formatFileSize(attachment.size)
         })
@@ -153,17 +152,6 @@ const getTagType = (materialType: string) => {
   overflow-y: auto;
   background-color: #f5f7fa;
 }
-
-.page-title {
-  color: #303133;
-  margin-bottom: 24px;
-  font-size: 28px;
-  font-weight: 600;
-  border-bottom: 2px solid #409EFF;
-  padding-bottom: 10px;
-  display: inline-block;
-}
-
 .materials-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));

@@ -9,6 +9,13 @@
         <Fold />
       </el-icon>
       Classroom
+      <el-icon
+          size="20px"
+          style="margin-left: 20px; cursor: pointer"
+          @click="router.push('/')"
+      >
+        <HomeFilled />
+      </el-icon>
     </div>
     <div class="right-section">
       <el-dropdown placement="bottom">
@@ -37,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import { Fold, Grid, Plus } from '@element-plus/icons-vue'
+import {Fold, Grid, HomeFilled, Plus} from '@element-plus/icons-vue'
 import { useRouter } from "vue-router"
 import { useUserStore } from '@/stores/user'
 //向父组件发送事件toggle-collapse，父组件监听到事件后，执行toggleCollapse方法，实现侧边栏的展开和收缩

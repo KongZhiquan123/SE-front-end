@@ -24,7 +24,7 @@ apiRequest<CourseBasicInfo>(`/students/courses/${courseId}`).then((res) => {
 <template>
   <el-main class="class-info-container" v-loading="loading">
     <div class="info-section">
-      <h2>Basic Information</h2>
+      <h2 class="page-title">Basic Information</h2>
       <el-descriptions :column="1" border label-width="300px">
         <el-descriptions-item label="Course Name">{{ basicInfo.courseName }}</el-descriptions-item>
         <el-descriptions-item label="Teacher">{{ basicInfo.teacher }}</el-descriptions-item>

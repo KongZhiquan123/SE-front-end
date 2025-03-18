@@ -6,7 +6,7 @@ interface UserState {
     id: string | null
     username: string | null
     email: string | null
-    role: 'ADMIN' | 'USER' | 'TEACHER' | null
+    role: 'admin' | 'student' | 'teacher' | null
     token: string | null
     authorized: boolean
 }

@@ -22,31 +22,8 @@ const loading = ref<boolean>(true)
 
 apiRequest<Assignment[]>(`students/assignments/course/${route.query.courseId}/active`).then(data => {
   assignments.value = data ?? []
-  assignments.value = data.map(assignment => ({
-    ...assignment,
-    status: determineAssignmentStatus(assignment),
-    attachments: assignment.attachments?.map(attachment => ({
-      ...attachment,
-      size: formatFileSize(attachment.size)
-    }))
-  }));
   loading.value = false;
 })
-
-const determineAssignmentStatus = (assignment: Assignment): 'open' | 'closed' | 'upcoming' => {
-  const now = new Date();
-  const dueDate = new Date(assignment.dueDate);
-  const openDate = new Date(assignment.openDate);
-
-  if (now < openDate) {
-    return 'upcoming';
-  } else if (now > dueDate) {
-    return 'closed';
-  } else {
-    return 'open';
-  }
-}
-
 const filteredAssignments = computed(() => {
   return assignments.value
       .filter(assignment => filterStatus.value == 'all' || assignment.status === filterStatus.value)
@@ -95,12 +72,12 @@ const closeSubmissionPanel = () => {
 //获取状态类型
 const getStatusType = (status: string) => {
   const statusMap: Record<string, string> = {
-    open: 'success',
-    upcoming: 'info',
-    closed: 'danger',
-    ACCEPTED: 'success',
-    PENDING: 'warning',
-    REJECTED: 'danger'
+    'open': 'success',
+    'upcoming': 'info',
+    'closed': 'danger',
+    'accepted': 'success',
+    'pending': 'warning',
+    'rejected': 'danger'
   }
 
   return statusMap[status] || 'info'
@@ -125,7 +102,7 @@ const submitAssignment = (activeAssignmentId: number) => {
   <el-main>
     <el-card>
       <div class="header">
-        <h2>Assignments</h2>
+        <h2 class="page-title">Assignments</h2>
 
         <div class="filters">
           <el-select v-model="filterStatus" placeholder="Filter by status" class="filter-select">

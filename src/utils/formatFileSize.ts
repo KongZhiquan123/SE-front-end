@@ -1,6 +1,6 @@
 export default function formatFileSize (size: number | string): string {
     if (typeof size === 'string') {
-        return size; // If already formatted, return as is
+        return size; //若size是字符串类型，则直接返回
     }
 
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];

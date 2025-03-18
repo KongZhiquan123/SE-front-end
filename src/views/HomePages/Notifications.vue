@@ -62,7 +62,7 @@ const fetchNotifications = async () => {
 
   loading.value = false
 };
-
+fetchNotifications();
 // 标记通知为已读
 const markAsRead = async (notification: Notification) => {
   if (notification.isRead) return;
@@ -88,27 +88,13 @@ const markAllAsRead = async () => {
 
 // 获取优先级对应的标签类型
 const getPriorityTagType = (priority: string) => {
-  switch (priority) {
-    case 'high': return 'danger';
-    case 'medium': return 'warning';
-    case 'low': return 'info';
-    default: return 'info';
+  const priorityMap: Record<string, string> = {
+    'high': 'danger',
+    'medium': 'warning',
+    'low': 'info'
   }
+  return priorityMap[priority] || 'info';
 };
-
-// 获取优先级对应的颜色
-const getPriorityColor = (priority: string) => {
-  switch (priority) {
-    case 'high': return 'danger';
-    case 'medium': return 'warning';
-    case 'low': return 'primary';
-    default: return 'info';
-  }
-};
-
-// 组件在Created阶段之前就获取通知，避免页面加载时的延迟
-fetchNotifications();
-
 </script>
 
 <template>

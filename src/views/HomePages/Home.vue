@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref} from "vue"
+import {watch, ref} from "vue"
 import { useRouter } from 'vue-router'
 import { Plus, Link } from '@element-plus/icons-vue'
 import CreateCourseDialog from "@/components/CreateCourseDialog.vue";
@@ -77,19 +77,32 @@ const router = useRouter()
 const createDialogRef = ref()
 const joinDialogRef = ref()
 const userStore = useUserStore()
-
 const courses = ref<CourseItem[]>([])
 const loading = ref<boolean>(true)
-onMounted(() => {
-  if (userStore.authorized) {
-    apiRequest<CourseItem[]>('/students/courses/current').then((response) => {
-      courses.value = response ?? []
-      loading.value = false
-    })
-  } else {
+
+
+const loadCourses = () => {
+  loading.value = true
+  apiRequest<CourseItem[]>('/students/courses/current').then((response) => {
+    courses.value = response ?? []
     loading.value = false
+  })
+}
+
+if (userStore.authorized) {
+  loadCourses()
+} else {
+  loading.value = false
+}
+
+
+// 监听用户登录状态，如果用户登录了，就加载课程列表
+watch(() => userStore.authorized, (newValue) => {
+  if (newValue) {
+    loadCourses()
   }
-})
+}, { immediate: true })
+
 
 const colors = [
   '#4CAF50', // Green
