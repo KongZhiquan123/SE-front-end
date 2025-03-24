@@ -7,12 +7,14 @@ import router from './router'
 import {createPinia} from "pinia";
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import {useUserStore} from "@/stores/user";
+import {vRole} from "@/directives/roleDirective";
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
 
 const app = createApp(App)
 app.use(ElementPlus).use(router).use(pinia)
+app.directive('role', vRole)
 app.mount('#app')
 
 const userStore = useUserStore()

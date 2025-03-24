@@ -35,6 +35,10 @@ export const useUserStore = defineStore('user', () => {
         if (!token.value) return false;
         try {
             const response = await request.post('/auth/user');
+            if (response.data.isExpired) {
+                clearUser();
+                return false;
+            }
             const userData = response.data;
             setUser({
                 id: userData.userId,

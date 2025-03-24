@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { Grade } from '@/types/interfaces'
-import {ChatLineRound, Document, View, Warning, Timer, InfoFilled} from "@element-plus/icons-vue";
+import {ChatLineRound, Document, View, Warning, Timer, InfoFilled, Edit} from "@element-plus/icons-vue";
 import {formatDate} from "@/utils/formatDate";
 import apiRequest from "@/utils/apiUtils";
 import {useRoute} from "vue-router";
@@ -206,6 +206,23 @@ const showDetails = (row: Grade) => {
               </div>
             </template>
             <el-timeline>
+
+              <el-timeline-item
+                  v-if="currentGrade.appealTime"
+                  timestamp="Appeal Submitted"
+                  type="danger"
+              >
+                {{ formatDate(currentGrade.appealTime) }}
+              </el-timeline-item>
+
+              <el-timeline-item
+                  v-if="currentGrade.gradedDate"
+                  timestamp="Graded"
+                  type="warning"
+              >
+                {{ formatDate(currentGrade.gradedDate) }}
+              </el-timeline-item>
+
               <el-timeline-item
                   timestamp="Due Date"
                   :type="new Date(currentGrade.dueDate) < new Date() ? 'primary' : 'info'"
@@ -222,21 +239,6 @@ const showDetails = (row: Grade) => {
                 {{ formatDate(currentGrade.submittedDate) }}
               </el-timeline-item>
 
-              <el-timeline-item
-                  v-if="currentGrade.gradedDate"
-                  timestamp="Graded"
-                  type="warning"
-              >
-                {{ formatDate(currentGrade.gradedDate) }}
-              </el-timeline-item>
-
-              <el-timeline-item
-                  v-if="currentGrade.appealTime"
-                  timestamp="Appeal Submitted"
-                  type="danger"
-              >
-                {{ formatDate(currentGrade.appealTime) }}
-              </el-timeline-item>
             </el-timeline>
           </el-card>
 
@@ -299,8 +301,10 @@ const showDetails = (row: Grade) => {
               </div>
             </div>
             <div class="assignment-actions">
-              <el-button type="primary">Start Assignment</el-button>
-              <el-button>View Instructions</el-button>
+              <el-button type="primary">
+                <el-icon> <Edit/> </el-icon>
+                Start Assignment
+              </el-button>
             </div>
           </el-card>
         </div>

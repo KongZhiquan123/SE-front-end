@@ -87,6 +87,16 @@ const router = createRouter({
             ]
         },
         {
+          path: '/code-editor',
+          component: () => import('../views/CodeEditorLayout.vue'),
+          children: [
+              {
+                  path: '',
+                  component: () => import('../views/CodeEditorPages/CodeEditor.vue'),
+              }
+          ]
+        },
+        {
             path: '/:pathMatch(.*)*',
             name: 'not-found',
             component: () => import('../views/404NotFound.vue')

@@ -87,7 +87,7 @@ const markAllAsRead = async () => {
 };
 
 // 获取优先级对应的标签类型
-const getPriorityTagType = (priority: string) => {
+const getPriorityColor = (priority: string) => {
   const priorityMap: Record<string, string> = {
     'high': 'danger',
     'medium': 'warning',
@@ -197,7 +197,7 @@ const getPriorityTagType = (priority: string) => {
                   <el-tag
                       v-if="notification.priority"
                       size="small"
-                      :type="getPriorityTagType(notification.priority)"
+                      :type="getPriorityColor(notification.priority)"
                       effect="plain"
                   >
                     {{

@@ -82,7 +82,7 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 import {ArrowLeft, ArrowRight} from "@element-plus/icons-vue";
-import type {Task} from '@/types/interfaces.ts'
+import type {Task} from '@/types/interfaces.d.ts'
 import {formatDate} from "@/utils/formatDate.ts";
 
 const currentDate = ref(new Date())

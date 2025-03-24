@@ -10,7 +10,7 @@ import request from '@/utils/request';
  * @param config Axios请求配置
  * @returns 请求成功时返回API响应数据，失败时返回null
  */
-export async function apiRequest<T>(
+async function apiRequest<T>(
     url: string,
     requestType: string = 'get',
     errorMessage: string = "Request failed",

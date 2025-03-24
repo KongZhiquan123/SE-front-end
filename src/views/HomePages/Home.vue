@@ -4,7 +4,7 @@
     <div v-if="!courses.length" class="empty-state">
       <el-empty description="No courses yet">
         <div class="empty-state-actions">
-          <el-button type="primary" size="large" @click="openCreateDialog">
+          <el-button type="primary" size="large" @click="openCreateDialog" v-role="'teacher'">
             <el-icon><Plus /></el-icon>Create Course
           </el-button>
           <el-button size="large" @click="openJoinDialog">
@@ -19,7 +19,7 @@
       <div class="courses-header">
         <h2>Your Courses</h2>
         <div class="header-actions">
-          <el-button type="primary" @click="openCreateDialog">
+          <el-button type="primary" @click="openCreateDialog" v-role="'teacher'">
             <el-icon><Plus /></el-icon>Create
           </el-button>
           <el-button @click="openJoinDialog">
@@ -67,7 +67,7 @@ import { useRouter } from 'vue-router'
 import { Plus, Link } from '@element-plus/icons-vue'
 import CreateCourseDialog from "@/components/CreateCourseDialog.vue";
 import JoinCourseDialog from "@/components/JoinCourseDialog.vue";
-import type { CourseItem } from "@/types/interfaces.ts"
+import type { CourseItem } from "@/types/interfaces"
 import {ElMessage} from "element-plus";
 import {formatDate} from "@/utils/formatDate";
 import {useUserStore} from "@/stores/user";

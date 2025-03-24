@@ -43,6 +43,7 @@ export interface Submission {
     submitTime: string,
     status: 'pending' | 'accepted' | 'rejected',
     attempts: number
+    textResponse?: string
     attachments: Attachment[]
 }
 

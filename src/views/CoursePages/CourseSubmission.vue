@@ -6,6 +6,7 @@ import {Document, Upload, Close, ArrowLeft, InfoFilled, View, Download} from '@e
 import { formatDate } from '@/utils/formatDate';
 import type { Assignment } from "@/types/interfaces";
 import downloadFile from "@/utils/downloadFile";
+import request from "@/utils/request";
 
 // 定义上传文件的接口
 interface UploadFile {
@@ -120,25 +121,23 @@ const isDeadlinePassed = computed(() => {
 
 // 提交作业
 const submitAssignment = async () => {
-  if (isDeadlinePassed.value) {
-    ElMessageBox.confirm(
-        'The deadline has passed. Late submissions may be penalized. Continue?',
-        'Warning',
-        {
-          confirmButtonText: 'Submit Anyway',
-          cancelButtonText: 'Cancel',
-          type: 'warning',
-        }
-    )
-        .then(() => {
-          processSubmission();
-        })
-        .catch(() => {
-          // 用户取消操作
-        });
-  } else {
+  if (!isDeadlinePassed.value) {
     await processSubmission();
+    return;
   }
+  ElMessageBox.confirm(
+      'The deadline has passed. Late submissions may be penalized. Continue?',
+      'Warning',
+      {
+        confirmButtonText: 'Submit Anyway',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      }
+  )
+      .then(() => {
+        processSubmission();
+      })
+
 };
 
 // 处理提交过程
@@ -150,23 +149,27 @@ const processSubmission = async () => {
 
   try {
     submitting.value = true;
-
     const formData = new FormData();
-    formData.append('assignmentId', assignmentId);
     formData.append('textResponse', textResponse.value);
-
+    //后端提交的文件名字使用的是uploadFile，而不是file
     uploadedFiles.value.forEach(file => {
-      formData.append('files', file);
+      formData.append('uploadFile', file);
     });
 
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
+    const response = await request.post(
+        `/students/submissions/assignments/${assignmentId}/submissions`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+    );
+    console.log('Submission result:', response.data);
     ElMessage.success('Assignment submitted successfully!');
     goBack();
   } catch (error) {
-    ElMessage.error('Error submitting assignment');
-    console.error(error);
+    ElMessage.error('Error submitting assignment: ' + (error.response?.data?.message || error.message));
   } finally {
     submitting.value = false;
   }
@@ -264,7 +267,6 @@ const goBack = () => {
                 drag
                 multiple
                 :auto-upload="false"
-                :http-request="() => {}"
                 :on-change="handleFileUpload"
                 :file-list="fileList"
                 :on-remove="removeFile"

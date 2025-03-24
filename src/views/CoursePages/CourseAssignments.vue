@@ -3,7 +3,7 @@ import {ref, computed} from 'vue'
 import {ElMessage, ElDivider} from 'element-plus'
 import {Document, Download, Upload} from "@element-plus/icons-vue";
 import {formatDate} from "@/utils/formatDate";
-import type {Assignment, Submission, Attachment} from '@/types/interfaces'
+import type {Assignment, Submission} from '@/types/interfaces'
 import {useRouter, useRoute} from "vue-router";
 import apiRequest from "@/utils/apiUtils";
 import formatFileSize from "@/utils/formatFileSize";
@@ -22,6 +22,10 @@ const loading = ref<boolean>(true)
 
 apiRequest<Assignment[]>(`students/assignments/course/${route.query.courseId}/active`).then(data => {
   assignments.value = data ?? []
+  assignments.value = assignments.value.map(assignment => ({
+    ...assignment,
+    type: 'code'
+  }))
   loading.value = false;
 })
 const filteredAssignments = computed(() => {
@@ -53,14 +57,15 @@ const filteredAssignments = computed(() => {
 const showSubmissionHistory = (assignment: Assignment) => {
   activeAssignment.value = assignment
   apiRequest<Submission[]>(`students/assignments/${assignment.id}/submissions`).then(data => {
-    submissions.value = data ?? []
-    submissions.value = data.map(submission => ({
+    submissions.value = (data ?? []).map((submission, index) => ({
       ...submission,
+      status: submission.status.toLowerCase(),
+      attempts: index + 1,
       attachments: submission.attachments?.map(attachment => ({
         ...attachment,
         size: formatFileSize(attachment.size)
       }))
-    }))
+    }));
   })
   drawerVisible.value = true
 }
@@ -89,13 +94,23 @@ const getStatusText = (status: string) => {
 
 
 const submitAssignment = (activeAssignmentId: number) => {
+  const path = activeAssignment.value.type === 'code'
+      ? '/code-editor'
+      : '/student-course/submit-assignments'
   router.push({
-    path: '/student-course/submit-assignments',
+    path: path,
     query: {assignmentId: activeAssignmentId,
       courseId: router.currentRoute.value.query.courseId,
       courseCode: router.currentRoute.value.query.courseCode}
   })
 }
+
+const copyToClipboard = (text: string) => {
+  navigator.clipboard.writeText(text)
+      .then(() => ElMessage.success('Text copied to clipboard'))
+      .catch(() => ElMessage.error('Failed to copy text'))
+}
+
 </script>
 
 <template>
@@ -213,7 +228,7 @@ const submitAssignment = (activeAssignmentId: number) => {
                 <span class="file-name">{{ file.name }}</span>
                 <span class="file-size">{{ file.size }}</span>
               </div>
-              <el-button size="small" type="primary" text @click="downloadFile(file?.url)" :icon="Download">
+              <el-button size="default" type="primary" text @click="downloadFile(file?.url)" :icon="Download">
                 Download
               </el-button>
             </div>
@@ -246,6 +261,26 @@ const submitAssignment = (activeAssignmentId: number) => {
                   </div>
                   <div><strong>Attempt:</strong> {{ submission.attempts }}</div>
                 </div>
+
+                <el-divider v-if="submission.textResponse"/>
+                <div v-if="submission.textResponse" class="text-response-container">
+                  <h5>Text Response:</h5>
+                  <el-card class="text-response-content" shadow="hover">
+                    <pre>{{ submission.textResponse }}</pre>
+                    <el-tooltip content="Copy to clipboard" placement="top" :hide-after="1000">
+                      <el-button
+                          size="default"
+                          type="info"
+                          text
+                          class="copy-button"
+                          @click="copyToClipboard(submission.textResponse)"
+                      >
+                        <el-icon><Document /></el-icon>
+                      </el-button>
+                    </el-tooltip>
+                  </el-card>
+                </div>
+
                 <el-divider v-if="submission.attachments?.length"/>
                 <div v-if="submission.attachments?.length" class="submission-files">
                   <h5>Submitted Files:</h5>
@@ -259,6 +294,7 @@ const submitAssignment = (activeAssignmentId: number) => {
                     </el-button>
                   </div>
                 </div>
+
               </el-card>
             </el-timeline-item>
           </el-timeline>
@@ -365,6 +401,34 @@ h4 {
   justify-content: space-between;
 }
 
+/* 提交的文本的样式 */
+.text-response-container {
+  margin: 12px 0;
+}
+
+.text-response-content {
+  position: relative;
+  background-color: #f9f9f9;
+  border-left: 3px solid #409eff;
+}
+
+.text-response-content pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  margin: 0;
+  padding: 8px 30px 8px 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.copy-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+/* 提交的文件的样式 */
 .submission-files {
   margin-top: 8px;
 }
