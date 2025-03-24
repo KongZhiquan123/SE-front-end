@@ -24,6 +24,7 @@ apiRequest<Assignment[]>(`students/assignments/course/${route.query.courseId}/ac
   assignments.value = data ?? []
   assignments.value = assignments.value.map(assignment => ({
     ...assignment,
+    type: 'code',
     status: assignment.status.toLowerCase(),
   }))
   loading.value = false;
@@ -97,7 +98,7 @@ const getStatusText = (status: string) => {
 
 const submitAssignment = (activeAssignmentId: number) => {
   const path = activeAssignment.value.type === 'code'
-      ? '/code-editor'
+      ? '/code-edit-and-run/code-edit'
       : '/student-course/submit-assignments'
   router.push({
     path: path,

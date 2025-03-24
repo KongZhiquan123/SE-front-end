@@ -98,4 +98,17 @@ export interface Notification {
     relatedCourse?: string;          // 相关课程代码
     priority: 'low' | 'medium' | 'high'; // 优先级
 }
+//CodeRun.vue
+export interface CodeExecutionResult {
+    id: number;
+    output: string;
+    error: string;
+    statusCode: number;
+    memory: string;
+    cpuTime: string;
+    compilationStatus: string;
+    isExecutionSuccess: boolean;
+    isCompiled: boolean;
+    submitTime?: string;
+}
 

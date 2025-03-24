@@ -2,7 +2,7 @@
 import {ref, onMounted, onBeforeUnmount, shallowRef} from 'vue';
 import {ElMessage} from "element-plus";
 import {Upload} from "@element-plus/icons-vue";
-
+import {useRouter} from 'vue-router';
 // editorContainer元素的引用，它在挂载到DOM后会被用来初始化monaco编辑器
 const editorContainer = shallowRef<HTMLElement | null>(null);
 // 用于导入monaco-editor
@@ -162,8 +162,8 @@ onBeforeUnmount(() => {
     editorInstance.value = null;
   }
   // 销毁所有编辑器的模型
-  if (editorModels.value) {
-    Object.values(editorModels.value).forEach(model => {
+  if (monaco.value.editor) {
+    monaco.value.editor.getModels().forEach(model => {
       if (model && typeof model.dispose === 'function') {
         model.dispose();
       }
@@ -189,12 +189,13 @@ const handleLanguageChange = (newLanguage: 'python' | 'java' | 'cpp') => {
   editorInstance.value.setModel(editorModels.value[newLanguage]);
   codeLanguage.value = newLanguage;
 };
-
+const router = useRouter();
 // 提交代码函数
 const submitCode = () => {
   if (!editorInstance.value) return;
   const code = editorInstance.value.getValue();
   // TODO: 将code提交到后端进行评测
+  router.push('/code-edit-and-run/code-run');
   console.log(`Submitting ${codeLanguage.value} code:`, code);
   ElMessage.success('Submit successfully');
 };

@@ -87,12 +87,18 @@ const router = createRouter({
             ]
         },
         {
-          path: '/code-editor',
+          path: '/code-edit-and-run',
           component: () => import('../views/CodeEditorLayout.vue'),
           children: [
               {
-                  path: '',
-                  component: () => import('../views/CodeEditorPages/CodeEditor.vue'),
+                  path: 'code-edit',
+                  component: () => import('../views/CodeEditAndAssessmentPages/CodeEditor.vue'),
+                  meta: { requiresAuth: true }
+              },
+              {
+                  path: 'code-run',
+                  component: () => import('../views/CodeEditAndAssessmentPages/CodeRun.vue'),
+                  meta: { requiresAuth: true }
               }
           ]
         },
