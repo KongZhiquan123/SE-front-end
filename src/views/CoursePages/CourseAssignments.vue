@@ -24,7 +24,7 @@ apiRequest<Assignment[]>(`students/assignments/course/${route.query.courseId}/ac
   assignments.value = data ?? []
   assignments.value = assignments.value.map(assignment => ({
     ...assignment,
-    type: 'code'
+    status: assignment.status.toLowerCase(),
   }))
   loading.value = false;
 })
@@ -57,15 +57,17 @@ const filteredAssignments = computed(() => {
 const showSubmissionHistory = (assignment: Assignment) => {
   activeAssignment.value = assignment
   apiRequest<Submission[]>(`students/assignments/${assignment.id}/submissions`).then(data => {
-    submissions.value = (data ?? []).map((submission, index) => ({
-      ...submission,
-      status: submission.status.toLowerCase(),
-      attempts: index + 1,
-      attachments: submission.attachments?.map(attachment => ({
-        ...attachment,
-        size: formatFileSize(attachment.size)
-      }))
-    }));
+    submissions.value =  (data ?? [])
+        .sort((a, b) => new Date(a.submitTime).getTime() - new Date(b.submitTime).getTime())
+        .map((submission, index) => ({
+          ...submission,
+          status: submission.status.toLowerCase(),
+          attempts: index + 1,
+          attachments: submission.attachments?.map(attachment => ({
+            ...attachment,
+            size: formatFileSize(attachment.size)
+          }))
+        })).reverse();
   })
   drawerVisible.value = true
 }
@@ -246,8 +248,8 @@ const copyToClipboard = (text: string) => {
 
           <el-timeline v-else>
             <el-timeline-item
-                v-for="(submission, index) in submissions"
-                :key="index"
+                v-for="submission in submissions"
+                :key="submission.id"
                 :timestamp="formatDate(submission.submitTime)"
                 :type="getStatusType(submission.status)"
             >

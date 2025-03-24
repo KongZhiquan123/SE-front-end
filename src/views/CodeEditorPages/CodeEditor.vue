@@ -7,7 +7,8 @@ import {Upload} from "@element-plus/icons-vue";
 const editorContainer = shallowRef<HTMLElement | null>(null);
 // 用于导入monaco-editor
 const monaco = shallowRef<any>(null);
-const codeLanguage = ref<'python' | 'java' | 'cpp'>('python'); // 默认选择python语言
+// 默认选择python语言
+const codeLanguage = ref<'python' | 'java' | 'cpp'>('python');
 // 亮色主题默认开启
 const isLightTheme = ref<boolean>(true);
 /*
@@ -154,24 +155,40 @@ onMounted(() => {
   loadMonacoEditor();
 });
 
-// 切换语言处理函数
-const handleLanguageChange = (newLanguage: 'python' | 'java' | 'cpp') => {
-  if (!editorInstance.value) return;
-  const newModel = monaco.value.editor.createModel(
-      codeTemplates[newLanguage],
-      newLanguage
-  );
-  editorInstance.value.setModel(newModel);
-  codeLanguage.value = newLanguage;
-};
-
+// 当组件卸载时，销毁编辑器，你应该学习cpp的品德
 onBeforeUnmount(() => {
-  // 销毁editor实例，vue不会自动销毁外部引用的对象，需要手动销毁
   if (editorInstance.value) {
     editorInstance.value.dispose();
     editorInstance.value = null;
   }
+  // 销毁所有编辑器的模型
+  if (editorModels.value) {
+    Object.values(editorModels.value).forEach(model => {
+      if (model && typeof model.dispose === 'function') {
+        model.dispose();
+      }
+    });
+    editorModels.value = {};
+  }
 });
+
+// 用于存储不同语言的编辑器模型，避免切换语言时重新创建模型实例
+const editorModels = shallowRef<Record<string, any>>({});
+
+// 切换语言处理函数
+const handleLanguageChange = (newLanguage: 'python' | 'java' | 'cpp') => {
+  if (!editorInstance.value || !monaco.value) return;
+
+  if (!editorModels.value[newLanguage]) {
+    editorModels.value[newLanguage] = monaco.value.editor.createModel(
+        codeTemplates[newLanguage],
+        newLanguage
+    );
+  }
+
+  editorInstance.value.setModel(editorModels.value[newLanguage]);
+  codeLanguage.value = newLanguage;
+};
 
 // 提交代码函数
 const submitCode = () => {
