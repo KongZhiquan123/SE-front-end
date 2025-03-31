@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {ref, onMounted, onBeforeUnmount, shallowRef} from 'vue';
 import {ElMessage} from "element-plus";
-import {Upload} from "@element-plus/icons-vue";
 import {useRouter} from 'vue-router';
+import { Document, Monitor, Cpu, Timer, Collection, Upload } from '@element-plus/icons-vue'
 // editorContainer元素的引用，它在挂载到DOM后会被用来初始化monaco编辑器
 const editorContainer = shallowRef<HTMLElement | null>(null);
 // 用于导入monaco-editor
@@ -19,44 +19,44 @@ const isLightTheme = ref<boolean>(true);
 const editorInstance = shallowRef<any>(null);
 // 添加加载状态标识
 const isEditorLoading = ref(false);
-
+// 问题描述
+interface Problem {
+  title: string;
+  description: string;
+  instructions: string;
+  allowedLanguages: string;
+  memoryLimitEnabled: boolean;
+  memoryLimitMB: number;
+  timeLimitEnabled: boolean;
+  timeLimitSeconds: number;
+}
 // 测试
-const problem = ref({
+const problem = ref<Problem>({
   title: 'Two Sum',
   description: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice.',
-  examples: [
-    {
-      input: 'nums = [2,7,11,15], target = 9',
-      output: '[0,1]',
-      explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].'
-    }
-  ],
-  constraints: [
-    '2 <= nums.length <= 104',
-    '-109 <= nums[i] <= 109',
-    '-109 <= target <= 109',
-    'Only one valid answer exists.'
-  ]
+  instructions: 'You can return the answer in any order.',
+  allowedLanguages: 'Python, Java, C++',
+  memoryLimitEnabled: true,
+  memoryLimitMB: 512,
+  timeLimitEnabled: true,
+  timeLimitSeconds: 2
 });
 
 //不同语言的代码模板
 const codeTemplates = {
-  python: `def two_sum(nums, target):
+  python: `def myFunc(arg1, arg2):
     # Your code here
     pass
-
-# Example usage
-# result = two_sum([2, 7, 11, 15], 9)
-# print(result)`,
+`,
   java: `class Solution {
-    public int[] twoSum(int[] nums, int target) {
+    public int[] myFunc(int[] nums, int target) {
         // Your code here
         return new int[]{0, 0};
     }
 }`,
   cpp: `#include <vector>
 
-std::vector<int> twoSum(std::vector<int>& nums, int target) {
+std::vector<int> myFunc(std::vector<int>& nums, int target) {
     // Your code here
     return {0, 0};
 }`
@@ -207,24 +207,46 @@ const submitCode = () => {
       <el-row :gutter="0">
         <!-- 问题描述 -->
         <el-col :span="10" class="problem-panel">
-          <h2 class="problem-title">{{ problem.title }}</h2>
+          <h2 class="problem-title">
+            <el-icon><Document /></el-icon>
+            {{ problem.title }}
+          </h2>
           <el-divider/>
           <div class="problem-description">
             <p>{{ problem.description }}</p>
+            <p v-if="problem.instructions" class="instructions">{{ problem.instructions }}</p>
 
-            <h3>Examples:</h3>
-            <el-card v-for="(example, index) in problem.examples" :key="index" class="example-card" shadow="hover">
-              <p><strong>Input:</strong> {{ example.input }}</p>
-              <p><strong>Output:</strong> {{ example.output }}</p>
-              <p v-if="example.explanation"><strong>Explanation:</strong> {{ example.explanation }}</p>
-            </el-card>
+            <div class="limits-section" v-if="problem.memoryLimitEnabled || problem.timeLimitEnabled">
+              <h3>
+                <el-icon><Monitor /></el-icon>
+                Limits:
+              </h3>
+              <el-card shadow="hover" class="limits-card">
+                <div class="limit-item" v-if="problem.memoryLimitEnabled">
+                  <el-icon><Cpu /></el-icon>
+                  <span>Memory Limit: <strong>{{ problem.memoryLimitMB }} MB</strong></span>
+                </div>
+                <div class="limit-item" v-if="problem.timeLimitEnabled">
+                  <el-icon><Timer /></el-icon>
+                  <span>Time Limit: <strong>{{ problem.timeLimitSeconds }} seconds</strong></span>
+                </div>
+              </el-card>
+            </div>
 
-            <h3>Constraints:</h3>
-            <el-card shadow="hover" class="constraints-card">
-              <ul>
-                <li v-for="(constraint, index) in problem.constraints" :key="index">{{ constraint }}</li>
-              </ul>
-            </el-card>
+            <h3 v-if="problem.allowedLanguages">
+              <el-icon><Collection /></el-icon>
+              Allowed Languages:
+            </h3>
+            <el-tag
+                v-if="problem.allowedLanguages"
+                v-for="lang in problem.allowedLanguages.split(',')"
+                :key="lang"
+                class="language-tag"
+                type="info"
+                effect="plain"
+            >
+              {{ lang.trim() }}
+            </el-tag>
           </div>
         </el-col>
 
@@ -325,6 +347,13 @@ $card-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
     margin-top: 0;
     color: $text-color;
     font-size: 22px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .el-icon {
+      color: $primary-color;
+    }
   }
 
   .problem-description {
@@ -336,31 +365,53 @@ $card-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
       margin-bottom: 16px;
       font-size: 18px;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .el-icon {
+        color: $primary-color;
+        font-size: 18px;
+      }
     }
 
     p {
       margin-bottom: 16px;
     }
+
+    .instructions {
+      padding: 12px;
+      background-color: #f0f9eb;
+      border-left: 4px solid #67c23a;
+      border-radius: 4px;
+    }
   }
 
-  .example-card, .constraints-card {
+  .limits-card {
     margin-bottom: 16px;
     border-radius: 6px;
     background-color: #fff;
     padding: 20px;
 
-    ul {
-      padding-left: 20px;
-      margin: 0;
-    }
-
-    li {
+    .limit-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       margin-bottom: 8px;
 
       &:last-child {
         margin-bottom: 0;
       }
+
+      .el-icon {
+        color: $primary-color;
+      }
     }
+  }
+
+  .language-tag {
+    margin-right: 8px;
+    margin-bottom: 8px;
   }
 }
 

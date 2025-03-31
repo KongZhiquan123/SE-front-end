@@ -27,7 +27,6 @@
           </el-button>
         </div>
       </div>
-
       <el-row :gutter="24">
         <el-col v-for="(course, index) in courses"
                 :key="course.id"

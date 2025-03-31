@@ -24,7 +24,6 @@ apiRequest<Assignment[]>(`students/assignments/course/${route.query.courseId}/ac
   assignments.value = data ?? []
   assignments.value = assignments.value.map(assignment => ({
     ...assignment,
-    type: 'code',
     status: assignment.status.toLowerCase(),
   }))
   loading.value = false;

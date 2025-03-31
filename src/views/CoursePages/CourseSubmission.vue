@@ -7,6 +7,7 @@ import { formatDate } from '@/utils/formatDate';
 import type { Assignment } from "@/types/interfaces";
 import downloadFile from "@/utils/downloadFile";
 import request from "@/utils/request";
+import apiRequest from "@/utils/apiUtils";
 
 // 定义上传文件的接口
 interface UploadFile {
@@ -29,27 +30,20 @@ const fileList = ref<UploadFile[]>([]);
 const previewVisible = ref(false);
 const previewFile = ref<UploadFile | null>(null);
 
-const fetchAssignmentDetail = async () => {
-  try {
-    loading.value = true;
-    // 模拟API调用
-    assignment.value = {
-      id: 1,
-      title: 'Assignment 1',
-      dueDate: '2024-09-30T23:59:59.000Z',
-      maxScore: 100,
-      instructions: 'Write a 500-word essay on the importance of education in society.',
-      description: 'Write a 500-word essay on the importance of education in society.',
-      status: 'open',
-    };
-  } catch (error) {
-    ElMessage.error('Failed to load assignment details');
-    console.error(error);
-  } finally {
-    loading.value = false;
-  }
-};
-fetchAssignmentDetail()
+apiRequest<Assignment>(`/students/assignments/${assignmentId}/details`).then(data => {
+  assignment.value = data ?? {
+    id: '',
+    title: '',
+    type: '',
+    description: '',
+    dueDate: '',
+    maxScore: NaN,
+    openDate: '',
+    status: 'unknown',
+    instructions: ''
+  };
+  loading.value = false;
+});
 
 // 处理文件上传
 const handleFileUpload = (file: UploadFile) => {
