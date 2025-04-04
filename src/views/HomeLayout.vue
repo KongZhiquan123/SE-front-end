@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import HomeSidebar from '../components/HomeSidebar.vue'
+import HomeSidebar from '../components/SideBars/HomeSidebar.vue'
 import HeaderContent from "../components/HeaderContent.vue"
 
 const isCollapse = ref(false)

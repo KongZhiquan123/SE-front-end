@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { Grade } from '@/types/interfaces'
+import { filter, orderBy, sumBy, defaultTo, get } from 'lodash-es'
 import {ChatLineRound, Document, View, Warning, Timer, InfoFilled, Edit} from "@element-plus/icons-vue";
 import {formatDate} from "@/utils/formatDate";
 import apiRequest from "@/utils/apiUtils";
@@ -18,39 +19,34 @@ apiRequest<Grade[]>(`/students/courses/courses/${route.query.courseId}`).then(re
 
 // 自定义排序规则
 const filteredGrades = computed(() => {
-  return grades.value.filter(
+  const filtered = filter(
+      grades.value,
       grade => activeTab.value === 'all' || grade.status === activeTab.value
-  ).sort((a, b) => {
-    //根据不同的排序字段进行排序
-    //对于分数进行数字排序
-    if (sortBy.value === 'score') {
-      const aScore = a.score ?? -1
-      const bScore = b.score ?? -1
-      return sortOrder.value === 'ascending' ? aScore - bScore : bScore - aScore
-    }
-    //对于日期进行时间戳排序
-    if (sortBy.value === 'dueDate') {
-      const aDueDate = new Date(a.dueDate).getTime()
-      const bDueDate = new Date(b.dueDate).getTime()
-      return sortOrder.value === 'ascending' ? aDueDate - bDueDate : bDueDate - aDueDate
-    }
-    //对于字符串进行字典排序
-    const aValue = a[sortBy.value]
-    const bValue = b[sortBy.value]
-    return sortOrder.value === 'ascending'
-        ? aValue.localeCompare(bValue)
-        : bValue.localeCompare(aValue)
-  })
+  )
+
+  const iteratees = {
+    'score': (item) => item.score ?? -1,
+    'dueDate': (item) => new Date(item.dueDate).getTime(),
+  }
+
+  const iteratee = iteratees[sortBy.value] ||
+      ((item) => item[sortBy.value]?.toLowerCase())
+
+  return orderBy(
+      filtered,
+      [iteratee],
+      [sortOrder.value === 'ascending' ? 'asc' : 'desc']
+  )
 })
 
 // 计算总成绩
 const calculateGrade = computed(() => {
-  const gradedThings = grades.value.filter(a => a.status === 'graded')
-  const totalEarned = gradedThings.reduce((sum, a) => sum + (a.score ?? 0), 0)
-  const totalPossible = gradedThings.reduce((sum, a) => sum + a.maxScore, 0)
+  const gradedThings = filter(grades.value, { status: 'graded' })
+  const totalEarned = sumBy(gradedThings, item => defaultTo(item.score, 0))
+  const totalPossible = sumBy(gradedThings, 'maxScore')
+
   return ((totalEarned / totalPossible) * 100).toFixed(2)
 })
-
 // 获取成绩等级
 const getGradeLevel = (score: number) => {
   if (score >= 90) return { label: 'A', color: '#67C23A' }
@@ -75,7 +71,7 @@ const getStatusTagType = (status: string): string => {
     'appealing': 'warning',
     'upcoming': 'info'
   }
-  return statusTagTypeMap[status] || 'danger'
+  return get(statusTagTypeMap, status, 'info')
 }
 // 控制详情抽屉
 const detailsDrawer = ref(false)

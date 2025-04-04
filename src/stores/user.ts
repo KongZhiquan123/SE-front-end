@@ -26,6 +26,7 @@ export const useUserStore = defineStore('user', () => {
         Object.entries(refToProperty).forEach(([key, ref]) => {
             ref.value = userData[key] ?? ref.value;
         })
+        role.value = role.value ? role.value.toLowerCase() : null;
         authorized.value = userData.authorized ?? false;
         token.value = token.value || '';
         localStorage.setItem('token', token.value);

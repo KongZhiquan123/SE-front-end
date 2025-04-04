@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import {ref, computed} from 'vue'
+import {ref, computed, shallowRef} from 'vue'
 import {ElMessage, ElDivider} from 'element-plus'
 import {Document, Download, Upload} from "@element-plus/icons-vue";
 import {formatDate} from "@/utils/formatDate";
 import type {Assignment, Submission} from '@/types/interfaces'
+import { capitalize, defaultTo, orderBy, get, filter } from 'lodash-es'
 import {useRouter, useRoute} from "vue-router";
 import apiRequest from "@/utils/apiUtils";
 import formatFileSize from "@/utils/formatFileSize";
@@ -13,51 +14,43 @@ const router = useRouter()
 const route = useRoute()
 const assignments = ref<Assignment[]>([])
 const submissions = ref<Submission[]>([])
-const activeAssignment = ref<Assignment | null>(null)
+const activeAssignment = shallowRef<Assignment | null>(null)
 const filterStatus = ref<string>('all')
 const sortBy = ref<'dueDate' | 'title' | 'maxScore'>('dueDate')
 const sortOrder = ref<'ascending' | 'descending'>('ascending')
 const drawerVisible = ref(false)
 const loading = ref<boolean>(true)
 
+
+
 apiRequest<Assignment[]>(`students/assignments/course/${route.query.courseId}/active`).then(data => {
-  assignments.value = data ?? []
-  assignments.value = assignments.value.map(assignment => ({
+  assignments.value = defaultTo(data, []).map(assignment => ({
     ...assignment,
     status: assignment.status.toLowerCase(),
   }))
   loading.value = false;
 })
-const filteredAssignments = computed(() => {
-  return assignments.value
-      .filter(assignment => filterStatus.value == 'all' || assignment.status === filterStatus.value)
-      .sort((a, b) => {
-        // 分数排序
-        if (sortBy.value === 'maxScore') {
-          return sortOrder.value === 'ascending'
-              ? a.maxScore - b.maxScore
-              : b.maxScore - a.maxScore
 
-        }
-        //日期排序
-        if (sortBy.value === 'dueDate') {
-          const aDate = new Date(a.dueDate).getTime()
-          const bDate = new Date(b.dueDate).getTime()
-          return sortOrder.value === 'ascending'
-              ? aDate - bDate
-              : bDate - aDate
-        }
-        //名字字符串排序
-        return sortOrder.value === 'ascending'
-            ? a[sortBy.value].localeCompare(b[sortBy.value])
-            : b[sortBy.value].localeCompare(a[sortBy.value])
-      })
-})
+//自定义排序
+const filteredAssignments = computed(() => {
+  const filtered = filter(assignments.value, assignment =>
+      filterStatus.value === 'all' || assignment.status === filterStatus.value
+  );
+  return orderBy(
+      filtered,
+      [
+        sortBy.value === 'maxScore' ? 'maxScore' :
+        sortBy.value === 'dueDate' ? (item) => new Date(item.dueDate).getTime() :
+        (item) => item[sortBy.value]?.toLowerCase() // 字符串排序统一转小写
+      ],
+      [sortOrder.value === 'ascending' ? 'asc' : 'desc']
+  );
+});
 //展示作业历史
 const showSubmissionHistory = (assignment: Assignment) => {
   activeAssignment.value = assignment
   apiRequest<Submission[]>(`students/assignments/${assignment.id}/submissions`).then(data => {
-    submissions.value =  (data ?? [])
+    submissions.value =  defaultTo(data,[])
         .sort((a, b) => new Date(a.submitTime).getTime() - new Date(b.submitTime).getTime())
         .map((submission, index) => ({
           ...submission,
@@ -87,11 +80,11 @@ const getStatusType = (status: string) => {
     'rejected': 'danger'
   }
 
-  return statusMap[status] || 'info'
+  return get(statusMap, status, 'info')
 }
 
 const getStatusText = (status: string) => {
-  return status.charAt(0).toUpperCase() + status.slice(1)
+  return capitalize(status)
 }
 
 

@@ -64,8 +64,8 @@
 import {watch, ref} from "vue"
 import { useRouter } from 'vue-router'
 import { Plus, Link } from '@element-plus/icons-vue'
-import CreateCourseDialog from "@/components/CreateCourseDialog.vue";
-import JoinCourseDialog from "@/components/JoinCourseDialog.vue";
+import CreateCourseDialog from "@/components/Dialogs/CreateCourseDialog.vue";
+import JoinCourseDialog from "@/components/Dialogs/JoinCourseDialog.vue";
 import type { CourseItem } from "@/types/interfaces"
 import {ElMessage} from "element-plus";
 import {formatDate} from "@/utils/formatDate";
@@ -82,7 +82,7 @@ const loading = ref<boolean>(true)
 
 const loadCourses = () => {
   loading.value = true
-  apiRequest<CourseItem[]>('/students/courses/current').then((response) => {
+  apiRequest<CourseItem[]>(`/${userStore.role+"s"}/courses`).then((response) => {
     courses.value = response ?? []
     loading.value = false
   })
@@ -136,7 +136,7 @@ const handleCourseJoined = (newCourse: CourseItem) => {
 
 const viewCourse = (courseId: number, courseCode: string) => {
   router.push({
-    path: '/student-course/course-basic-info',
+    path: `/${userStore.role}-course/course-basic-info`,
     query: { courseId: courseId, courseCode: courseCode }
   })
 }

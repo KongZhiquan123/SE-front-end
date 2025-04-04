@@ -3,7 +3,6 @@ import {useUserStore} from "@/stores/user";
 /*
 路由元含义：
 requiresAuth: 是否需要登录才能访问
-hideLayout: 是否隐藏顶部和侧边栏布局，比如登录页面就不需要布局
 */
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,63 +10,69 @@ const router = createRouter({
         {
             path: '/',
             component: () => import('../views/HomeLayout.vue'),
+            meta: {requiresAuth: true, roles: ['student', 'teacher', 'admin', null]},
             children: [
                 {
                     path: '',
-                    component: () => import('../views/HomePages/Home.vue')
+                    component: () => import('../views/HomePages/Home.vue'),
+                    meta: {requiresAuth: false}
                 },
                 {
                     path: 'calendar',
                     component: () => import('../views/HomePages/Calendar.vue'),
-                    meta: { requiresAuth: true }
                 },
                 {
                     path: 'archived-classes',
                     component: () => import('../views/HomePages/ArchivedClasses.vue'),
-                    meta: { requiresAuth: true }
                 },
                 {
                     path: 'settings',
                     component: () => import('../views/HomePages/Settings.vue'),
-                    meta: { requiresAuth: true }
                 },
                 {
                     path: 'notifications',
                     component: () => import('../views/HomePages/Notifications.vue'),
-                    meta: { requiresAuth: true }
                 }
             ]
         },
         {
-          path: '/student-course',
-          component: () => import('../views/CourseLayout.vue'),
-          children: [
-              {
-                  path: 'course-materials',
-                  component: () => import('../views/CoursePages/CourseMaterials.vue'),
-                  meta: { requiresAuth: true }
-              },
-              {
-                  path: 'course-basic-info',
-                  component: () => import('../views/CoursePages/CourseBasicInformation.vue'),
-                  meta: { requiresAuth: true }
-              },
-              {
-                  path: 'course-grades',
-                  component: () => import('../views/CoursePages/CourseGrades.vue'),
-                  meta: { requiresAuth: true }
-              },
-              {
-                  path: 'course-assignments',
-                  component: () => import('../views/CoursePages/CourseAssignments.vue'),
-                  meta: { requiresAuth: true }
-              },
-              {
-                  path: 'submit-assignments',
-                  component: () => import('../views/CoursePages/CourseSubmission.vue'),
-                  meta: { requiresAuth: true }
-              }
-          ]
+            path: '/student-course',
+            component: () => import('../views/CourseLayout.vue'),
+            meta: {requiresAuth: true, roles: ['student', 'admin']},
+            children: [
+                {
+                    path: 'course-materials',
+                    component: () => import('../views/CoursePages/CourseMaterials.vue'),
+
+                },
+                {
+                    path: 'course-basic-info',
+                    component: () => import('../views/CoursePages/CourseBasicInformation.vue'),
+                },
+                {
+                    path: 'course-grades',
+                    component: () => import('../views/CoursePages/CourseGrades.vue'),
+                },
+                {
+                    path: 'course-assignments',
+                    component: () => import('../views/CoursePages/CourseAssignments.vue'),
+                },
+                {
+                    path: 'submit-assignments',
+                    component: () => import('../views/CoursePages/CourseSubmission.vue'),
+                }
+            ]
+        },
+        {
+            path: '/teacher-course',
+            component: () => import('../views/CourseLayout.vue'),
+            meta: {requiresAuth: true, roles: ['teacher', 'admin']},
+            children: [
+                {
+                    path: 'course-basic-info',
+                    component: () => import('../views/CoursePages/CourseBasicInformation.vue'),
+                }
+            ]
         },
         {
             path: '/auth',
@@ -87,20 +92,19 @@ const router = createRouter({
             ]
         },
         {
-          path: '/code-edit-and-run',
-          component: () => import('../views/CodeEditorLayout.vue'),
-          children: [
-              {
-                  path: 'code-edit',
-                  component: () => import('../views/CodeEditAndAssessmentPages/CodeEditor.vue'),
-                  meta: { requiresAuth: true }
-              },
-              {
-                  path: 'code-run',
-                  component: () => import('../views/CodeEditAndAssessmentPages/CodeRun.vue'),
-                  meta: { requiresAuth: true }
-              }
-          ]
+            path: '/code-edit-and-run',
+            component: () => import('../views/CodeEditorLayout.vue'),
+            meta: {requiresAuth: true},
+            children: [
+                {
+                    path: 'code-edit',
+                    component: () => import('../views/CodeEditAndAssessmentPages/CodeEditor.vue'),
+                },
+                {
+                    path: 'code-run',
+                    component: () => import('../views/CodeEditAndAssessmentPages/CodeRun.vue'),
+                }
+            ]
         },
         {
             path: '/:pathMatch(.*)*',
@@ -116,9 +120,14 @@ router.beforeEach((to, from, next) => {
     if (to.meta.requiresAuth && !userStore.authorized) {
         next('/auth/login')
         console.log(`You can't access this page from ${from.fullPath} without logging in`)
-    } else {
-        next()
+        return
     }
+    if (to.meta.roles && !to.meta.roles.includes(userStore.role)) {
+        next('/')
+        console.log(`User role ${userStore.role} not authorized to access ${to.path}`)
+        return
+    }
+    next()
 })
 
 

@@ -43,15 +43,14 @@ const handleLogin = async (formEl?: FormInstance) => {
         usernameOrEmail: loginForm.identifier,
         password: loginForm.password
       })
-
       userStore.setUser({
-        id: null,
-        username: loginForm.identifier,
-        email: null,
-        role: null,
         token: data.jwt,
-        authorized: true
       })
+      const success = await userStore.autoLogin()
+      if (!success) {
+        ElMessage.error('Login failed')
+        return
+      }
       ElMessage.success('Login successful')
       await router.push('/')
     } catch (error) {
