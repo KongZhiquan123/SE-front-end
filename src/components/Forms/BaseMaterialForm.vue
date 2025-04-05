@@ -6,6 +6,17 @@ import type { UploadFiles, UploadRawFile, UploadFile } from 'element-plus'
 import request from "@/utils/request";
 import {capitalize} from "lodash-es";
 
+interface DefaultForm {
+  title: string;
+  type: string;
+  description: string;
+  dueDate?: string;
+  maxScore?: number;
+  openDate?: string;
+  instructions?: string;
+  status: string;
+}
+
 const props = defineProps({
   courseId: {
     type: [String, Number],
@@ -13,7 +24,7 @@ const props = defineProps({
   },
   // 设置默认的表单字段
   defaultForm: {
-    type: Object,
+    type: Object as PropType<DefaultForm>,
     default: () => ({
       title: '',
       type: 'material',
@@ -28,7 +39,7 @@ const props = defineProps({
   },
   // 钩子，在创建之前执行
   beforeCreate: {
-    type: PropType<() => Promise<boolean> | boolean>,
+    type: Function as PropType<() => Promise<boolean> | boolean>,
     default: () => true
   }
 });
@@ -36,7 +47,7 @@ const props = defineProps({
 const emit = defineEmits(['submit-success', 'reset']);
 
 // 使用props.defaultForm作为初始值
-const materialForm = reactive({ ...props.defaultForm });
+const materialForm = reactive<DefaultForm>({ ...props.defaultForm });
 
 const loading = ref(false);
 const uploadLoading = ref(false);
