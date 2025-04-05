@@ -21,6 +21,7 @@ const getCourseSideBarItems = (role: 'teacher' | 'student' | 'admin')  => {
     return [
       {name: 'Basic Information', path: '/teacher-course/course-basic-info', icon: InfoFilled},
       {name: 'Create Assignment', path: '/teacher-course/create-assignment', icon: Files},
+      {name: 'Create Class Materials', path: '/teacher-course/create-course-materials', icon: Files},
     ]
   } else if (role === 'student') {
     return [

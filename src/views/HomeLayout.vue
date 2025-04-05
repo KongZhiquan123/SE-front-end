@@ -11,7 +11,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import HomeSidebar from '../components/SideBars/HomeSidebar.vue'
-import HeaderContent from "../components/HeaderContent.vue"
+import HeaderContent from "../components/Headers/HeaderContent.vue"
 
 const isCollapse = ref(false)
 const toggleSidebar = () => {

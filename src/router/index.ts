@@ -75,6 +75,10 @@ const router = createRouter({
                 {
                     path: 'create-assignment',
                     component: () => import('../views/CoursePages/CreateAssignment.vue'),
+                },
+                {
+                    path: 'create-course-materials',
+                    component: () => import('../views/CoursePages/CreateCourseMaterials.vue'),
                 }
             ]
         },

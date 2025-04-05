@@ -7,9 +7,8 @@ export const vRole: Directive = {
         const userStore = useUserStore();
         const requiredRole = binding.value;
 
-        // Check if user has the required role
         if (userStore.role !== requiredRole) {
-            // Remove element from DOM
+            // 将元素从 DOM 中移除
             el.parentNode?.removeChild(el);
         }
     },
@@ -17,7 +16,7 @@ export const vRole: Directive = {
         const userStore = useUserStore();
         const requiredRole = binding.value;
 
-        // Handle dynamic role changes
+        // 处理动态的角色变化
         if (userStore.role !== requiredRole) {
             el.style.display = 'none';
         } else {

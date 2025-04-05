@@ -4,10 +4,10 @@ import 'element-plus/dist/index.css'
 import './assets/global.css'
 import App from './App.vue'
 import router from './router'
-import {createPinia} from "pinia";
+import {createPinia} from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
-import {useUserStore} from "@/stores/user";
-import {vRole} from "@/directives/roleDirective";
+import {useUserStore} from '@/stores/user';
+import {vRole} from '@/directives/roleDirective';
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)

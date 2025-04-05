@@ -6,7 +6,7 @@ import { Document, Monitor, Cpu, Timer, Collection, Upload } from '@element-plus
 // editorContainer元素的引用，它在挂载到DOM后会被用来初始化monaco编辑器
 const editorContainer = shallowRef<HTMLElement | null>(null);
 // 用于导入monaco-editor
-const monaco = shallowRef<any>(null);
+const monaco = shallowRef(null);
 // 默认选择python语言
 const codeLanguage = ref<'python' | 'java' | 'cpp'>('python');
 // 亮色主题默认开启
@@ -16,7 +16,7 @@ const isLightTheme = ref<boolean>(true);
 否则如果使用ref，递归的对它的所有属性都进行响应式处理的话，一旦调用它的任何方法，引发更新，就会直接卡死。
 详见https://cn.vuejs.org/guide/extras/reactivity-in-depth#how-reactivity-works-in-vue
 */
-const editorInstance = shallowRef<any>(null);
+const editorInstance = shallowRef(null);
 // 添加加载状态标识
 const isEditorLoading = ref(false);
 // 问题描述
@@ -80,7 +80,7 @@ const loadMonacoEditor = async () => {
 };
 
 // 设置编辑器函数
-const setupEditor = async (monaco: any) => {
+const setupEditor = async (monaco) => {
   // 设置编辑器主题
   setupEditorThemes(monaco);
 
@@ -111,7 +111,7 @@ const setupEditor = async (monaco: any) => {
 };
 
 // vscode主题
-const setupEditorThemes = (monaco: any) => {
+const setupEditorThemes = (monaco) => {
   // Dark theme
   monaco.editor.defineTheme('customDarkTheme', {
     base: 'vs-dark',
@@ -173,7 +173,7 @@ onBeforeUnmount(() => {
 });
 
 // 用于存储不同语言的编辑器模型，避免切换语言时重新创建模型实例
-const editorModels = shallowRef<Record<string, any>>({});
+const editorModels = shallowRef({});
 
 // 切换语言处理函数
 const handleLanguageChange = (newLanguage: 'python' | 'java' | 'cpp') => {
@@ -237,16 +237,17 @@ const submitCode = () => {
               <el-icon><Collection /></el-icon>
               Allowed Languages:
             </h3>
-            <el-tag
-                v-if="problem.allowedLanguages"
-                v-for="lang in problem.allowedLanguages.split(',')"
-                :key="lang"
-                class="language-tag"
-                type="info"
-                effect="plain"
-            >
-              {{ lang.trim() }}
-            </el-tag>
+            <template v-if="problem.allowedLanguages">
+              <el-tag
+                  v-for="lang in problem.allowedLanguages.split(',')"
+                  :key="lang"
+                  class="language-tag"
+                  type="info"
+                  effect="plain"
+              >
+                {{ lang.trim() }}
+              </el-tag>
+            </template>
           </div>
         </el-col>
 
