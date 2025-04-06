@@ -30,7 +30,7 @@ async function apiRequest<T>(
             response = await request.delete(url, config);
         }
         return response?.data;
-    } catch (error: any) {
+    } catch (error) {
         if (error.response?.data && typeof error.response.data === 'string' && error.response.data.trim()) {
             ElMessage.error(error.response.data);
         } else {

@@ -82,12 +82,6 @@ const getStatusType = (status: string) => {
 
   return get(statusMap, status, 'info')
 }
-
-const getStatusText = (status: string) => {
-  return capitalize(status)
-}
-
-
 const submitAssignment = (activeAssignmentId: number) => {
   const path = activeAssignment.value.type === 'code'
       ? '/code-edit-and-run/code-edit'
@@ -159,7 +153,7 @@ const copyToClipboard = (text: string) => {
         <el-table-column prop="status" label="Status" width="120">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">
-              {{ getStatusText(row.status) }}
+              {{ capitalize(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -197,7 +191,7 @@ const copyToClipboard = (text: string) => {
           <el-descriptions-item label="Max Score">{{ activeAssignment.maxScore }}</el-descriptions-item>
           <el-descriptions-item label="Status">
             <el-tag :type="getStatusType(activeAssignment.status)">
-              {{ getStatusText(activeAssignment.status) }}
+              {{ capitalize(activeAssignment.status) }}
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="Description">{{ activeAssignment.description }}</el-descriptions-item>
@@ -251,7 +245,7 @@ const copyToClipboard = (text: string) => {
                   <div>
                     <strong>Status:</strong>
                     <el-tag size="small" :type="getStatusType(submission.status)">
-                      {{ getStatusText(submission.status) }}
+                      {{ capitalize(submission.status) }}
                     </el-tag>
                   </div>
                   <div><strong>Attempt:</strong> {{ submission.attempts }}</div>
@@ -298,7 +292,8 @@ const copyToClipboard = (text: string) => {
         <!--此按钮仅用于跳转到提交作业页面-->
         <el-divider content-position="left">Submit Your Work</el-divider>
         <div class="submission-form">
-          <el-button size="large" @click="submitAssignment(activeAssignment.id)" type="primary">
+          <el-button size="large" @click="submitAssignment(activeAssignment.id)"
+                     type="primary" :disabled="activeAssignment.status !== 'open'">
             <el-icon size="20"><Upload/></el-icon>Submit Assignment
           </el-button>
           <el-button size="large" @click="closeSubmissionPanel">Close</el-button>
@@ -308,17 +303,19 @@ const copyToClipboard = (text: string) => {
   </el-main>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/assets/variables.scss" as vars;
+
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: vars.$spacing-large;
 }
 
 .filters {
   display: flex;
-  gap: 16px;
+  gap: vars.$spacing-base;
 }
 
 .filter-select, .sort-select, .sort-order {
@@ -326,23 +323,23 @@ const copyToClipboard = (text: string) => {
 }
 
 .drawer-content {
-  padding: 20px;
+  padding: vars.$spacing-large;
 }
 
 .assignment-details {
-  margin-bottom: 24px;
+  margin-bottom: vars.$spacing-large;
 }
 
 .attachment-list {
-  margin-top: 16px;
+  margin-top: vars.$spacing-base;
 }
 
 .attachment-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #ebeef5;
+  padding: vars.$spacing-small 0;
+  border-bottom: 1px solid vars.$border-lighter;
 }
 
 .attachment-item:last-child {
@@ -355,26 +352,26 @@ const copyToClipboard = (text: string) => {
 }
 
 .attachment-badge {
-  margin-left: 8px;
+  margin-left: vars.$spacing-small;
 }
 
 .file-info {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: vars.$spacing-small;
 }
 
 .file-name {
-  font-weight: 500;
+  font-weight: vars.$font-weight-medium;
 }
 
 .file-size {
-  color: #909399;
-  font-size: 12px;
+  color: vars.$text-tertiary;
+  font-size: vars.$font-size-small;
 }
 
 .submission-form, .submission-history {
-  margin-top: 20px;
+  margin-top: vars.$spacing-large;
 }
 
 .assignment-table {
@@ -382,13 +379,13 @@ const copyToClipboard = (text: string) => {
 }
 
 h4 {
-  margin-bottom: 16px;
-  font-size: 18px;
-  color: #333;
+  margin-bottom: vars.$spacing-base;
+  font-size: vars.$font-size-large;
+  color: vars.$text-primary;
 }
 
 .submission-card {
-  margin-bottom: 12px;
+  margin-bottom: vars.$spacing-base;
 }
 
 .submission-details {
@@ -398,13 +395,13 @@ h4 {
 
 /* 提交的文本的样式 */
 .text-response-container {
-  margin: 12px 0;
+  margin: vars.$spacing-small 0;
 }
 
 .text-response-content {
   position: relative;
-  background-color: #f9f9f9;
-  border-left: 3px solid #409eff;
+  background-color: vars.$background-lighter;
+  border-left: 3px solid vars.$primary-color;
 }
 
 .text-response-content pre {
@@ -412,29 +409,29 @@ h4 {
   word-break: break-word;
   font-family: inherit;
   margin: 0;
-  padding: 8px 30px 8px 8px;
+  padding: vars.$spacing-small vars.$spacing-extra-large vars.$spacing-small vars.$spacing-small;
   max-height: 300px;
   overflow-y: auto;
 }
 
 .copy-button {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: vars.$spacing-small;
+  right: vars.$spacing-small;
 }
 
 /* 提交的文件的样式 */
 .submission-files {
-  margin-top: 8px;
+  margin-top: vars.$spacing-small;
 }
 
 .file-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 8px 0;
-  padding: 8px;
-  background-color: #f8f8f8;
-  border-radius: 4px;
+  margin: vars.$spacing-small 0;
+  padding: vars.$spacing-small;
+  background-color: vars.$background-lighter;
+  border-radius: vars.$border-radius-base;
 }
 </style>

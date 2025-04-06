@@ -1,7 +1,7 @@
 <template>
   <el-container class="common-layout" direction="vertical">
     <HeaderContent @toggle-collapse="toggleSidebar" />
-    <el-container class="main-content" direction="horizontal">
+    <el-container class="el-container-main-content" direction="horizontal">
       <CourseSideBar :is-collapse="isCollapse" />
       <router-view />
     </el-container>

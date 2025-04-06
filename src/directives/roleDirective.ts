@@ -3,13 +3,13 @@ import { useUserStore } from "@/stores/user";
 import type { Directive, DirectiveBinding } from "vue";
 
 export const vRole: Directive = {
-    mounted(el: HTMLElement, binding: DirectiveBinding) {
+    mounted(el: HTMLElement, binding: DirectiveBinding<Array<string>, never, never>) {
         const userStore = useUserStore();
         const requiredRole = binding.value;
 
-        if (userStore.role !== requiredRole) {
-            // 将元素从 DOM 中移除
-            el.parentNode?.removeChild(el);
+        if (!requiredRole.includes(userStore.role)) {
+            // 将元素隐藏
+            el.style.display = 'none';
         }
     },
     updated(el: HTMLElement, binding: DirectiveBinding) {
@@ -17,10 +17,8 @@ export const vRole: Directive = {
         const requiredRole = binding.value;
 
         // 处理动态的角色变化
-        if (userStore.role !== requiredRole) {
+        if (!requiredRole.includes(userStore.role)) {
             el.style.display = 'none';
-        } else {
-            el.style.display = '';
         }
     }
 };

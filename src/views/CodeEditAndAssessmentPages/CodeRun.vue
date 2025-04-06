@@ -351,6 +351,9 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
+@use "@/assets/variables";
+
+
 .code-execution-container {
   width: 100%;
   display: flex;
@@ -363,9 +366,9 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px;
-  background-color: #f5f7fa;
+  background-color: variables.$background-light;
   border-radius: 4px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid variables.$border-light;
 
   .toolbar-left {
     flex: 0 0 auto;
@@ -376,7 +379,6 @@ onMounted(() => {
     display: flex;
     justify-content: center;
     gap: 12px;
-
   }
 
   .toolbar-right {
@@ -388,9 +390,9 @@ onMounted(() => {
   display: flex;
   gap: 24px;
   padding: 8px 12px;
-  background-color: #f5f7fa;
+  background-color: variables.$background-light;
   border-radius: 4px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid variables.$border-light;
 
   .summary-item {
     display: flex;
@@ -399,20 +401,20 @@ onMounted(() => {
 
     .label {
       font-weight: 500;
-      color: #606266;
+      color: variables.$text-secondary;
     }
 
     .value {
       font-weight: 600;
-      color: #303133;
+      color: variables.$text-primary;
     }
 
     &.success .value {
-      color: #67C23A;
+      color: variables.$success-color;
     }
 
     &.failed .value {
-      color: #F56C6C;
+      color: variables.$danger-color;
     }
   }
 }
@@ -432,11 +434,11 @@ onMounted(() => {
   transition: all 0.3s;
 
   &.failed-card {
-    border-color: rgba(245, 108, 108, 0.2);
+    border-color: variables.$border-danger-light-alpha;
   }
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: variables.$box-shadow-light;
   }
 
   .card-header {
@@ -462,7 +464,7 @@ onMounted(() => {
     gap: 4px;
 
     .metric-label {
-      color: #909399;
+      color: variables.$text-tertiary;
       font-size: 12px;
     }
 
@@ -485,12 +487,12 @@ onMounted(() => {
 }
 
 .output-content {
-  background-color: #f5f7fa;
+  background-color: variables.$background-light;
   border-radius: 4px;
   padding: 12px;
   max-height: 150px;
   overflow-y: auto;
-  border: 1px solid #e4e7ed;
+  border: 1px solid variables.$border-light;
 
   pre {
     margin: 0;
@@ -502,8 +504,8 @@ onMounted(() => {
   }
 
   &.error {
-    background-color: #FFF5F5;
-    border-color: #FFDBDB;
+    background-color: variables.$background-danger-light;
+    border-color: variables.$border-danger-light;
   }
 }
 
@@ -527,16 +529,16 @@ onMounted(() => {
     font-weight: 500;
     font-size: 13px;
     margin-bottom: 6px;
-    color: #606266;
+    color: variables.$text-secondary;
   }
 
   .section-content {
-    background-color: #f5f7fa;
+    background-color: variables.$background-light;
     border-radius: 4px;
     padding: 12px;
     max-height: 200px;
     overflow-y: auto;
-    border: 1px solid #e4e7ed;
+    border: 1px solid variables.$border-light;
 
     pre {
       margin: 0;
@@ -548,8 +550,8 @@ onMounted(() => {
     }
 
     &.error {
-      background-color: #FFF5F5;
-      border-color: #FFDBDB;
+      background-color: variables.$background-danger-light;
+      border-color: variables.$border-danger-light;
     }
   }
 }

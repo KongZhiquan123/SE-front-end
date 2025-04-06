@@ -1,0 +1,77 @@
+/*
+ * 该文件包含项目的 SCSS 变量。
+ * 它包括颜色定义、字体设置、间距和其他设计标记。
+ */
+// 主色（已定义）
+$primary-color: #409EFF;
+$success-color: #67C23A;
+$danger-color: #F56C6C;
+$warning-color: #E6A23C;
+$info-color: #909399;
+
+// 文字颜色（部分已定义）
+$text-primary: #303133;
+$text-secondary: #606266;
+$text-tertiary: #909399;
+$text-placeholder: #C0C4CC;
+$text-disabled: #C0C4CC;
+
+// 背景色（扩展）
+$background-light: #f5f7fa;
+$background-lighter: #fafafa;
+$background-white: #ffffff;
+$background-hover: #f0f2f5;
+$background-disabled: #f5f7fa;
+$background-danger-light: #FFF5F5;
+$background-success-light: #f0f9eb;
+$background-warning-light: #fdf6ec;
+$background-info-light: #f4f4f5;
+
+// 边框颜色
+$border-base: #dcdfe6;
+$border-light: #e4e7ed;
+$border-lighter: #ebeef5;
+$border-extra-light: #f2f6fc;
+$border-danger-light: #FFDBDB;
+$border-danger-light-alpha: rgba(245, 108, 108, 0.2);
+$border-success-light: #e1f3d8;
+$border-warning-light: #faecd8;
+$border-info-light: #e9e9eb;
+
+// 阴影
+$box-shadow-base: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+$box-shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+$box-shadow-dark: 0 2px 16px 0 rgba(0, 0, 0, 0.2);
+
+// 字体设置
+$font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+$font-size-base: 14px;
+$font-size-small: 13px;
+$font-size-large: 18px;
+$font-size-extra-large: 20px;
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 600;
+
+// 间距
+$spacing-mini: 4px;
+$spacing-small: 8px;
+$spacing-base: 16px;
+$spacing-large: 24px;
+$spacing-extra-large: 32px;
+
+// 圆角
+$border-radius-small: 2px;
+$border-radius-base: 4px;
+$border-radius-large: 8px;
+$border-radius-circle: 50%;
+
+// 过渡效果
+$transition-duration: 0.3s;
+$transition-all: all $transition-duration;
+
+// 层级
+$z-index-normal: 1;
+$z-index-dropdown: 10;
+$z-index-fixed: 100;
+$z-index-modal: 1000;

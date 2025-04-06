@@ -59,7 +59,7 @@ const saveChanges = () => {
     <div class="info-section">
       <div class="header-container">
         <h2 class="page-title">Basic Information</h2>
-        <div v-role="'teacher'" class="edit-controls">
+        <div v-role="['teacher','admin']" class="edit-controls">
           <template v-if="!isEditing">
             <el-button type="primary" @click="startEditing">
               Edit Information

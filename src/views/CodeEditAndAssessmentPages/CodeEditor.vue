@@ -295,7 +295,7 @@ const submitCode = () => {
 </template>
 
 <style lang="scss" scoped>
-$primary-color: #409eff;
+@use "@/assets/variables";
 $background-color: #ffffff;
 $border-color: #ebeef5;
 $text-color: #2c3e50;
@@ -353,7 +353,7 @@ $card-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
     gap: 10px;
 
     .el-icon {
-      color: $primary-color;
+      color: variables.$primary-color;
     }
   }
 
@@ -371,7 +371,7 @@ $card-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
       gap: 8px;
 
       .el-icon {
-        color: $primary-color;
+        color: variables.$primary-color;
         font-size: 18px;
       }
     }
@@ -405,7 +405,7 @@ $card-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
       }
 
       .el-icon {
-        color: $primary-color;
+        color: variables.$primary-color;
       }
     }
   }

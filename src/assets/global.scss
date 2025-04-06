@@ -1,3 +1,10 @@
+/*
+    * 应用程序的全局样式
+    * 该文件包含整个应用程序使用的全局样式和变量。
+    * 在主入口文件（main.js 或 App.vue）中导入。
+ */
+
+@use "variables";
 :root {
     --section-margin: 30px;
     --section-heading-margin: 20px;
@@ -20,7 +27,7 @@
     margin-bottom: 24px;
     font-size: 28px;
     font-weight: 600;
-    border-bottom: 2px solid #409EFF;
+    border-bottom: 2px solid variables.$primary-color;
     padding-bottom: 10px;
     display: inline-block;
 }
@@ -32,7 +39,7 @@
     overflow-y: auto;
 }
 
-.main-content {
+.el-container-main-content {
     height: var(--main-content-height);
     width: 100%;
 }

@@ -34,6 +34,16 @@ const handleCreateAssignment = async () => {
     ElMessage.error('Please select an open date');
     return false;
   }
+  //判断openDate和当前时间的先后关系
+  if (new Date(materialForm.openDate) < new Date()) {
+    ElMessage.error('Open date must be after current time');
+    return false;
+  }
+  //判断openDate和dueDate的先后关系
+  if (new Date(materialForm.openDate) >= new Date(materialForm.dueDate)) {
+    ElMessage.error('Open date must be before due date');
+    return false;
+  }
 
   return true;
 };

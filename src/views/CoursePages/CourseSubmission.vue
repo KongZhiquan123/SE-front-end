@@ -1,22 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import {ElMessage, ElMessageBox, UploadFile, UploadRawFile} from 'element-plus';
 import {Document, Upload, Close, ArrowLeft, InfoFilled, View, Download} from '@element-plus/icons-vue';
 import { formatDate } from '@/utils/formatDate';
 import type { Assignment } from "@/types/interfaces";
 import downloadFile from "@/utils/downloadFile";
 import request from "@/utils/request";
 import apiRequest from "@/utils/apiUtils";
-
-// 定义上传文件的接口
-interface UploadFile {
-  uid: string;
-  name: string;
-  size: number;
-  raw: File;
-  url?: string; // 为预览添加URL属性
-}
 
 const route = useRoute();
 const router = useRouter();
@@ -25,7 +16,7 @@ const assignment = ref<Assignment | null>(null);
 const loading = ref(true);
 const submitting = ref(false);
 const textResponse = ref('');
-const uploadedFiles = ref<File[]>([]);
+
 const fileList = ref<UploadFile[]>([]);
 const previewVisible = ref(false);
 const previewFile = ref<UploadFile | null>(null);
@@ -46,38 +37,40 @@ apiRequest<Assignment>(`/students/assignments/${assignmentId}/details`).then(dat
 });
 
 // 处理文件上传
-const handleFileUpload = (file: UploadFile) => {
+const beforeFileUpload = (file: UploadRawFile) => {
+  // 检查文件大小
   const isLessThan10MB = file.size / 1024 / 1024 < 10;
   if (!isLessThan10MB) {
     ElMessage.error('File size cannot exceed 10MB');
     return false;
   }
 
-  // 确保文件未被重复添加
-  const isDuplicate = uploadedFiles.value.some(f => f.name === file.raw.name && f.size === file.raw.size);
-  if (!isDuplicate) {
-    uploadedFiles.value.push(file.raw);
-
-    // 为文件创建一个临时URL以供预览
-    file.url = URL.createObjectURL(file.raw);
-    fileList.value.push(file);
+  // 检查文件是否有重复
+  const isDuplicate = fileList.value.some(f => f.name === file.name);
+  if (isDuplicate) {
+    ElMessage.warning('File already added');
+    return false;
   }
 
-  return false; // 阻止自动上传
+  // 检查文件数量
+  if (fileList.value.length >= 10) {
+    ElMessage.warning('You can only upload up to 10 files');
+    return false;
+  }
+
+  return true;
+};
+
+const afterFileUpload = (_, file: UploadFile) => {
+  // 上传完成后，文件会被添加到fileList中
+  if (file.status === 'success') {
+    file.url = URL.createObjectURL(file.raw);
+  }
 };
 
 const removeFile = (file: UploadFile) => {
   // 根据文件uid从fileList移除
   fileList.value = fileList.value.filter(f => f.uid !== file.uid);
-
-  // 从uploadedFiles中移除对应的文件
-  const fileIndex = uploadedFiles.value.findIndex(f =>
-      f.name === file.name && f.size === file.size
-  );
-
-  if (fileIndex !== -1) {
-    uploadedFiles.value.splice(fileIndex, 1);
-  }
 
   // 如果文件有URL，释放它
   if (file.url) {
@@ -136,7 +129,7 @@ const submitAssignment = async () => {
 
 // 处理提交过程
 const processSubmission = async () => {
-  if (!textResponse.value && uploadedFiles.value.length === 0) {
+  if (!textResponse.value && fileList.value.length === 0) {
     ElMessage.warning('Please provide a text response or upload files');
     return;
   }
@@ -145,13 +138,13 @@ const processSubmission = async () => {
     submitting.value = true;
     const formData = new FormData();
     formData.append('textResponse', textResponse.value);
-    //后端提交的文件名字使用的是uploadFile，而不是file
-    uploadedFiles.value.forEach(file => {
-      formData.append('uploadFile', file);
+    //后端要求文件字段名为files
+    fileList.value.forEach(file => {
+      formData.append('files', file.raw);
     });
 
     const response = await request.post(
-        `/students/submissions/assignments/${assignmentId}/submissions`,
+        `/students/submissions/${assignmentId}/submissions`,
         formData,
         {
           headers: {
@@ -260,9 +253,11 @@ const goBack = () => {
                 class="file-uploader"
                 drag
                 multiple
-                :auto-upload="false"
-                :on-change="handleFileUpload"
-                :file-list="fileList"
+                auto-upload
+                :http-request="() => {}"
+                v-model:file-list="fileList"
+                :before-upload="beforeFileUpload"
+                :on-success="afterFileUpload"
                 :on-remove="removeFile"
             >
               <el-icon class="upload-icon"><Upload /></el-icon>
@@ -278,9 +273,9 @@ const goBack = () => {
             </el-upload>
           </el-form-item>
 
-          <div v-if="uploadedFiles.length > 0" class="file-list-section">
+          <div v-if="fileList.length > 0" class="file-list-section">
             <h4 class="file-list-title">
-              Files to submit ({{ uploadedFiles.length }})
+              Files to submit ({{ fileList.length }})
             </h4>
             <div class="file-grid">
               <el-card
@@ -399,15 +394,18 @@ const goBack = () => {
   </el-dialog>
 </template>
 
-<style scoped>
-/* 布局相关样式 */
+<style lang="scss" scoped>
+@use "@/assets/variables";
+
+
+
 .submission-container {
   padding: 20px;
   margin: 0 auto;
 }
 
 .submission-card {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: variables.$box-shadow-light;
   border-radius: 8px;
 }
 
@@ -416,33 +414,32 @@ const goBack = () => {
   justify-content: space-between;
   align-items: center;
   padding: 0 10px;
-}
 
-.card-title {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: #303133;
-}
+  .card-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: variables.$text-primary;
+  }
 
-.back-button {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
+  .back-button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
 
-.back-icon {
-  font-size: 14px;
+  .back-icon {
+    font-size: 14px;
+  }
 }
 
 .assignment-content {
   padding: 0 10px;
-}
 
-/* 警告提示相关样式 */
-.deadline-alert {
-  margin-bottom: 24px;
-  font-weight: 500;
+  .deadline-alert {
+    margin-bottom: 24px;
+    font-weight: 500;
+  }
 }
 
 /* 作业信息样式 */
@@ -463,7 +460,7 @@ const goBack = () => {
 }
 
 .text-danger {
-  color: #f56c6c;
+  color: variables.$danger-color;
   font-weight: 500;
 }
 
@@ -476,11 +473,11 @@ const goBack = () => {
 /* 表单相关样式 */
 .submission-form {
   margin-top: 20px;
-}
 
-.response-textarea {
-  border-radius: 4px;
-  font-size: 14px;
+  .response-textarea {
+    border-radius: 4px;
+    font-size: 14px;
+  }
 }
 
 .file-uploader {
@@ -488,37 +485,39 @@ const goBack = () => {
   border-radius: 6px;
 }
 
-.upload-icon {
-  font-size: 48px;
-  color: #909399;
-  margin-bottom: 8px;
-}
+.upload {
+  &-icon {
+    font-size: 48px;
+    color: variables.$text-tertiary;
+    margin-bottom: 8px;
+  }
 
-.upload-text {
-  font-size: 16px;
-  color: #606266;
-  margin-bottom: 8px;
-}
+  &-text {
+    font-size: 16px;
+    color: variables.$text-secondary;
+    margin-bottom: 8px;
+  }
 
-.upload-tip {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: #909399;
-  font-size: 14px;
-  padding: 8px 0;
+  &-tip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: variables.$text-tertiary;
+    font-size: 14px;
+    padding: 8px 0;
+  }
 }
 
 /* 文件列表相关样式 */
 .file-list-section {
   margin-top: 24px;
-}
 
-.file-list-title {
-  margin-bottom: 12px;
-  font-size: 16px;
-  font-weight: 500;
-  color: #303133;
+  .file-list-title {
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    color: variables.$text-primary;
+  }
 }
 
 .file-grid {
@@ -534,66 +533,68 @@ const goBack = () => {
 }
 
 /* 文件项样式 */
-.file-content {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  gap: 12px;
-}
+.file {
+  &-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
 
-.file-info {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  overflow: hidden;
-  width: 100%;
-}
+  &-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    overflow: hidden;
+    width: 100%;
+  }
 
-.file-icon {
-  font-size: 30px;
-  color: #409EFF;
-}
-.file-details {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
+  &-icon {
+    font-size: 30px;
+    color: variables.$primary-color;
+  }
 
-.file-name {
-  font-weight: 500;
-  font-size: 14px;
-  color: #303133;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 160px;
-}
+  &-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 
-.file-size {
-  color: #909399;
-  font-size: 12px;
-  margin-top: 2px;
-}
+  &-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: variables.$text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+  }
 
-.file-actions {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
+  &-size {
+    color: variables.$text-tertiary;
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  &-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
 }
 
 .action-button {
   padding: 4px;
   margin-right: 5px;
-}
 
-.action-button:hover {
-  background-color: #f5f7fa;
-  border-radius: 50%;
+  &:hover {
+    background-color: variables.$background-light;
+    border-radius: 50%;
+  }
 }
-
 
 /* 按钮相关样式 */
 .submission-actions {
@@ -601,19 +602,68 @@ const goBack = () => {
   display: flex;
   gap: 16px;
   justify-content: flex-start;
-}
 
-.submit-button {
-  min-width: 160px;
-}
+  .submit-button {
+    min-width: 160px;
+  }
 
-.cancel-button {
-  min-width: 100px;
+  .cancel-button {
+    min-width: 100px;
+  }
 }
 
 /* 空状态样式 */
 .empty-state {
   padding: 40px 0;
+}
+
+/* 文件预览对话框样式 */
+.preview-dialog {
+  :deep(.el-dialog__header) {
+    border-bottom: 1px solid variables.$border-light;
+    padding-bottom: 15px;
+  }
+
+  :deep(.el-dialog__body) {
+    padding: 0;
+  }
+}
+
+.preview {
+  &-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    max-height: 70vh;
+    overflow: hidden;
+  }
+
+  &-iframe {
+    width: 100%;
+    height: 100%;
+    min-height: 60vh;
+    border: none;
+  }
+
+  &-fallback {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 60vh;
+    color: variables.$text-tertiary;
+    font-size: 16px;
+    background-color: variables.$background-light;
+  }
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 10px 20px;
 }
 
 @media (max-width: 768px) {
@@ -623,56 +673,11 @@ const goBack = () => {
 
   .submission-actions {
     flex-direction: column;
+
+    .submit-button,
+    .cancel-button {
+      width: 100%;
+    }
   }
-
-  .submit-button,
-  .cancel-button {
-    width: 100%;
-  }
-}
-
-/* 文件预览对话框样式 */
-.preview-dialog :deep(.el-dialog__header) {
-  border-bottom: 1px solid #e4e7ed;
-  padding-bottom: 15px;
-}
-
-.preview-dialog :deep(.el-dialog__body) {
-  padding: 0;
-}
-
-.preview-container {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 60vh;
-  max-height: 70vh;
-  overflow: hidden;
-}
-
-.preview-iframe {
-  width: 100%;
-  height: 100%;
-  min-height: 60vh;
-  border: none;
-}
-
-.preview-fallback {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 60vh;
-  color: #909399;
-  font-size: 16px;
-  background-color: #f5f7fa;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 10px 20px;
 }
 </style>

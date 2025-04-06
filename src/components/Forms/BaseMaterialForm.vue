@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive, PropType } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { UploadFilled } from "@element-plus/icons-vue";
-import type { UploadFiles, UploadRawFile, UploadFile } from 'element-plus'
+import {PropType, reactive, ref} from 'vue';
+import type {UploadFile, UploadFiles, UploadRawFile} from 'element-plus'
+import {ElMessage, ElMessageBox} from 'element-plus';
+import {UploadFilled} from "@element-plus/icons-vue";
 import request from "@/utils/request";
 import {capitalize} from "lodash-es";
 
@@ -14,7 +14,7 @@ interface DefaultForm {
   maxScore?: number;
   openDate?: string;
   instructions?: string;
-  status: string;
+  status: 'upcoming' | 'open' | 'closed';
 }
 
 const props = defineProps({
@@ -126,12 +126,29 @@ const uploadFile = async (file: UploadRawFile, materialId: number) => {
   }
 };
 
-const handleFileUpload = (file: UploadFile) => {
-  const isValidFile = validateFile(file);
-  if (!isValidFile) return false;
+const handleFileUpload = (file: UploadRawFile) => {
 
-  fileList.value.push(file);
-  return false; // 拒绝默认上传
+  // 检查文件大小
+  const isLessThan10MB = file.size / 1024 / 1024 < 10;
+  if (!isLessThan10MB) {
+    ElMessage.error('File size cannot exceed 10MB');
+    return false;
+  }
+
+  // 检查文件是否有重复
+  const isDuplicate = fileList.value.some(f => f.name === file.name);
+  if (isDuplicate) {
+    ElMessage.warning('File already added');
+    return false;
+  }
+
+  // 检查文件数量
+  if (fileList.value.length >= 10) {
+    ElMessage.warning('You can only upload up to 10 files');
+    return false;
+  }
+
+  return true;
 };
 
 const removeAttachment = (file: UploadFile) => {
@@ -149,16 +166,6 @@ const removeAttachment = (file: UploadFile) => {
         resolve(false);
       });
     });
-  }
-  return true;
-};
-
-const validateFile = (file: UploadFile) => {
-  // 检查文件大小
-  const isLessThan10MB = file.size / 1024 / 1024 < 10;
-  if (!isLessThan10MB) {
-    ElMessage.error('File size cannot exceed 10MB!');
-    return false;
   }
   return true;
 };
@@ -246,8 +253,8 @@ defineExpose({
           :multiple="true"
           :file-list="fileList"
           :http-request="() => {}"
-          :on-change="(file: UploadFile) => handleFileUpload(file)"
-          :before-remove="(file: UploadFile) => removeAttachment(file)"
+          :before-upload="handleFileUpload"
+          :before-remove="removeAttachment"
       >
         <el-icon class="el-icon--upload">
           <upload-filled/>
@@ -271,11 +278,12 @@ defineExpose({
 </template>
 
 <style lang="scss" scoped>
+@use "@/assets/variables";
 .material-form {
   background-color: white;
   padding: 24px;
   border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: variables.$box-shadow-light;
 }
 
 .form-actions {
