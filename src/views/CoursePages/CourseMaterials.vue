@@ -145,105 +145,114 @@ const getTagType = (materialType: string) => {
 
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/assets/variables.scss" as vars;
+
 .class-info-container {
-  padding: 20px;
+  padding: vars.$spacing-large;
   height: 100%;
   overflow-y: auto;
-  background-color: #f5f7fa;
+  background-color: vars.$background-lighter;
 }
+
 .materials-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 20px;
+  gap: vars.$spacing-large;
 }
 
-.material-card {
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  height: 100%;
+.material {
+  &-card {
+    border-radius: vars.$border-radius-base;
+    transition: all 0.3s ease;
+    height: 100%;
+
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  &-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: vars.$spacing-base;
+  }
+
+  &-title {
+    margin: 0;
+    font-size: vars.$font-size-large;
+    color: vars.$text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+  }
+
+  &-description {
+    margin: vars.$spacing-small 0 vars.$spacing-large;
+    color: vars.$text-secondary;
+    line-height: 1.6;
+    font-size: vars.$font-size-base;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 66px;
+  }
 }
 
-.material-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+.attachments {
+  &-section {
+    margin-top: vars.$spacing-base;
+    border-top: 1px dashed vars.$border-lighter;
+    padding-top: vars.$spacing-small;
+  }
+
+  &-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: vars.$text-secondary;
+    font-size: vars.$font-size-base;
+    margin-bottom: vars.$spacing-small;
+  }
+
+  &-list {
+    display: flex;
+    flex-direction: column;
+    gap: vars.$spacing-small;
+  }
 }
 
-.material-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
+.attachment {
+  &-card {
+    margin: 5px 0;
+    border: 1px solid vars.$border-lighter;
+    background-color: vars.$background-lighter;
+  }
 
-.material-title {
-  margin: 0;
-  font-size: 18px;
-  color: #303133;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 70%;
-}
-
-.material-description {
-  margin: 10px 0 20px;
-  color: #606266;
-  line-height: 1.6;
-  font-size: 14px;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: 66px;
-}
-
-.attachments-section {
-  margin-top: 15px;
-  border-top: 1px dashed #dcdfe6;
-  padding-top: 10px;
-}
-
-.attachments-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #606266;
-  font-size: 16px;
-  margin-bottom: 10px;
-}
-
-.attachments-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.attachment-card {
-  margin: 5px 0;
-  border: 1px solid #ebeef5;
-  background-color: #f8f9fb;
-}
-
-.attachment-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 5px;
+  &-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 5px;
+  }
 }
 
 .filename {
   flex-grow: 1;
-  font-size: 14px;
+  font-size: vars.$font-size-base;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .filesize {
-  color: #909399;
-  font-size: 12px;
+  color: vars.$text-tertiary;
+  font-size: vars.$font-size-small;
   white-space: nowrap;
 }
 
@@ -274,7 +283,7 @@ const getTagType = (materialType: string) => {
   .material-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: vars.$spacing-small;
   }
 
   .material-title {

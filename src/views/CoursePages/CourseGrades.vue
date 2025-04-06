@@ -309,22 +309,24 @@ const showDetails = (row: Grade) => {
   </el-main>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/assets/variables.scss" as vars;
+
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: vars.$spacing-large;
 }
 
 .overall-grade {
   display: flex;
   align-items: center;
-  gap: 16px;
-  background-color: white;
-  padding: 10px 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  gap: vars.$spacing-base;
+  background-color: vars.$background-white;
+  padding: vars.$spacing-small vars.$spacing-base;
+  border-radius: vars.$border-radius-base;
+  box-shadow: vars.$box-shadow-light;
 }
 
 :deep(.el-tabs__content) {
@@ -334,13 +336,13 @@ const showDetails = (row: Grade) => {
 .grade-circle {
   width: 60px;
   height: 60px;
-  border-radius: 50%;
+  border-radius: vars.$border-radius-circle;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: white;
-  font-size: 24px;
-  font-weight: bold;
+  color: vars.$background-white;
+  font-size: vars.$font-size-extra-large;
+  font-weight: vars.$font-weight-bold;
 }
 
 .grade-info {
@@ -349,32 +351,32 @@ const showDetails = (row: Grade) => {
 }
 
 .grade-percent {
-  font-size: 22px;
-  font-weight: bold;
-  color: #303133;
+  font-size: vars.$font-size-large;
+  font-weight: vars.$font-weight-bold;
+  color: vars.$text-primary;
 }
 
 .grade-label {
-  font-size: 14px;
-  color: #909399;
+  font-size: vars.$font-size-base;
+  color: vars.$text-tertiary;
 }
 
 .grade-card {
-  margin-bottom: 20px;
-  border-radius: 8px;
+  margin-bottom: vars.$spacing-base;
+  border-radius: vars.$border-radius-base;
 }
 
 .filters {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: vars.$spacing-base;
 }
 
 .sort-controls {
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  gap: vars.$spacing-mini;
+  margin-top: vars.$spacing-mini;
 }
 
 .sort-select, .sort-order {
@@ -382,84 +384,84 @@ const showDetails = (row: Grade) => {
 }
 
 .grade-table {
-  border-radius: 8px;
+  border-radius: vars.$border-radius-base;
   overflow: hidden;
 }
 
 .grade-table :deep(.el-table__row) {
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color vars.$transition-duration;
 }
 
 .grade-table :deep(.el-table__row:hover) {
-  background-color: #f0f9ff !important;
+  background-color: vars.$background-light !important;
 }
 
 .assignment-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: vars.$spacing-small;
 }
 
 .icon {
-  color: #909399;
+  color: vars.$text-tertiary;
 }
 
 .score-display {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: vars.$spacing-mini;
 }
 
 .score-circle {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: vars.$border-radius-circle;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
+  color: vars.$background-white;
+  font-size: vars.$font-size-small;
+  font-weight: vars.$font-weight-bold;
 }
 
 .score-value {
-  font-size: 12px;
-  color: #606266;
+  font-size: vars.$font-size-small;
+  color: vars.$text-secondary;
 }
 
-/* 抽屉样式 */
+/* Drawer styles */
 .grade-details-drawer :deep(.el-drawer__header) {
   margin-bottom: 0;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e4e7ed;
-  font-size: 18px;
-  font-weight: bold;
+  padding: vars.$spacing-base vars.$spacing-large;
+  border-bottom: 1px solid vars.$border-light;
+  font-size: vars.$font-size-large;
+  font-weight: vars.$font-weight-bold;
 }
 
 .drawer-content {
-  padding: 20px;
+  padding: vars.$spacing-large;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: vars.$spacing-large;
 }
 
 .detail-section {
-  border-radius: 8px;
+  border-radius: vars.$border-radius-base;
 }
 
 .card-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: bold;
-  color: #303133;
+  gap: vars.$spacing-small;
+  font-weight: vars.$font-weight-bold;
+  color: vars.$text-primary;
 }
 
-/* 成绩概览卡片 */
+/* Score overview card */
 .score-overview {
-  background-color: #f0f9ff;
+  background-color: vars.$background-light;
 }
 
 .score-header {
@@ -470,57 +472,57 @@ const showDetails = (row: Grade) => {
 
 .big-score {
   font-size: 42px;
-  font-weight: bold;
+  font-weight: vars.$font-weight-bold;
 }
 
 .max-score {
-  font-size: 20px;
-  color: #909399;
-  font-weight: normal;
+  font-size: vars.$font-size-large;
+  color: vars.$text-tertiary;
+  font-weight: vars.$font-weight-regular;
 }
 
 .score-percentage {
-  padding: 8px 16px;
+  padding: vars.$spacing-mini vars.$spacing-base;
   border-radius: 20px;
-  color: white;
-  font-weight: bold;
+  color: vars.$background-white;
+  font-weight: vars.$font-weight-bold;
 }
 
-/* 时间线卡片 */
+/* Timeline card */
 .dates-card :deep(.el-timeline-item__content) {
-  font-weight: bold;
+  font-weight: vars.$font-weight-bold;
 }
 
-/* 反馈卡片 */
+/* Feedback card */
 .feedback-text {
   white-space: pre-line;
   line-height: 1.6;
-  font-size: 14px;
+  font-size: vars.$font-size-base;
 }
 
-/* 申诉卡片 */
+/* Appeal card */
 .appeal-status {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: vars.$spacing-base;
+  margin-bottom: vars.$spacing-large;
 }
 
 .appeal-date {
-  color: #909399;
-  font-size: 14px;
+  color: vars.$text-tertiary;
+  font-size: vars.$font-size-base;
 }
 
 .appeal-content {
-  background-color: #f5f7fa;
-  padding: 12px;
-  border-radius: 4px;
+  background-color: vars.$background-light;
+  padding: vars.$spacing-small;
+  border-radius: vars.$border-radius-small;
 }
 
 .appeal-label {
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #606266;
+  font-weight: vars.$font-weight-bold;
+  margin-bottom: vars.$spacing-small;
+  color: vars.$text-secondary;
 }
 
 .appeal-text {
@@ -528,32 +530,32 @@ const showDetails = (row: Grade) => {
 }
 
 .appeal-info {
-  margin-bottom: 16px;
-  color: #606266;
-  font-size: 14px;
+  margin-bottom: vars.$spacing-large;
+  color: vars.$text-secondary;
+  font-size: vars.$font-size-base;
 }
 
-/* 未完成作业卡片 */
+/* Upcoming assignment card */
 .countdown-display {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: vars.$spacing-large;
 }
 
 .countdown-title {
-  font-size: 14px;
-  color: #909399;
-  margin-bottom: 8px;
+  font-size: vars.$font-size-base;
+  color: vars.$text-tertiary;
+  margin-bottom: vars.$spacing-small;
 }
 
 .countdown-timer {
   font-size: 28px;
-  font-weight: bold;
-  color: #409EFF;
+  font-weight: vars.$font-weight-bold;
+  color: vars.$primary-color;
 }
 
 .assignment-actions {
   display: flex;
   justify-content: center;
-  gap: 16px;
+  gap: vars.$spacing-base;
 }
 </style>

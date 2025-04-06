@@ -316,34 +316,50 @@ const copyToClipboard = (text: string) => {
 .filters {
   display: flex;
   gap: vars.$spacing-base;
-}
 
-.filter-select, .sort-select, .sort-order {
-  width: 150px;
+  .filter-select,
+  .sort-select,
+  .sort-order {
+    width: 150px;
+  }
 }
 
 .drawer-content {
   padding: vars.$spacing-large;
 }
 
-.assignment-details {
-  margin-bottom: vars.$spacing-large;
+.assignment {
+  &-details {
+    margin-bottom: vars.$spacing-large;
+  }
+
+  &-attachments {
+    .attachment-list {
+      margin-top: vars.$spacing-base;
+    }
+  }
+
+  &-table {
+    width: 100%;
+  }
 }
 
-.attachment-list {
-  margin-top: vars.$spacing-base;
-}
+.attachment {
+  &-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: vars.$spacing-small 0;
+    border-bottom: 1px solid vars.$border-lighter;
 
-.attachment-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: vars.$spacing-small 0;
-  border-bottom: 1px solid vars.$border-lighter;
-}
+    &:last-child {
+      border-bottom: none;
+    }
+  }
 
-.attachment-item:last-child {
-  border-bottom: none;
+  &-badge {
+    margin-left: vars.$spacing-small;
+  }
 }
 
 .title-cell {
@@ -351,31 +367,51 @@ const copyToClipboard = (text: string) => {
   align-items: center;
 }
 
-.attachment-badge {
-  margin-left: vars.$spacing-small;
+.file {
+  &-info {
+    display: flex;
+    align-items: center;
+    gap: vars.$spacing-small;
+  }
+
+  &-name {
+    font-weight: vars.$font-weight-medium;
+  }
+
+  &-size {
+    color: vars.$text-tertiary;
+    font-size: vars.$font-size-small;
+  }
+
+  &-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: vars.$spacing-small 0;
+    padding: vars.$spacing-small;
+    background-color: vars.$background-lighter;
+    border-radius: vars.$border-radius-base;
+  }
 }
 
-.file-info {
-  display: flex;
-  align-items: center;
-  gap: vars.$spacing-small;
-}
+.submission {
+  &-form,
+  &-history {
+    margin-top: vars.$spacing-large;
+  }
 
-.file-name {
-  font-weight: vars.$font-weight-medium;
-}
+  &-card {
+    margin-bottom: vars.$spacing-base;
+  }
 
-.file-size {
-  color: vars.$text-tertiary;
-  font-size: vars.$font-size-small;
-}
+  &-details {
+    display: flex;
+    justify-content: space-between;
+  }
 
-.submission-form, .submission-history {
-  margin-top: vars.$spacing-large;
-}
-
-.assignment-table {
-  width: 100%;
+  &-files {
+    margin-top: vars.$spacing-small;
+  }
 }
 
 h4 {
@@ -384,54 +420,31 @@ h4 {
   color: vars.$text-primary;
 }
 
-.submission-card {
-  margin-bottom: vars.$spacing-base;
-}
+.text-response {
+  &-container {
+    margin: vars.$spacing-small 0;
+  }
 
-.submission-details {
-  display: flex;
-  justify-content: space-between;
-}
+  &-content {
+    position: relative;
+    background-color: vars.$background-lighter;
+    border-left: 3px solid vars.$primary-color;
 
-/* 提交的文本的样式 */
-.text-response-container {
-  margin: vars.$spacing-small 0;
-}
-
-.text-response-content {
-  position: relative;
-  background-color: vars.$background-lighter;
-  border-left: 3px solid vars.$primary-color;
-}
-
-.text-response-content pre {
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: inherit;
-  margin: 0;
-  padding: vars.$spacing-small vars.$spacing-extra-large vars.$spacing-small vars.$spacing-small;
-  max-height: 300px;
-  overflow-y: auto;
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: inherit;
+      margin: 0;
+      padding: vars.$spacing-small vars.$spacing-extra-large vars.$spacing-small vars.$spacing-small;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+  }
 }
 
 .copy-button {
   position: absolute;
   top: vars.$spacing-small;
   right: vars.$spacing-small;
-}
-
-/* 提交的文件的样式 */
-.submission-files {
-  margin-top: vars.$spacing-small;
-}
-
-.file-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: vars.$spacing-small 0;
-  padding: vars.$spacing-small;
-  background-color: vars.$background-lighter;
-  border-radius: vars.$border-radius-base;
 }
 </style>
