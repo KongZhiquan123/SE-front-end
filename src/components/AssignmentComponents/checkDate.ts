@@ -2,8 +2,8 @@ import {ElMessage} from "element-plus";
 
 export function checkDate(openDate: Date, dueDate: Date): boolean {
     const currentDate = new Date();
-    if (openDate < currentDate) {
-        ElMessage.error("Open date must be in the future");
+    if (dueDate < currentDate) {
+        ElMessage.error("Due date must be after current date");
         return false;
     }
     if (dueDate < openDate) {

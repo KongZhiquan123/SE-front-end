@@ -56,10 +56,10 @@ const showSubmissionHistory = (assignment: Assignment) => {
           ...submission,
           status: submission.status.toLowerCase(),
           attempts: index + 1,
-          attachments: submission.attachments?.map(attachment => ({
-            ...attachment,
-            size: formatFileSize(attachment.size)
-          }))
+          attachments: submission.contents.filter(content => content.type.toLowerCase() === 'file' && content.file)
+              .map(content => ({...content.file, size: formatFileSize(content.file.size)}
+          )),
+          codeSubmissions: submission.contents.filter(content => content.codeSubmission).map(content => content.codeSubmission)
         })).reverse();
   })
   drawerVisible.value = true

@@ -50,9 +50,15 @@ export interface Submission {
     status: 'pending' | 'accepted' | 'rejected',
     attempts: number
     textResponse?: string
-    attachments: Attachment[]
+    attachments?: Attachment[]
+    codeSubmissions?: CodeSubmission[]
 }
-
+export interface CodeSubmission {
+    id: number,
+    script: string,
+    language: string,
+    versionIndex: number
+}
 //Calendar.vue
 export interface Task {
     id: number;

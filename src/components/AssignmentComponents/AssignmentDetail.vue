@@ -11,7 +11,13 @@
           <el-form-item label="Title">
             <el-input v-model="editForm.title" />
           </el-form-item>
-
+          <el-form-item label="Status">
+            <el-select v-model="editForm.status" placeholder="Select Status">
+              <el-option label="Upcoming" value="upcoming" />
+              <el-option label="Closed" value="closed" />
+              <el-option label="Open" value="open" />
+            </el-select>
+          </el-form-item>
           <el-form-item label="Max Score">
             <el-input-number v-model="editForm.maxScore" :min="0" />
           </el-form-item>
@@ -33,7 +39,7 @@
           </el-form-item>
 
           <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
-            <el-button @click="cancelEditing">Cancel</el-button>
+            <el-button @click="resetEditing">Reset</el-button>
             <el-button type="primary" @click="saveChanges" :loading="isSaving">Save</el-button>
           </div>
         </el-form>
@@ -86,11 +92,11 @@
             <el-skeleton :rows="3" animated />
           </div>
 
-          <el-empty v-else-if="!testCases.length" description="No test cases"/>
+          <el-empty v-else-if="!assignment.testcases?.length" description="No test cases"/>
 
           <el-table
               v-else
-              :data="testCases"
+              :data="assignment.testcases"
               border
               style="width: 100%"
           >
@@ -216,7 +222,7 @@ const props = defineProps({
 const emit = defineEmits(['update-success']);
 
 const assignment = ref<Assignment>(cloneDeep(props.assignmentParent));
-const editForm = ref<Assignment>(cloneDeep(assignment.value));
+const editForm = ref<Assignment>({...assignment.value})
 
 const loadingTestCases = ref(true);
 const attachmentDialogVisible = ref(false);
@@ -232,7 +238,7 @@ watch(() => props.assignmentParent, (newVal) => {
   if (!newVal.title) {
     return;
   }
-  editForm.value = cloneDeep(newVal);
+  Object.assign(editForm.value, assignment.value);
   apiRequest<Assignment>(
       `/teachers/assignments/${assignment.value.id}/attachments`,
       'get',
@@ -261,7 +267,7 @@ watch(() => props.assignmentParent, (newVal) => {
 
 const isSaving = ref(false);
 
-const cancelEditing = () => {
+const resetEditing = () => {
   // Reset form data
   Object.assign(editForm.value, assignment.value);
 };
@@ -287,7 +293,7 @@ const saveChanges = async () => {
 
     if (updatedAssignment) {
       Object.assign(assignment.value, updatedAssignment);
-      emit('update-success', assignment.value);
+      emit('update-success', {...assignment.value, attachments: null, testcases: null});
       ElMessage.success('Assignment updated successfully');
     }
   } catch (error) {
@@ -343,8 +349,6 @@ const saveTestCase = async () => {
 };
 
 const deleteTestCase = async (testCase: TestCase) => {
-  if (!props.assignmentId) return;
-
   try {
     await ElMessageBox.confirm(
         'Are you sure you want to delete this test case?',
