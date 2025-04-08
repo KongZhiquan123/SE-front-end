@@ -216,7 +216,7 @@ const getTagType = (materialType: string) => {
     align-items: center;
     gap: 8px;
     color: vars.$text-secondary;
-    font-size: vars.$font-size-base;
+    font-size: 16px;
     margin-bottom: vars.$spacing-small;
   }
 

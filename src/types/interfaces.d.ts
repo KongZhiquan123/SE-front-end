@@ -28,7 +28,12 @@ export interface CourseMaterial {
     description: string
     attachments?: Attachment[] | null
 }
-
+interface TestCase {
+    id: number
+    input: string
+    expectedOutput: string
+    weight: number;
+}
 //Assignment.vue
 export interface Assignment extends CourseMaterial {
     dueDate: string;
@@ -36,6 +41,7 @@ export interface Assignment extends CourseMaterial {
     openDate: string;
     status: 'open' | 'closed' | 'upcoming';
     instructions?: string | null;
+    testcases? : TestCase[] | null
 }
 
 export interface Submission {

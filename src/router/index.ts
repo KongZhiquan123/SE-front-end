@@ -10,12 +10,12 @@ const router = createRouter({
         {
             path: '/',
             component: () => import('../views/HomeLayout.vue'),
-            meta: {requiresAuth: true, roles: ['student', 'teacher', 'admin', null]},
+            meta: {requiresAuth: true, roles: ['student', 'teacher', 'admin']},
             children: [
                 {
                     path: '',
                     component: () => import('../views/HomePages/Home.vue'),
-                    meta: {requiresAuth: false}
+                    meta: {requiresAuth: false, roles: ['student', 'teacher', 'admin', null]},
                 },
                 {
                     path: 'calendar',
@@ -74,11 +74,7 @@ const router = createRouter({
                 },
                 {
                     path: 'create-assignment',
-                    component: () => import('../views/CoursePages/CreateAssignment.vue'),
-                },
-                {
-                    path: 'create-course-materials',
-                    component: () => import('../views/CoursePages/CreateCourseMaterials.vue'),
+                    component: () => import('../views/CoursePages/AssignmentManagement.vue'),
                 }
             ]
         },
