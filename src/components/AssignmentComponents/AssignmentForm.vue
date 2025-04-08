@@ -153,7 +153,7 @@ const formRef = shallowRef<FormInstance>();
 const uploadRef = ref<UploadInstance>();
 const isSubmitting = ref<boolean>(false);
 // State
-const form = reactive<Assignment>({
+const defaultForm = {
   id: 0,
   title: '',
   type: '',
@@ -163,7 +163,13 @@ const form = reactive<Assignment>({
   openDate: '',
   status: 'upcoming',
   instructions: ''
-});
+};
+const form = reactive<Assignment>({...defaultForm});
+
+const resetForm = () => {
+  formRef.value?.resetFields();
+  Object.assign(form, defaultForm);
+};
 
 const fileList = ref<UploadFile[]>([]);
 const testCases = ref<TestCase[]>([]);
@@ -255,6 +261,7 @@ const submitForm = async () => {
           uploadTestCases(createdAssignment.id)
         ]);
         emit('create-success', createdAssignment);
+        resetForm();
         visible.value = false;
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

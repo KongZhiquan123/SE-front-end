@@ -284,6 +284,31 @@ const copyToClipboard = (text: string) => {
                   </div>
                 </div>
 
+                <el-divider v-if="submission.codeSubmissions?.length"/>
+                <div v-if="submission.codeSubmissions?.length" class="code-submissions">
+                  <h5>Code Submissions:</h5>
+                  <div v-for="(codeSubmission) in submission.codeSubmissions" :key="codeSubmission.id" class="code-submission-item">
+                    <div class="code-submission-header">
+                      <div>
+                        <span class="language-badge">{{ codeSubmission.language }}</span>
+                        <span class="version-info">Version {{ codeSubmission.versionIndex + 1 }}</span>
+                      </div>
+                      <el-tooltip content="Copy code" placement="top" :hide-after="1000">
+                        <el-button
+                            size="small"
+                            type="info"
+                            text
+                            @click="copyToClipboard(codeSubmission.script)"
+                        >
+                          <el-icon><Document /></el-icon>
+                        </el-button>
+                      </el-tooltip>
+                    </div>
+                    <el-card class="code-container" shadow="hover">
+                      <pre class="code-content">{{ codeSubmission.script }}</pre>
+                    </el-card>
+                  </div>
+                </div>
               </el-card>
             </el-timeline-item>
           </el-timeline>
@@ -446,5 +471,56 @@ h4 {
   position: absolute;
   top: vars.$spacing-small;
   right: vars.$spacing-small;
+}
+
+.code-submissions {
+  margin-top: vars.$spacing-base;
+
+  h5 {
+    margin-bottom: vars.$spacing-small;
+  }
+}
+h5 {
+  font-size: vars.$font-size-base;
+}
+.code-submission-item {
+  margin-bottom: vars.$spacing-medium;
+}
+
+.code-submission-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: vars.$spacing-small;
+}
+
+.language-badge {
+  background-color: vars.$background-light;
+  color: vars.$primary-color;
+  padding: 2px 8px;
+  border-radius: vars.$border-radius-small;
+  font-weight: vars.$font-weight-medium;
+  font-size: vars.$font-size-small;
+  margin-right: vars.$spacing-small;
+}
+
+.version-info {
+  color: vars.$text-secondary;
+  font-size: vars.$font-size-small;
+}
+
+.code-container {
+  background-color: #f5f7fa;
+  border-left: 3px solid vars.$primary-color;
+
+  .code-content {
+    white-space: pre-wrap;
+    font-family: monospace;
+    margin: 0;
+    padding: vars.$spacing-small;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: vars.$font-size-small;
+  }
 }
 </style>

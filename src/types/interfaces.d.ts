@@ -44,6 +44,13 @@ export interface Assignment extends CourseMaterial {
     testcases? : TestCase[] | null
 }
 
+export interface CodeSubmission {
+    id: number,
+    script: string,
+    language: string,
+    versionIndex: number
+}
+
 export interface Submission {
     id: number,
     submitTime: string,
@@ -53,12 +60,7 @@ export interface Submission {
     attachments?: Attachment[]
     codeSubmissions?: CodeSubmission[]
 }
-export interface CodeSubmission {
-    id: number,
-    script: string,
-    language: string,
-    versionIndex: number
-}
+
 //Calendar.vue
 export interface Task {
     id: number;

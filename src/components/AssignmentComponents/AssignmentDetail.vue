@@ -323,8 +323,6 @@ const editTestCase = (testCase: TestCase) => {
 };
 
 const saveTestCase = async () => {
-  if (!props.assignmentId) return;
-
   try {
     const testcases = assignment.value.testcases;
     if (currentTestCase.id) {
@@ -332,7 +330,7 @@ const saveTestCase = async () => {
       await request.put(`/teachers/assignments/${assignment.value.id}/testcases/${currentTestCase.id}`, currentTestCase);
       const index = testcases.findIndex(tc => tc.id === currentTestCase.id);
       if (index !== -1) {
-        testcases.value[index] = { ...currentTestCase };
+        testcases[index] = { ...currentTestCase };
       }
       ElMessage.success('Test case updated successfully');
     } else {
@@ -364,7 +362,7 @@ const deleteTestCase = async (testCase: TestCase) => {
     await request.delete(`/teachers/assignments/${assignment.value.id}/testcases/${testCase.id}`);
 
     // Remove from local state
-    assignment.value.testcases = assignment.value.testcases.value.filter(tc => tc.id !== testCase.id);
+    assignment.value.testcases = assignment.value.testcases.filter(tc => tc.id !== testCase.id);
     ElMessage.success('Test case deleted successfully');
   } catch (error) {
     if (error !== 'cancel') {
