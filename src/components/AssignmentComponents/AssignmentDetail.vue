@@ -293,7 +293,7 @@ const saveChanges = async () => {
 
     if (updatedAssignment) {
       Object.assign(assignment.value, updatedAssignment);
-      emit('update-success', {...assignment.value, attachments: null, testcases: null});
+      emit('update-success', {...assignment.value, attachments: [], testcases: []});
       ElMessage.success('Assignment updated successfully');
     }
   } catch (error) {
@@ -482,26 +482,6 @@ const deleteAttachment = async (attachment: Attachment) => {
 </script>
 
 <style lang="scss" scoped>
-.detail-section {
-  h2 {
-    margin-top: 0;
-    margin-bottom: 20px;
-  }
-
-  .detail-content {
-    margin: 20px 0;
-
-    h3 {
-      margin-bottom: 10px;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 5px;
-    }
-
-    p {
-      white-space: pre-line;
-    }
-  }
-}
 
 .section-header {
   display: flex;

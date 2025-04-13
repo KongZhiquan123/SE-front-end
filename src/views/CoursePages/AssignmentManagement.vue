@@ -24,6 +24,12 @@
         <template #default="{ row }">
           <el-button type="primary" size="small" @click="viewAssignment(row)">View</el-button>
           <el-button type="danger" size="small" @click="deleteAssignment(row)">Delete</el-button>
+          <el-button type="warning" size="small"
+                     @click="router.push(
+                         `/teacher-course/grading-assignment?courseId=${route.query.courseId}&courseCode=${route.query.courseCode}&assignmentId=${row.id}`
+                     )">
+            Grade
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -52,8 +58,9 @@ import { Assignment } from '@/types';
 import request from "@/utils/request";
 import AssignmentForm from '@/components/AssignmentComponents/AssignmentForm.vue';
 import AssignmentDetail from '@/components/AssignmentComponents/AssignmentDetail.vue';
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 
+const router = useRouter();
 const assignments = ref<Assignment[]>([]);
 const formDialogVisible = ref(false);
 const detailDialogVisible = ref(false);

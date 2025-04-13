@@ -3,6 +3,7 @@ import {useUserStore} from "@/stores/user";
 /*
 路由元含义：
 requiresAuth: 是否需要登录才能访问
+roles: 访问该路由需要的角色
 */
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -73,8 +74,12 @@ const router = createRouter({
                     component: () => import('../views/CoursePages/CourseBasicInformation.vue'),
                 },
                 {
-                    path: 'create-assignment',
+                    path: 'assignment-management',
                     component: () => import('../views/CoursePages/AssignmentManagement.vue'),
+                },
+                {
+                    path: 'grading-assignment',
+                    component: () => import('../views/CoursePages/AssignmentGrading.vue')
                 }
             ]
         },

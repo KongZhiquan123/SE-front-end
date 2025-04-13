@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import request from "../utils/request"
+import request from "@/utils/request"
 
 export default function useVerificationCode() {
     const countdown = ref(0)

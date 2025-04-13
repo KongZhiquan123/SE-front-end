@@ -7,7 +7,7 @@ import type {Assignment, Submission} from '@/types/interfaces'
 import { capitalize, defaultTo, orderBy, get, filter } from 'lodash-es'
 import {useRouter, useRoute} from "vue-router";
 import apiRequest from "@/utils/apiUtils";
-import formatFileSize from "@/utils/formatFileSize";
+import {submissionsConversion} from "@/utils/DataFormatConversion";
 import downloadFile from "@/utils/downloadFile";
 
 const router = useRouter()
@@ -50,17 +50,7 @@ const filteredAssignments = computed(() => {
 const showSubmissionHistory = (assignment: Assignment) => {
   activeAssignment.value = assignment
   apiRequest<Submission[]>(`students/assignments/${assignment.id}/submissions`).then(data => {
-    submissions.value =  defaultTo(data,[])
-        .sort((a, b) => new Date(a.submitTime).getTime() - new Date(b.submitTime).getTime())
-        .map((submission, index) => ({
-          ...submission,
-          status: submission.status.toLowerCase(),
-          attempts: index + 1,
-          attachments: submission.contents.filter(content => content.type.toLowerCase() === 'file' && content.file)
-              .map(content => ({...content.file, size: formatFileSize(content.file.size)}
-          )),
-          codeSubmissions: submission.contents.filter(content => content.codeSubmission).map(content => content.codeSubmission)
-        })).reverse();
+    submissions.value = submissionsConversion(data);
   })
   drawerVisible.value = true
 }

@@ -137,7 +137,7 @@ const processSubmission = async () => {
   try {
     submitting.value = true;
     const formData = new FormData();
-    formData.append('textResponse', textResponse.value);
+    formData.append('content', textResponse.value);
     //后端要求文件字段名为files
     fileList.value.forEach(file => {
       formData.append('files', file.raw);

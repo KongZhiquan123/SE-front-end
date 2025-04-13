@@ -4,6 +4,7 @@ export interface Grade {
     title: string;
     type: string;
     score?: number | null;
+    aiGrading?: AIGrading | null;
     maxScore: number;
     dueDate: string;
     submittedDate?: string | null;
@@ -12,6 +13,13 @@ export interface Grade {
     appealReason?: string | null;
     appealTime?: string | null;
     status: 'graded' | 'upcoming' | 'submitted' | 'missing' | 'appealing' | 'appealed';
+}
+
+export interface AIGrading {
+    id: number;
+    aiScore: number;
+    confidence: number;
+    feedbackSuggestions: string;
 }
 
 //CourseMaterial.vue
