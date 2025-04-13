@@ -11,13 +11,6 @@
           <el-form-item label="Title">
             <el-input v-model="editForm.title" />
           </el-form-item>
-          <el-form-item label="Status">
-            <el-select v-model="editForm.status" placeholder="Select Status">
-              <el-option label="Upcoming" value="upcoming" />
-              <el-option label="Closed" value="closed" />
-              <el-option label="Open" value="open" />
-            </el-select>
-          </el-form-item>
           <el-form-item label="Max Score">
             <el-input-number v-model="editForm.maxScore" :min="0" />
           </el-form-item>
@@ -83,9 +76,14 @@
         <div v-if="assignment.type === 'code'" class="test-cases-section">
           <div class="section-header">
             <h3>Test Cases</h3>
-            <el-button type="primary" size="small" plain @click="showTestCaseForm">
-              Add Test Case
-            </el-button>
+            <span style="display: flex; gap: 10px; align-items: center;justify-content: center;">
+              <el-button type="primary" size="small" plain @click="showTestCaseForm">
+                Add Test Case
+              </el-button>
+              <el-button type="primary" size="small" plain @click="showCodeConfigDialog">
+                Edit Code Config
+              </el-button>
+            </span>
           </div>
 
           <div v-if="loadingTestCases" class="loading-section">
@@ -183,6 +181,11 @@
       </template>
     </el-dialog>
   </el-dialog>
+  <CodeAssignmentConfig
+      :config="assignment.codeConfig ?? undefined"
+      :assignment-id="assignment.id"
+      v-model:visible="codeConfigDialogVisible"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -194,6 +197,7 @@ import apiRequest from "@/utils/apiUtils";
 import downloadFile from "@/utils/downloadFile";
 import {cloneDeep} from "lodash-es";
 import {checkDate} from "@/components/AssignmentComponents/checkDate";
+import CodeAssignmentConfig from "@/components/Dialogs/CodeAssignmentConfig.vue";
 const visible = defineModel<boolean>('visible', {
   type: Boolean,
   default: false,
@@ -259,12 +263,18 @@ watch(() => props.assignmentParent, (newVal) => {
           loadingTestCases.value = false;
         }
     );
+    apiRequest(`/teachers/code-config/${assignment.value.id}`, 'get', 'Failed to load code config')
+        .then((config) => {
+          assignment.value.codeConfig = config;
+        })
   } else {
     loadingTestCases.value = false;
   }
 }, { deep: true, immediate: true });
-
-
+const codeConfigDialogVisible = ref(false);
+const showCodeConfigDialog = () => {
+  codeConfigDialogVisible.value = true;
+};
 const isSaving = ref(false);
 
 const resetEditing = () => {

@@ -42,13 +42,14 @@ interface TestCase {
     expectedOutput: string
     weight: number;
 }
-//Assignment.vue
+//CourseAssignment.vue
 export interface Assignment extends CourseMaterial {
     dueDate: string;
     maxScore: number;
     openDate: string;
     status: 'open' | 'closed' | 'upcoming';
     instructions?: string | null;
+    codeConfig?: CodeAssignmentConfig | null
     testcases? : TestCase[] | null
 }
 
@@ -133,4 +134,16 @@ export interface CodeExecutionResult {
     isCompiled: boolean;
     submitTime?: string;
 }
-
+//AssignmentManagement.vue
+export interface CodeAssignmentConfig {
+    id: number
+    allowedLanguages: string,
+    memoryLimitEnabled: boolean,
+    memoryLimitMB: number,
+    timeLimitEnabled: boolean,
+    timeLimitSeconds: number,
+    languageVersions: string,
+    disabledLibraries: string,
+    autoGradingEnabled: boolean,
+    showDetailedResults: boolean,
+}

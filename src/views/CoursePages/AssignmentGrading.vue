@@ -143,14 +143,6 @@
             />
           </el-form-item>
 
-          <el-form-item label="Status" prop="status">
-            <el-select v-model="grading.status" placeholder="Select status">
-              <el-option label="Accepted" value="accepted" />
-              <el-option label="Rejected" value="rejected" />
-              <el-option label="Pending" value="pending" />
-            </el-select>
-          </el-form-item>
-
           <div class="form-actions">
             <el-button @click="closeSubmission">Close</el-button>
             <el-button @click="resetGrading">Reset</el-button>
@@ -177,7 +169,6 @@ import {submissionsConversion} from "@/utils/DataFormatConversion";
 interface GradingForm {
   score: number;
   feedback: string;
-  status: 'pending' | 'accepted' | 'rejected';
 }
 
 const submissionsList = reactive<Submission[]>([]);
@@ -211,7 +202,6 @@ const totalSubmissions = ref(submissionsList.length);
 const grading = reactive<GradingForm>({
   score: 0,
   feedback: '',
-  status: 'pending'
 });
 
 // 获取状态类型（用于标签颜色）
@@ -243,7 +233,6 @@ const selectSubmission = (submission: Submission): void => {
   // 根据选定的提交项初始化评分表单
   grading.score = 0;
   grading.feedback = '';
-  grading.status = submission.status;
 
   // 重置代码标签
   activeCodeTab.value = '0';
@@ -268,12 +257,10 @@ const resetGrading = (): void => {
     // 重置为当前已有的值
     grading.score = selectedSubmission.value.score || 0;
     grading.feedback = selectedSubmission.value.feedback || '';
-    grading.status = selectedSubmission.value.status;
   } else {
     // 完全重置
     grading.score = 0;
     grading.feedback = '';
-    grading.status = 'pending';
   }
 };
 
@@ -298,17 +285,18 @@ const submitGrading = async (): Promise<void> => {
     const submissionId = selectedSubmission.value.id;
     const data = await apiRequest(`/teachers/grades/${submissionId}`,
         'POST', 'Error submitting grading', {...grading});
-    if (!data?.score) {
+    console.log(data);
+    if (!data) {
       return;
     }
     // 更新列表中的项目
     const submissionIndex = submissionsList.findIndex(s => s.id === submissionId);
     if (submissionIndex !== -1) {
-      submissionsList[submissionIndex].status = grading.status;
+      submissionsList[submissionIndex].status = 'pending';
     }
 
     // 更新当前选定的项目
-    selectedSubmission.value.status = grading.status;
+    selectedSubmission.value.status = 'pending';
 
     ElMessage.success(`Grading for ${selectedSubmission.value.studentName} has been submitted successfully`);
   } finally {
@@ -344,30 +332,35 @@ watch(statusFilter, () => {
 </script>
 
 <style lang="scss" scoped>
+@use "@/assets/variables" as vars;
+
 .grading-container {
   .submissions-list {
-    margin-bottom: 20px;
+    margin-bottom: vars.$spacing-large;
 
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: vars.$spacing-medium;
 
       h2 {
         margin: 0;
+        font-size: vars.$font-size-large;
+        font-weight: vars.$font-weight-bold;
+        color: vars.$text-primary;
       }
     }
 
     .pagination-container {
-      margin-top: 20px;
+      margin-top: vars.$spacing-large;
       display: flex;
       justify-content: flex-end;
     }
   }
 
   .submission-details {
-    margin-bottom: 20px;
+    margin-bottom: vars.$spacing-large;
 
     .card-header {
       display: flex;
@@ -377,84 +370,136 @@ watch(statusFilter, () => {
       .submission-header {
         display: flex;
         align-items: center;
-        gap: 15px;
+        gap: vars.$spacing-base;
 
         h2 {
           margin: 0;
+          font-size: vars.$font-size-large;
+          font-weight: vars.$font-weight-bold;
+          color: vars.$text-primary;
         }
       }
     }
 
     .submission-info {
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid #eaeaea;
+      margin-bottom: vars.$spacing-large;
+      padding-bottom: vars.$spacing-base;
+      border-bottom: 1px solid vars.$border-light;
 
       .info-row {
         display: flex;
-        margin: 8px 0;
+        margin: vars.$spacing-small 0;
 
         .info-item {
           flex: 1;
-          margin-right: 20px;
+          margin-right: vars.$spacing-large;
+          color: vars.$text-secondary;
+
+          strong {
+            color: vars.$text-primary;
+            font-weight: vars.$font-weight-medium;
+          }
         }
       }
     }
 
     .text-response {
-      margin-bottom: 20px;
+      margin-bottom: vars.$spacing-large;
+
+      h3 {
+        font-size: vars.$font-size-base;
+        font-weight: vars.$font-weight-medium;
+        margin-bottom: vars.$spacing-small;
+        color: vars.$text-primary;
+      }
 
       .response-content {
-        background-color: #f9f9f9;
-        padding: 15px;
-        border-radius: 4px;
+        background-color: vars.$background-lighter;
+        padding: vars.$spacing-base;
+        border-radius: vars.$border-radius-base;
         white-space: pre-wrap;
+        border: 1px solid vars.$border-lighter;
+        color: vars.$text-secondary;
       }
     }
 
     .code-submissions {
-      margin-bottom: 20px;
+      margin-bottom: vars.$spacing-large;
+
+      h3 {
+        font-size: vars.$font-size-base;
+        font-weight: vars.$font-weight-medium;
+        margin-bottom: vars.$spacing-small;
+        color: vars.$text-primary;
+      }
 
       .code-header {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 10px;
+        margin-bottom: vars.$spacing-medium;
+        color: vars.$text-secondary;
+
+        strong {
+          color: vars.$text-primary;
+          font-weight: vars.$font-weight-medium;
+        }
       }
 
       .code-display {
         background-color: #282c34;
         color: #abb2bf;
-        padding: 15px;
-        border-radius: 4px;
+        padding: vars.$spacing-base;
+        border-radius: vars.$border-radius-base;
         overflow-x: auto;
         margin: 0;
+        box-shadow: vars.$box-shadow-light;
       }
     }
 
     .attachments {
-      margin-bottom: 20px;
+      margin-bottom: vars.$spacing-large;
+
+      h3 {
+        font-size: vars.$font-size-base;
+        font-weight: vars.$font-weight-medium;
+        margin-bottom: vars.$spacing-small;
+        color: vars.$text-primary;
+      }
     }
 
     .grading-section {
-      padding-top: 20px;
-      border-top: 1px solid #eaeaea;
+      padding-top: vars.$spacing-large;
+      border-top: 1px solid vars.$border-lighter;
+
+      h3 {
+        font-size: vars.$font-size-base;
+        font-weight: vars.$font-weight-medium;
+        margin-bottom: vars.$spacing-medium;
+        color: vars.$text-primary;
+      }
 
       .form-actions {
         display: flex;
         justify-content: flex-end;
-        gap: 10px;
-        margin-top: 20px;
+        gap: vars.$spacing-medium;
+        margin-top: vars.$spacing-large;
       }
     }
   }
 
   .empty-state {
-    margin-top: 40px;
+    margin-top: vars.$spacing-extra-large;
+    color: vars.$text-tertiary;
+    text-align: center;
+    padding: vars.$spacing-extra-large;
+    background-color: vars.$background-lighter;
+    border-radius: vars.$border-radius-base;
   }
 }
 
 // 选中行的样式
 :deep(.selected-row) {
-  background-color: #f0f9ff !important;
+  background-color: vars.$background-info-light !important;
+  border-left: 3px solid vars.$primary-color;
 }
 </style>

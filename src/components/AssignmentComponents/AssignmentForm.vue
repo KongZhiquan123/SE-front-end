@@ -12,18 +12,23 @@
         label-width="120px"
         label-position="top"
     >
-      <el-form-item label="Title" prop="title">
-        <el-input v-model="form.title" />
-      </el-form-item>
 
-      <el-form-item label="Type" prop="type">
-        <el-select v-model="form.type" placeholder="Select type" style="width: 100%">
-          <el-option label="Code" value="code" />
-          <el-option label="Essay" value="essay" />
-          <el-option label="Quiz" value="quiz" />
-        </el-select>
-      </el-form-item>
+        <el-form-item label="Title" prop="title">
+          <el-input v-model="form.title" />
+        </el-form-item>
+      <div class="form-row">
+        <el-form-item label="Type" prop="type">
+          <el-select v-model="form.type" placeholder="Select type" style="width: 100%">
+            <el-option label="Code" value="code" />
+            <el-option label="Essay" value="essay" />
+            <el-option label="Quiz" value="quiz" />
+          </el-select>
+        </el-form-item>
 
+        <el-form-item label="Max Score" prop="maxScore">
+          <el-input-number v-model="form.maxScore" :min="0" style="width: 100%" />
+        </el-form-item>
+      </div>
       <el-form-item label="Description" prop="description">
         <el-input v-model="form.description" type="textarea" :rows="4" />
       </el-form-item>
@@ -51,21 +56,6 @@
           />
         </el-form-item>
       </div>
-
-      <div class="form-row">
-        <el-form-item label="Max Score" prop="maxScore">
-          <el-input-number v-model="form.maxScore" :min="0" style="width: 100%" />
-        </el-form-item>
-
-        <el-form-item label="Status" prop="status">
-          <el-select v-model="form.status" placeholder="Select status" style="width: 100%">
-            <el-option label="Open" value="open" />
-            <el-option label="Closed" value="closed" />
-            <el-option label="Upcoming" value="upcoming" />
-          </el-select>
-        </el-form-item>
-      </div>
-
       <!-- Attachments section -->
       <h2>Attachments</h2>
       <el-upload
@@ -117,12 +107,14 @@
             </div>
           </el-form>
         </div>
-        <el-button style="margin-top: 10px" type="primary" @click="addTestCase">Add Test Case Manually</el-button>
-
+        <div style="margin-top: 10px">
+          <el-button type="primary" @click="addTestCase">Add Test Case Manually</el-button>
+          <el-button type="primary" @click="showCodeConfigDialog">Create Code Configuration</el-button>
+        </div>
       </div>
 
     </el-form>
-
+    <CodeAssignmentConfig v-model:visible="codeConfigDialogVisible" :config="codeConfig" :assignment-id="0"/>
     <template #footer>
       <el-button @click="() => visible = false">Cancel</el-button>
       <el-button type="primary" @click="submitForm" :disabled="isSubmitting">Submit</el-button>
@@ -139,6 +131,7 @@ import { Assignment, TestCase } from '@/types';
 import request from "@/utils/request";
 import {useRoute} from "vue-router";
 import {checkDate} from "./checkDate";
+import CodeAssignmentConfig from "@/components/Dialogs/CodeAssignmentConfig.vue";
 
 const visible = defineModel<boolean>('visible');
 
@@ -170,7 +163,18 @@ const resetForm = () => {
   formRef.value?.resetFields();
   Object.assign(form, defaultForm);
 };
-
+const codeConfig = ref<CodeAssignmentConfig>({
+  id: 0,
+  allowedLanguages: '',
+  memoryLimitEnabled: false,
+  memoryLimitMB: 256,
+  timeLimitEnabled: false,
+  timeLimitSeconds: 5,
+  languageVersions: '',
+  disabledLibraries: '',
+  autoGradingEnabled: true,
+  showDetailedResults: true,
+})
 const fileList = ref<UploadFile[]>([]);
 const testCases = ref<TestCase[]>([]);
 // Validation rules
@@ -181,7 +185,10 @@ const assignmentRules = {
   dueDate: [{ required: true, message: 'Please select the due date', trigger: 'change' }],
   openDate: [{ required: true, message: 'Please select the open date', trigger: 'change' }],
   maxScore: [{ required: true, message: 'Please input the max score', trigger: 'blur' }],
-  status: [{ required: true, message: 'Please select the status', trigger: 'change' }],
+};
+const codeConfigDialogVisible = ref(false);
+const showCodeConfigDialog = () => {
+  codeConfigDialogVisible.value = true;
 };
 const beforeAttachmentUpload = (file: UploadRawFile) => {
   // Check file size (10MB max)
@@ -253,12 +260,16 @@ const submitForm = async () => {
       // Prepare assignment data
       const assignmentData = { ...form };
       const createdAssignment = await createAssignment(assignmentData);
-
+      const submitCodeConfig = request.post(
+          `/teachers/code-config/${createdAssignment.id}`,
+          {...codeConfig.value}
+      );
       if (createdAssignment) {
         // Upload attachments and test cases in parallel
         await Promise.all([
           uploadAttachments(createdAssignment.id),
-          uploadTestCases(createdAssignment.id)
+          uploadTestCases(createdAssignment.id),
+          submitCodeConfig,
         ]);
         emit('create-success', createdAssignment);
         resetForm();
