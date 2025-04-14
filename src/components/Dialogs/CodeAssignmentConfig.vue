@@ -126,7 +126,7 @@ const props = defineProps({
     default: 0,
   }
 });
-
+const emit = defineEmits(['update:config']);
 const form = reactive<CodeAssignmentConfig>({
   id: 0,
   allowedLanguages: '',
@@ -164,27 +164,30 @@ const selectedLanguages = computed({
 
 // Watch for changes in props.config to update form
 watch(() => props.config, (newConfig) => {
-  Object.assign(form, {...newConfig,});
+  Object.assign(form, newConfig);
+  console.log(form)
 }, { immediate: true, deep: true });
 
 const saveConfig = async () => {
   if (!form.id){
+    emit('update:config', {...form});
     visible.value = false;
     return
   }
   saving.value = true;
   try {
-    const endpoint = `/teachers/assignments/${props.assignmentId}/code-config/${form.id}`
+    const endpoint = `/teachers/code-config`
 
     const savedConfig = await apiRequest<CodeAssignmentConfig>(
         endpoint,
-        'PUT',
+        'POST',
         `Failed to update configuration`,
-        form
+        {...form, assignmentId: props.assignmentId}
     );
 
     if (savedConfig) {
       ElMessage.success(`Configuration updated successfully`);
+      emit('update:config', {...savedConfig});
       visible.value = false;
     }
   } catch (error) {

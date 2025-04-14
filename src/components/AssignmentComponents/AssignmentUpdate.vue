@@ -1,34 +1,30 @@
 // AssignmentDetail.vue
 <template>
-  <el-dialog
-      title="Assignment Details"
-      v-model="visible"
-      width="70%"
-  >
+  <el-main>
     <template v-if="assignment">
-      <div class="detail-section">
+      <el-card class="detail-section">
         <el-form :model="editForm" label-width="120px">
           <el-form-item label="Title">
-            <el-input v-model="editForm.title" />
+            <el-input v-model="editForm.title"/>
           </el-form-item>
           <el-form-item label="Max Score">
-            <el-input-number v-model="editForm.maxScore" :min="0" />
+            <el-input-number v-model="editForm.maxScore" :min="0"/>
           </el-form-item>
 
           <el-form-item label="Open Date">
-            <el-date-picker v-model="editForm.openDate" type="datetime" />
+            <el-date-picker v-model="editForm.openDate" type="datetime"/>
           </el-form-item>
 
           <el-form-item label="Due Date">
-            <el-date-picker v-model="editForm.dueDate" type="datetime" />
+            <el-date-picker v-model="editForm.dueDate" type="datetime"/>
           </el-form-item>
 
           <el-form-item label="Description">
-            <el-input v-model="editForm.description" type="textarea" :rows="4" />
+            <el-input v-model="editForm.description" type="textarea" :rows="4"/>
           </el-form-item>
 
           <el-form-item label="Instructions">
-            <el-input v-model="editForm.instructions" type="textarea" :rows="4" />
+            <el-input v-model="editForm.instructions" type="textarea" :rows="4"/>
           </el-form-item>
 
           <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
@@ -36,8 +32,6 @@
             <el-button type="primary" @click="saveChanges" :loading="isSaving">Save</el-button>
           </div>
         </el-form>
-
-
 
         <!-- Attachments Section -->
         <div class="attachments-section">
@@ -48,7 +42,11 @@
             </el-button>
           </div>
 
-          <el-empty v-if="!assignment.attachments?.length" description="No attachments" />
+          <div v-if="loadingAttachments" class="loading-section">
+            <el-skeleton :rows="3" animated/>
+          </div>
+
+          <el-empty v-else-if="!assignment.attachments?.length" description="No attachments"/>
 
           <el-table
               v-else
@@ -56,8 +54,8 @@
               border
               style="width: 100%"
           >
-            <el-table-column prop="id" label="ID" width="80" />
-            <el-table-column prop="name" label="Name" />
+            <el-table-column prop="id" label="ID" width="80"/>
+            <el-table-column prop="name" label="Name"/>
             <el-table-column prop="size" label="Size" width="120"/>
             <el-table-column label="Operations" width="200">
               <template #default="{ row }">
@@ -87,7 +85,7 @@
           </div>
 
           <div v-if="loadingTestCases" class="loading-section">
-            <el-skeleton :rows="3" animated />
+            <el-skeleton :rows="3" animated/>
           </div>
 
           <el-empty v-else-if="!assignment.testcases?.length" description="No test cases"/>
@@ -98,10 +96,10 @@
               border
               style="width: 100%"
           >
-            <el-table-column prop="id" label="ID" width="80" />
-            <el-table-column prop="input" label="Input" show-overflow-tooltip />
-            <el-table-column prop="expectedOutput" label="Expected Output" show-overflow-tooltip />
-            <el-table-column prop="weight" label="Weight" width="100" />
+            <el-table-column prop="id" label="ID" width="80"/>
+            <el-table-column prop="input" label="Input" show-overflow-tooltip/>
+            <el-table-column prop="expectedOutput" label="Expected Output" show-overflow-tooltip/>
+            <el-table-column prop="weight" label="Weight" width="100"/>
             <el-table-column label="Operations" width="200">
               <template #default="{ row }">
                 <el-button type="warning" size="small" @click="editTestCase(row)">
@@ -114,10 +112,10 @@
             </el-table-column>
           </el-table>
         </div>
-      </div>
+      </el-card>
     </template>
     <template v-else>
-      <el-empty description="No assignment found" />
+      <el-empty description="No assignment found"/>
     </template>
     <!-- Attachment Form Dialog -->
     <el-dialog
@@ -127,26 +125,26 @@
         width="500px"
     >
 
-        <el-upload
-            :http-request="() => {}"
-            :before-upload="beforeUpload"
-            :on-success="onSuccess"
-            v-model:file-list="fileList"
-            multiple
-            :limit="10"
-        >
-          <template #trigger>
-            <el-button type="primary">select file</el-button>
-          </template>
-          <el-button style="margin-left: 10px" type="success" @click="uploadAttachment">
-            upload to server
-          </el-button>
-          <template #tip>
-            <div class="el-upload__tip">
-              limit 10 files, each file size should be less than 10MB
-            </div>
-          </template>
-        </el-upload>
+      <el-upload
+          :http-request="() => {}"
+          :before-upload="beforeUpload"
+          :on-success="onSuccess"
+          v-model:file-list="fileList"
+          multiple
+          :limit="10"
+      >
+        <template #trigger>
+          <el-button type="primary">select file</el-button>
+        </template>
+        <el-button style="margin-left: 10px" type="success" @click="uploadAttachment">
+          upload to server
+        </el-button>
+        <template #tip>
+          <div class="el-upload__tip">
+            limit 10 files, each file size should be less than 10MB
+          </div>
+        </template>
+      </el-upload>
 
       <template #footer>
         <span>
@@ -164,13 +162,13 @@
     >
       <el-form :model="currentTestCase" label-width="140px">
         <el-form-item label="Input">
-          <el-input v-model="currentTestCase.input" type="textarea" :rows="3" />
+          <el-input v-model="currentTestCase.input" type="textarea" :rows="3"/>
         </el-form-item>
         <el-form-item label="Expected Output">
-          <el-input v-model="currentTestCase.expectedOutput" type="textarea" :rows="3" />
+          <el-input v-model="currentTestCase.expectedOutput" type="textarea" :rows="3"/>
         </el-form-item>
         <el-form-item label="Weight">
-          <el-input-number v-model="currentTestCase.weight" :min="0" :max="100" />
+          <el-input-number v-model="currentTestCase.weight" :min="0" :max="100"/>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -180,55 +178,60 @@
         </span>
       </template>
     </el-dialog>
-  </el-dialog>
-  <CodeAssignmentConfig
-      :config="assignment.codeConfig ?? undefined"
-      :assignment-id="assignment.id"
-      v-model:visible="codeConfigDialogVisible"
-  />
+    <CodeAssignmentConfig
+        v-model:config="assignment.codeConfig"
+        :assignment-id="assignment.id"
+        v-model:visible="codeConfigDialogVisible"
+    />
+  </el-main>
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, watch } from 'vue';
+import {ref, reactive} from 'vue';
 import {ElMessage, ElMessageBox, UploadFile, UploadRawFile} from 'element-plus';
-import { Assignment, Attachment, TestCase } from '@/types/interfaces';
+import {Assignment, Attachment, TestCase} from '@/types/interfaces';
 import request from "@/utils/request";
 import apiRequest from "@/utils/apiUtils";
 import downloadFile from "@/utils/downloadFile";
 import {cloneDeep} from "lodash-es";
 import {checkDate} from "@/components/AssignmentComponents/checkDate";
 import CodeAssignmentConfig from "@/components/Dialogs/CodeAssignmentConfig.vue";
-const visible = defineModel<boolean>('visible', {
-  type: Boolean,
-  default: false,
-});
+import {useRoute} from "vue-router";
 
+const codeConfig: CodeAssignmentConfig = {
+  id: 0,
+  allowedLanguages: '',
+  memoryLimitEnabled: false,
+  memoryLimitMB: 256,
+  timeLimitEnabled: false,
+  timeLimitSeconds: 5,
+  languageVersions: '',
+  disabledLibraries: '',
+  autoGradingEnabled: true,
+  showDetailedResults: true,
+}
 
-// Props and emits
-const props = defineProps({
-  assignmentParent: {
-    type: Object as () => Assignment,
-    default: () => ({
-      id: 0,
-      title: '',
-      description: '',
-      instructions: '',
-      type: 'code',
-      status: 'upcoming',
-      maxScore: 100,
-      openDate: new Date(),
-      dueDate: new Date(),
-      attachments: [],
-    }),
-  }
-})
+const defaultForm: Assignment = {
+  id: 0,
+  title: '',
+  description: '',
+  instructions: '',
+  type: 'code',
+  status: 'upcoming',
+  maxScore: 100,
+  openDate: new Date(),
+  dueDate: new Date(),
+  attachments: [],
+  testcases: [],
+  codeSubmissions: [],
+  codeConfig: codeConfig
+}
 
-const emit = defineEmits(['update-success']);
-
-const assignment = ref<Assignment>(cloneDeep(props.assignmentParent));
+const assignment = ref<Assignment>(cloneDeep(defaultForm));
 const editForm = ref<Assignment>({...assignment.value})
 
 const loadingTestCases = ref(true);
+const loadingAttachments = ref(true);
 const attachmentDialogVisible = ref(false);
 const testCaseDialogVisible = ref(false);
 const currentTestCase = reactive<TestCase>({
@@ -237,50 +240,65 @@ const currentTestCase = reactive<TestCase>({
   expectedOutput: '',
   weight: 10,
 });
-watch(() => props.assignmentParent, (newVal) => {
-  assignment.value = cloneDeep(newVal);
-  if (!newVal.title) {
-    return;
-  }
-  Object.assign(editForm.value, assignment.value);
-  apiRequest<Assignment>(
-      `/teachers/assignments/${assignment.value.id}/attachments`,
-      'get',
-      'Failed to load assignment'
-  ).then(
-      (attachmentData) => {
-        assignment.value.attachments = attachmentData.attachments ?? [];
-      }
-  );
-  if (assignment.value.type === 'code') {
-    apiRequest<TestCase[]>(
-        `/teachers/assignments/${assignment.value.id}/testcases`,
-        'get',
-        'Failed to load test cases'
-    ).then(
-        (testCases) => {
-          assignment.value.testcases = testCases ?? [];
-          loadingTestCases.value = false;
-        }
-    );
-    apiRequest(`/teachers/code-config/${assignment.value.id}`, 'get', 'Failed to load code config')
-        .then((config) => {
-          assignment.value.codeConfig = config;
-        })
-  } else {
-    loadingTestCases.value = false;
-  }
-}, { deep: true, immediate: true });
+const isSaving = ref(false);
 const codeConfigDialogVisible = ref(false);
+
 const showCodeConfigDialog = () => {
   codeConfigDialogVisible.value = true;
 };
-const isSaving = ref(false);
+
+// Test Case Management
+const showTestCaseForm = () => {
+  // Reset form data
+  Object.assign(currentTestCase, {
+    id: 0,
+    input: '',
+    expectedOutput: '',
+    weight: 10,
+  });
+  testCaseDialogVisible.value = true;
+};
+
+// Attachment Management
+const showAttachmentForm = () => {
+  attachmentDialogVisible.value = true;
+};
 
 const resetEditing = () => {
   // Reset form data
   Object.assign(editForm.value, assignment.value);
 };
+
+const route = useRoute();
+
+const assignmentId = route.query.assignmentId;
+apiRequest<Assignment>(
+    `/common/assignments/${assignmentId}/details`,
+    'get',
+    'Failed to load assignment'
+).then(
+    (assignmentData) => {
+      assignment.value = assignmentData ?? assignment.value;
+      assignment.value.attachments = assignmentData.attachments ?? [];
+      assignment.value.testcases = assignmentData.testcases ?? [];
+      resetEditing();
+      loadingTestCases.value = false;
+      loadingAttachments.value = false;
+      return assignmentData;
+    }
+).then((assignmentData) => {
+  if (assignmentData.type === 'code') {
+    return apiRequest<CodeAssignmentConfig>(
+        `/teachers/code-config/${assignmentData.id}`,
+        'get',
+        'Failed to load code config'
+    );
+  }
+  return null;
+}).then((codeConfig) => {
+  assignment.value.codeConfig = codeConfig ?? assignment.value.codeConfig;
+})
+
 
 const saveChanges = async () => {
   isSaving.value = true;
@@ -302,8 +320,7 @@ const saveChanges = async () => {
     );
 
     if (updatedAssignment) {
-      Object.assign(assignment.value, updatedAssignment);
-      emit('update-success', {...assignment.value, attachments: [], testcases: []});
+      Object.assign(assignment.value, editForm.value);
       ElMessage.success('Assignment updated successfully');
     }
   } catch (error) {
@@ -312,18 +329,6 @@ const saveChanges = async () => {
   } finally {
     isSaving.value = false;
   }
-};
-
-// Test Case Management
-const showTestCaseForm = () => {
-  // Reset form data
-  Object.assign(currentTestCase, {
-    id: 0,
-    input: '',
-    expectedOutput: '',
-    weight: 10,
-  });
-  testCaseDialogVisible.value = true;
 };
 
 const editTestCase = (testCase: TestCase) => {
@@ -340,18 +345,19 @@ const saveTestCase = async () => {
       await request.put(`/teachers/assignments/${assignment.value.id}/testcases/${currentTestCase.id}`, currentTestCase);
       const index = testcases.findIndex(tc => tc.id === currentTestCase.id);
       if (index !== -1) {
-        testcases[index] = { ...currentTestCase };
+        testcases[index] = {...currentTestCase};
       }
       ElMessage.success('Test case updated successfully');
     } else {
       // API CALL: Create new test case
-      const { data } = await request.post(`/teachers/assignments/${assignment.value.id}/testcases`, currentTestCase);
+      const {data} = await request.post(`/teachers/assignments/${assignment.value.id}/testcases`, currentTestCase);
       testcases.push(data);
       ElMessage.success('Test case added successfully');
     }
     testCaseDialogVisible.value = false;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
   } catch (error) {
+    console.log(error);
     ElMessage.error('Failed to save test case');
   }
 };
@@ -382,11 +388,6 @@ const deleteTestCase = async (testCase: TestCase) => {
 };
 
 
-// Attachment Management
-const showAttachmentForm = () => {
-  attachmentDialogVisible.value = true;
-};
-
 const fileList = ref<UploadFile[]>([]);
 
 // Before upload hook for validation
@@ -415,7 +416,6 @@ const onSuccess = (response) => {
 };
 
 // Upload attachment function
-// Upload attachment function
 const uploadAttachment = async () => {
   if (!assignment.value?.id || fileList.value.length === 0) {
     ElMessage.warning('Please select a file first');
@@ -423,27 +423,20 @@ const uploadAttachment = async () => {
   }
 
   try {
-    // Create an array of upload promises for each file
-    const uploadPromises = fileList.value.map(file => {
-      const formData = new FormData();
-      formData.append('file', file.raw);
-
-      return request.post(
-          `/teachers/assignments/${assignment.value.id}/attachments`,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          }
-      );
+    const formData = new FormData();
+    fileList.value.forEach(file => {
+      formData.append('files', file.raw || new Blob(), file.name);
     });
 
-    // Upload all files concurrently
-    const responses = await Promise.all(uploadPromises);
-
-    // Collect all uploaded attachments from responses
-    const uploadedAttachments = responses.flatMap(response => response.data);
+    const {data: uploadedAttachments} = await request.post(
+        `/teachers/assignments/${assignment.value.id}/attachments`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+    );
 
     // Update assignment attachments
     if (assignment.value.attachments) {

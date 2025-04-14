@@ -78,8 +78,16 @@ const router = createRouter({
                     component: () => import('../views/CoursePages/AssignmentManagement.vue'),
                 },
                 {
+                    path: 'create-assignment',
+                    component: () => import('@/components/AssignmentComponents/AssignmentCreate.vue')
+                },
+                {
+                    path: 'update-assignment',
+                    component: () => import('@/components/AssignmentComponents/AssignmentUpdate.vue')
+                },
+                {
                     path: 'grading-assignment',
-                    component: () => import('../views/CoursePages/AssignmentGrading.vue')
+                    component: () => import('../components/AssignmentComponents/AssignmentGrading.vue')
                 }
             ]
         },

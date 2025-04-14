@@ -3,7 +3,7 @@
   <el-card class="assignment-list">
     <div class="header">
       <h2 class="page-title">Assignment Management</h2>
-      <el-button type="primary" @click="showAddDialog">Add Assignment</el-button>
+      <el-button type="primary" @click="createAssignment">Add Assignment</el-button>
     </div>
 
     <el-table :data="assignments" border stripe>
@@ -22,30 +22,17 @@
       </el-table-column>
       <el-table-column label="Operations" width="250">
         <template #default="{ row }">
-          <el-button type="primary" size="small" @click="viewAssignment(row)">View</el-button>
+          <el-button type="primary" size="small" @click="updateAssignment(row.id)">Update</el-button>
           <el-button type="danger" size="small" @click="deleteAssignment(row)">Delete</el-button>
           <el-button type="warning" size="small"
-                     @click="router.push(
-                         `/teacher-course/grading-assignment?courseId=${route.query.courseId}&courseCode=${route.query.courseCode}&assignmentId=${row.id}`
-                     )">
+                     @click="gradeAssignment(row.id)">
             Grade
           </el-button>
         </template>
       </el-table-column>
     </el-table>
 
-    <!-- Assignment Form Dialog -->
-    <AssignmentForm
-        v-model:visible="formDialogVisible"
-        @create-success="handleFormSubmit"
-    />
 
-    <!-- Assignment Details Dialog -->
-    <AssignmentDetail
-        v-model:visible="detailDialogVisible"
-        :assignment-parent="currentAssignment"
-        @update-success="handleAssignmentUpdate"
-    />
   </el-card>
   </el-main>
 </template>
@@ -56,26 +43,11 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { formatDate} from "@/utils/formatDate";
 import { Assignment } from '@/types';
 import request from "@/utils/request";
-import AssignmentForm from '@/components/AssignmentComponents/AssignmentForm.vue';
-import AssignmentDetail from '@/components/AssignmentComponents/AssignmentDetail.vue';
 import {useRoute, useRouter} from "vue-router";
 
 const router = useRouter();
 const assignments = ref<Assignment[]>([]);
-const formDialogVisible = ref(false);
-const detailDialogVisible = ref(false);
-const currentAssignment = ref<Assignment>({
-  id: 0,
-  title: '',
-  description: '',
-  instructions: '',
-  type: 'code',
-  status: 'upcoming',
-  maxScore: 100,
-  openDate: new Date(),
-  dueDate: new Date(),
-  attachments: [],
-});
+
 const route = useRoute();
 const courseId = route.query.courseId;
 
@@ -102,29 +74,36 @@ const getStatusType = (status: Assignment['status']) => {
   return types[status] || 'info';
 };
 
-// View assignment details
-const viewAssignment = (assignment: Assignment) => {
-  currentAssignment.value = assignment;
-  detailDialogVisible.value = true;
-};
+const createAssignment = () => {
+  router.push({
+    path: '/teacher-course/create-assignment',
+    query: {
+      courseId: route.query.courseId,
+      courseCode: route.query.courseCode,
+    },
+  })
+}
 
-// Show add dialog
-const showAddDialog = () => {
-  currentAssignment.value = {
-    id: 0,
-    title: '',
-    type: '',
-    description: '',
-    dueDate: '',
-    maxScore: 100,
-    openDate: '',
-    status: 'upcoming',
-    attachments: [],
-    instructions: '',
-  } as Assignment;
-  formDialogVisible.value = true;
-};
-
+const updateAssignment = (id: number) => {
+  router.push({
+    path: '/teacher-course/update-assignment',
+    query: {
+      courseId: route.query.courseId,
+      courseCode: route.query.courseCode,
+      assignmentId: id
+    },
+  })
+}
+const gradeAssignment = (id: number) => {
+  router.push({
+    path: '/teacher-course/grading-assignment',
+    query: {
+      courseId: route.query.courseId,
+      courseCode: route.query.courseCode,
+      assignmentId: id
+    },
+  })
+}
 // Delete assignment
 const deleteAssignment = (assignment: Assignment) => {
   ElMessageBox.confirm(
@@ -150,17 +129,6 @@ const deleteAssignment = (assignment: Assignment) => {
         console.log('Delete canceled');
       });
 };
-
-const handleFormSubmit = (assignment: Assignment) => {
-  assignments.value.push(assignment);
-}
-
-const handleAssignmentUpdate = (assignment: Assignment) => {
-  const index = assignments.value.findIndex((a) => a.id === assignment.id);
-  if (index !== -1) {
-    assignments.value[index] = assignment;
-  }
-}
 
 </script>
 
