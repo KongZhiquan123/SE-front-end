@@ -4,9 +4,15 @@
       v-model="visible"
       width="600px"
   >
-    <el-form :model="form" label-width="180px" label-position="left">
+    <el-form
+        :model="form"
+        :rules="rules"
+        ref="formRef"
+        label-width="180px"
+        label-position="left"
+    >
       <!-- Allowed Languages -->
-      <el-form-item label="Allowed Languages">
+      <el-form-item label="Allowed Languages" prop="allowedLanguages">
         <el-select
             v-model="selectedLanguages"
             multiple
@@ -23,7 +29,7 @@
       </el-form-item>
 
       <!-- Memory Limit -->
-      <el-form-item label="Memory Limit">
+      <el-form-item label="Memory Limit" prop="memoryLimitMB">
         <div class="limit-control">
           <el-switch v-model="form.memoryLimitEnabled" />
           <el-input-number
@@ -39,7 +45,7 @@
       </el-form-item>
 
       <!-- Time Limit -->
-      <el-form-item label="Time Limit">
+      <el-form-item label="Time Limit" prop="timeLimitSeconds">
         <div class="limit-control">
           <el-switch v-model="form.timeLimitEnabled" />
           <el-input-number
@@ -54,39 +60,12 @@
         </div>
       </el-form-item>
 
-      <!-- Language Versions -->
-      <el-form-item label="Language Versions">
-        <el-input
-            v-model="form.languageVersions"
-            placeholder="e.g. Python 3.9, Java 17"
-        />
-      </el-form-item>
-
-      <!-- Disabled Libraries -->
-      <el-form-item label="Disabled Libraries">
-        <el-input
-            v-model="form.disabledLibraries"
-            type="textarea"
-            :rows="3"
-            placeholder="List libraries separated by commas"
-        />
-      </el-form-item>
-
-      <!-- Auto Grading -->
-      <el-form-item label="Auto Grading">
-        <el-switch v-model="form.autoGradingEnabled" />
-      </el-form-item>
-
-      <!-- Show Detailed Results -->
-      <el-form-item label="Show Detailed Results">
-        <el-switch v-model="form.showDetailedResults" />
-      </el-form-item>
     </el-form>
 
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="visible = false">Cancel</el-button>
-        <el-button type="primary" @click="saveConfig" :loading="saving">
+        <el-button type="primary" @click="submitForm" :loading="saving">
           {{ config.id ? 'Update' : 'Create' }}
         </el-button>
       </span>
@@ -94,9 +73,10 @@
   </el-dialog>
 </template>
 
+
 <script lang="ts" setup>
 import { ref, reactive, watch, computed } from 'vue';
-import { ElMessage } from 'element-plus';
+import {ElMessage, FormInstance, FormRules} from 'element-plus';
 import { CodeAssignmentConfig } from '@/types/interfaces';
 import apiRequest from '@/utils/apiUtils';
 
@@ -114,11 +94,7 @@ const props = defineProps({
       memoryLimitEnabled: false,
       memoryLimitMB: 256,
       timeLimitEnabled: false,
-      timeLimitSeconds: 5,
-      languageVersions: '',
-      disabledLibraries: '',
-      autoGradingEnabled: true,
-      showDetailedResults: true,
+      timeLimitSeconds: 5
     }),
   },
   assignmentId: {
@@ -139,6 +115,48 @@ const form = reactive<CodeAssignmentConfig>({
   autoGradingEnabled: true,
   showDetailedResults: true,
 });
+const formRef = ref<FormInstance>();
+// Form validation rules
+const rules: FormRules = {
+  allowedLanguages: [
+    { required: true, message: 'Please select at least one language', trigger: 'change' },
+    {
+      validator: (rule, value, callback) => {
+        if (!value || value.trim() === '') {
+          callback(new Error('Please select at least one language'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
+  memoryLimitMB: [
+    {
+      validator: (rule, value, callback) => {
+        if (form.memoryLimitEnabled && (!value || value < 1)) {
+          callback(new Error('Please enter a valid memory limit'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
+  timeLimitSeconds: [
+    {
+      validator: (rule, value, callback) => {
+        if (form.timeLimitEnabled && (!value || value < 1)) {
+          callback(new Error('Please enter a valid time limit'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'blur'
+    }
+  ]
+};
+
 
 const saving = ref(false);
 
@@ -165,8 +183,20 @@ const selectedLanguages = computed({
 // Watch for changes in props.config to update form
 watch(() => props.config, (newConfig) => {
   Object.assign(form, newConfig);
-  console.log(form)
 }, { immediate: true, deep: true });
+
+const submitForm = async () => {
+  if (!formRef.value) return;
+
+  await formRef.value.validate(async (valid) => {
+    if (valid) {
+      await saveConfig();
+    } else {
+      ElMessage.error('Please correct the errors in the form');
+      return false;
+    }
+  });
+};
 
 const saveConfig = async () => {
   if (!form.id){

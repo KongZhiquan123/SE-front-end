@@ -178,7 +178,7 @@
         </span>
       </template>
     </el-dialog>
-    <CodeAssignmentConfig
+    <CodeAssignmentConfigDialog
         v-model:config="assignment.codeConfig"
         :assignment-id="assignment.id"
         v-model:visible="codeConfigDialogVisible"
@@ -195,10 +195,10 @@ import apiRequest from "@/utils/apiUtils";
 import downloadFile from "@/utils/downloadFile";
 import {cloneDeep} from "lodash-es";
 import {checkDate} from "@/components/AssignmentComponents/checkDate";
-import CodeAssignmentConfig from "@/components/Dialogs/CodeAssignmentConfig.vue";
+import CodeAssignmentConfigDialog from "@/components/Dialogs/CodeAssignmentConfigDialog.vue";
 import {useRoute} from "vue-router";
 
-const codeConfig: CodeAssignmentConfig = {
+const codeConfig: CodeAssignmentConfigDialog = {
   id: 0,
   allowedLanguages: '',
   memoryLimitEnabled: false,
@@ -288,7 +288,7 @@ apiRequest<Assignment>(
     }
 ).then((assignmentData) => {
   if (assignmentData.type === 'code') {
-    return apiRequest<CodeAssignmentConfig>(
+    return apiRequest<CodeAssignmentConfigDialog>(
         `/teachers/code-config/${assignmentData.id}`,
         'get',
         'Failed to load code config'

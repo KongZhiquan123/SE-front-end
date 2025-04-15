@@ -7,6 +7,7 @@ export function submissionsConversion(submissions?: Submission[]) {
     if (!submissions || submissions.length === 0) {
         return [];
     }
+
     return submissions.sort((a, b) => new Date(a.submitTime).getTime() - new Date(b.submitTime).getTime())
         .map((submission, index) => ({
             ...submission,

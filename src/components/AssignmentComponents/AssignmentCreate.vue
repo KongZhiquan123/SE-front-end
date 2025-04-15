@@ -107,7 +107,7 @@
           </div>
           <div style="margin-top: 10px">
             <el-button type="primary" @click="addTestCase">Add Test Case Manually</el-button>
-            <el-button type="primary" @click="showCodeConfigDialog">Create Code Configuration</el-button>
+            <el-button type="primary" @click="showCodeConfigDialog">Edit Code Configuration</el-button>
           </div>
         </div>
         <el-divider/>
@@ -119,7 +119,7 @@
       </el-form>
 
     </el-card>
-    <CodeAssignmentConfig v-model:visible="codeConfigDialogVisible" v-model:config="codeConfig" :assignment-id="0"/>
+    <CodeAssignmentConfigDialog v-model:visible="codeConfigDialogVisible" v-model:config="codeConfig" :assignment-id="0"/>
   </el-main>
 </template>
 
@@ -133,7 +133,7 @@ import request from "@/utils/request";
 import {useRoute} from "vue-router";
 import {checkDate} from "./checkDate";
 import {useRouter} from "vue-router";
-import CodeAssignmentConfig from "@/components/Dialogs/CodeAssignmentConfig.vue";
+import CodeAssignmentConfigDialog from "@/components/Dialogs/CodeAssignmentConfigDialog.vue";
 
 
 const route = useRoute();
@@ -161,19 +161,14 @@ const resetForm = () => {
   formRef.value?.resetFields();
   fileList.value = [];
   testCases.value = [];
-  Object.assign(form, defaultForm);
 };
-const codeConfig = ref<CodeAssignmentConfig>({
+const codeConfig = ref<CodeAssignmentConfigDialog>({
   id: 0,
   allowedLanguages: '',
   memoryLimitEnabled: false,
   memoryLimitMB: 256,
   timeLimitEnabled: false,
   timeLimitSeconds: 5,
-  languageVersions: '',
-  disabledLibraries: '',
-  autoGradingEnabled: true,
-  showDetailedResults: true,
 })
 const router = useRouter();
 const fileList = ref<UploadFile[]>([]);
@@ -271,7 +266,7 @@ const submitForm = async () => {
           promises.push(uploadTestCases(createdAssignment.id));
           const submitCodeConfig = request.post(
               `/teachers/code-config`,
-              {...codeConfig.value, assignmentId: createdAssignment.id}
+              {...codeConfig.value, assignmentId: createdAssignment.id, id: null}
           );
           promises.push(submitCodeConfig);
         }

@@ -1,184 +1,145 @@
 <script setup lang="ts">
-import {ref, onMounted, computed} from 'vue';
-import {ElMessage} from 'element-plus';
-import {RefreshRight, Check, Close, Warning, ArrowDown} from '@element-plus/icons-vue';
-import type {CodeExecutionResult} from '@/types/interfaces';
-// 数据
-const currentResults = ref<CodeExecutionResult[]>([]);
-const previousResults = ref<CodeExecutionResult[]>([]);
-const isLoading = ref(false);
-const isHistoryLoading = ref(false);
-const isHistoryLoaded = ref(false);
-const activeTab = ref('current');
+import { ref, onMounted, computed } from 'vue';
+import { ElMessage } from 'element-plus';
+import { RefreshRight, Check, Close, Warning } from '@element-plus/icons-vue';
+import * as LottiePlayer from "@lottiefiles/lottie-player";
+import {useRoute} from "vue-router";
+import {CodeExecutionResult, TestCaseResult} from "@/types/interfaces";
+import apiRequest from "@/utils/apiUtils";
+// Type definition to match backend format
 
-// 获取最新执行结果
-const fetchCurrentResults = async () => {
+const route = useRoute();
+const submissionId = route.query.submissionId;
+// Data
+const executionResult = ref<CodeExecutionResult>({
+  submissionId: submissionId,
+  script: "",
+  language: "",
+  versionIndex: 0,
+  score: 0,
+  testCaseResults: [],
+  status: "Completed",
+  feedback: "No results available"
+});
+const isLoading = ref(false);
+const loadingStartTime = ref<number>(0);
+const loadingMessage = ref("Initializing...");
+const loadingProgress = ref(0);
+const loadingInterval = ref<number | null>(null);
+const showLottieAnimation = ref(true);
+const animationPlayed = ref(false);
+
+// Fetch results from backend
+const fetchExecutionResults = async () => {
+  if (isLoading.value) return;
+
   isLoading.value = true;
+  loadingStartTime.value = Date.now();
+  showLottieAnimation.value = true;
+  loadingProgress.value = 0;
+
+  // Start progress animation
+  if (loadingInterval.value) clearInterval(loadingInterval.value);
+  loadingInterval.value = setInterval(() => {
+    const elapsedTime = Date.now() - loadingStartTime.value;
+    // Calculate progress for a 10 second loading time
+    const maxTime = 10000;
+
+    // Update loading message based on elapsed time
+    if (elapsedTime < 2000) {
+      loadingMessage.value = "Compiling your code...";
+      loadingProgress.value = Math.min((elapsedTime / maxTime) * 100, 20);
+    } else if (elapsedTime < 4000) {
+      loadingMessage.value = "Running test cases...";
+      loadingProgress.value = Math.min(20 + ((elapsedTime - 2000) / maxTime) * 100, 50);
+    } else if (elapsedTime < 6000) {
+      loadingMessage.value = "Analyzing results...";
+      loadingProgress.value = Math.min(50 + ((elapsedTime - 4000) / maxTime) * 100, 80);
+    } else {
+      loadingMessage.value = "Finalizing results...";
+      loadingProgress.value = Math.min(80 + ((elapsedTime - 6000) / maxTime) * 100, 95);
+    }
+    loadingProgress.value = Math.round(loadingProgress.value);
+    // Stop at 95% - will reach 100% when data is actually received
+    if (loadingProgress.value >= 95) {
+      loadingProgress.value = 95;
+      if (loadingInterval.value) clearInterval(loadingInterval.value);
+    }
+  }, 200);
 
   try {
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait 10 seconds before fetching (as requested)
+    await new Promise(resolve => setTimeout(resolve, 10000));
 
-    currentResults.value = [
-      {
-        id: 1,
-        output: 'Hello, World!',
-        error: '',
-        statusCode: 0,
-        memory: '1.2 MB',
-        cpuTime: '0.5s',
-        compilationStatus: 'Compilation successful',
-        isExecutionSuccess: true,
-        isCompiled: true
-      },
-      {
-        id: 2,
-        output: 'Edge case test passed',
-        error: '',
-        statusCode: 0,
-        memory: '1.3 MB',
-        cpuTime: '0.6s',
-        compilationStatus: 'Compilation successful',
-        isExecutionSuccess: true,
-        isCompiled: true
-      },
-      {
-        id: 3,
-        output: '',
-        error: 'NullReferenceException: Object reference not set to an instance of an object',
-        statusCode: 1,
-        memory: '1.4 MB',
-        cpuTime: '0.7s',
-        compilationStatus: 'Compilation successful',
-        isExecutionSuccess: false,
-        isCompiled: true
-      }
-    ];
+    const response = await apiRequest(`/students/submissions/assignments/submissions/code/${submissionId}`);
+    executionResult.value = response ?? executionResult.value;
+    loadingProgress.value = 100;
+
+    // Delay for smooth animation completion
+    await new Promise(resolve => setTimeout(resolve, 500));
+    showLottieAnimation.value = false;
+    animationPlayed.value = true;
+
   } catch (error) {
     ElMessage.error('Failed to load execution results');
     console.error(error);
+    loadingProgress.value = 100;
+    showLottieAnimation.value = false;
   } finally {
+    if (loadingInterval.value) clearInterval(loadingInterval.value);
     isLoading.value = false;
   }
 };
 
-// 获取历史执行结果
-const fetchPreviousResults = async () => {
-  if (isHistoryLoaded.value) return;
-
-  isHistoryLoading.value = true;
-  try {
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 700));
-
-    previousResults.value = [
-      {
-        id: 101,
-        output: 'Hello, World!',
-        error: '',
-        statusCode: 0,
-        memory: '1.2 MB',
-        cpuTime: '0.5s',
-        compilationStatus: 'Compilation successful',
-        isExecutionSuccess: true,
-        isCompiled: true,
-        submitTime: '2021-09-01T12:00:00'
-      },
-      {
-        id: 102,
-        output: 'Edge case test passed',
-        error: '',
-        statusCode: 0,
-        memory: '1.3 MB',
-        cpuTime: '0.6s',
-        compilationStatus: 'Compilation successful',
-        isExecutionSuccess: true,
-        isCompiled: true,
-        submitTime: '2021-09-01T11:45:00'
-      },
-      {
-        id: 103,
-        output: '',
-        error: 'NullReferenceException: Object reference not set to an instance of an object',
-        statusCode: 1,
-        memory: '1.4 MB',
-        cpuTime: '0.7s',
-        compilationStatus: 'Compilation successful',
-        isExecutionSuccess: false,
-        isCompiled: true,
-        submitTime: '2021-09-01T11:30:00'
-      }
-    ];
-    isHistoryLoaded.value = true;
-  } catch (error) {
-    ElMessage.error('Failed to load previous results');
-    console.error(error);
-  } finally {
-    isHistoryLoading.value = false;
-  }
+// Status icon computation
+const getStatusIcon = (result: TestCaseResult) => {
+  if (!result.compiled) return Warning;
+  return result.passed ? Check : Close;
 };
 
-// 状态图标计算属性
-const getStatusIcon = (result: CodeExecutionResult) => {
-  if (!result.isCompiled) return Warning;
-  return result.isExecutionSuccess ? Check : Close;
+// Status type computation
+const getStatusType = (result: TestCaseResult) => {
+  if (!result.compiled) return 'warning';
+  return result.passed ? 'success' : 'danger';
 };
 
-// 状态类型计算属性
-const getStatusType = (result: CodeExecutionResult) => {
-  if (!result.isCompiled) return 'warning';
-  return result.isExecutionSuccess ? 'success' : 'danger';
-};
-
-// 手动刷新结果
+// Manual refresh
 const refreshResults = () => {
-  fetchCurrentResults();
+  fetchExecutionResults();
 };
 
-// 格式化日期显示
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleString();
-};
-
-// 切换标签页
-const handleTabChange = (tab: string) => {
-  activeTab.value = tab;
-  if (tab === 'history' && !isHistoryLoaded.value && !isHistoryLoading.value) {
-    fetchPreviousResults();
-  }
-};
-
-// 获取测试结果摘要
+// Get results summary
 const getResultsSummary = computed(() => {
-  const total = currentResults.value.length;
-  const success = currentResults.value.filter(r => r.isExecutionSuccess).length;
+  if (!executionResult.value) return { total: 0, success: 0, failed: 0 };
+
+  const testCases = executionResult.value.testCaseResults;
+  const total = testCases.length;
+  const success = testCases.filter(r => r.passed).length;
   const failed = total - success;
 
   return {
     total,
     success,
-    failed
+    failed,
+    score: executionResult.value.score * 100
   };
 });
 
 onMounted(() => {
-  fetchCurrentResults();
+  fetchExecutionResults();
 });
 </script>
+
 <template>
   <el-main class="code-execution-container">
-    <!-- 刷新，加载历史记录 -->
+    <!-- Toolbar -->
     <div class="toolbar">
       <div class="toolbar-left">
-        <el-radio-group v-model="activeTab" size="small" @change="handleTabChange">
-          <el-radio-button value="current">Current Results</el-radio-button>
-          <el-radio-button value="history">History</el-radio-button>
-        </el-radio-group>
+        <h2 class="execution-title">Code Execution Results</h2>
       </div>
 
       <div class="toolbar-right">
         <el-button
-            v-if="activeTab === 'current'"
             type="primary"
             size="small"
             :icon="RefreshRight"
@@ -187,24 +148,27 @@ onMounted(() => {
         >
           Refresh
         </el-button>
-
-        <el-button
-            v-if="activeTab === 'history' && !isHistoryLoaded"
-            type="primary"
-            size="small"
-            @click="fetchPreviousResults"
-            :loading="isHistoryLoading"
-        >
-          <el-icon class="icon-margin">
-            <ArrowDown/>
-          </el-icon>
-          Load History
-        </el-button>
       </div>
     </div>
 
-    <!-- 结果总结 -->
-    <div v-if="activeTab === 'current' && !isLoading && currentResults.length > 0" class="summary-bar">
+    <!-- Loading Animation -->
+    <div v-if="isLoading || showLottieAnimation" class="loading-container">
+      <lottie-player
+          src="https://assets3.lottiefiles.com/packages/lf20_szlepvdh.json"
+          speed="1"
+          style="width: 300px; height: 300px; background: transparent;"
+          loop
+          autoplay
+      ></lottie-player>
+
+      <div class="loading-info">
+        <h3>{{ loadingMessage }}</h3>
+        <el-progress :percentage="loadingProgress" :stroke-width="8" />
+      </div>
+    </div>
+
+    <!-- Results Summary -->
+    <div v-if="!isLoading && !showLottieAnimation && executionResult" class="summary-bar">
       <div class="summary-item">
         <span class="label">Test Cases:</span>
         <span class="value">{{ getResultsSummary.total }}</span>
@@ -217,34 +181,37 @@ onMounted(() => {
         <span class="label">Failed:</span>
         <span class="value">{{ getResultsSummary.failed }}</span>
       </div>
+      <div class="summary-item score">
+        <span class="label">Score:</span>
+        <span class="value">{{ getResultsSummary.score.toFixed(0) }}%</span>
+      </div>
     </div>
 
-    <!-- 目前运行的结果 -->
-    <div v-if="activeTab === 'current'" class="results-container">
-      <el-skeleton :loading="isLoading" animated v-if="!currentResults.length && isLoading">
-        <template #default>
-          <div class="skeleton-content">
-            <el-skeleton-item variant="p" style="width: 100%; height: 30px;"/>
-            <el-skeleton-item variant="p" style="width: 100%; height: 30px; margin-top: 10px;"/>
-            <el-skeleton-item variant="p" style="width: 100%; height: 30px; margin-top: 10px;"/>
-          </div>
-        </template>
-      </el-skeleton>
+    <!-- Execution Status -->
+    <div v-if="!isLoading && !showLottieAnimation && executionResult" class="execution-status">
+      <el-tag :type="executionResult.status === 'accepted' ? 'success' : 'info'" size="large">
+        {{ executionResult.status }}
+      </el-tag>
+      <div class="feedback" v-if="executionResult.feedback">{{ executionResult.feedback }}</div>
+    </div>
 
+    <!-- Results Grid -->
+    <div v-if="!isLoading && !showLottieAnimation && executionResult" class="results-container">
       <div class="results-grid">
         <el-card
-            v-for="result in currentResults"
-            :key="result.id"
-            :class="['result-card', { 'failed-card': !result.isExecutionSuccess }]"
+            v-for="result in executionResult.testCaseResults"
+            :key="result.testCaseId"
+            :class="['result-card', { 'failed-card': !result.passed }]"
         >
           <template #header>
             <div class="card-header">
               <el-tag :type="getStatusType(result)" size="small">
                 <el-icon class="icon-margin">
-                  <component :is="getStatusIcon(result)"/>
+                  <component :is="getStatusIcon(result)"></component>
                 </el-icon>
-                {{ result.isCompiled ? (result.isExecutionSuccess ? 'Passed' : 'Failed') : 'Compilation Error' }}
+                {{ result.compiled ? (result.passed ? 'Passed' : 'Failed') : 'Compilation Error' }}
               </el-tag>
+              <span class="test-case-id">Test Case #{{ result.testCaseId }}</span>
             </div>
           </template>
 
@@ -258,101 +225,74 @@ onMounted(() => {
               <span class="metric-value">{{ result.memory }}</span>
             </div>
             <div class="metric">
-              <span class="metric-label">Status Code:</span>
-              <span class="metric-value">{{ result.statusCode }}</span>
+              <span class="metric-label">Weight:</span>
+              <span class="metric-value">{{ result.weight }}</span>
             </div>
           </div>
 
-          <el-collapse>
-            <el-collapse-item :name="`output-${result.id}`">
-              <template #title>
-                <div class="collapse-header">
-                  <span class="output-title">Output/Error</span>
+          <div class="test-data-row">
+            <el-collapse>
+              <el-collapse-item name="input">
+                <template #title>
+                  <div class="collapse-header">
+                    <span class="output-title">Input</span>
+                  </div>
+                </template>
+                <div class="output-content">
+                  <pre>{{ result.input }}</pre>
                 </div>
-              </template>
+              </el-collapse-item>
 
-              <div v-if="result.isExecutionSuccess" class="output-content">
-                <pre>{{ result.output }}</pre>
-              </div>
+              <el-collapse-item name="expected">
+                <template #title>
+                  <div class="collapse-header">
+                    <span class="output-title">Expected Output</span>
+                  </div>
+                </template>
+                <div class="output-content">
+                  <pre>{{ result.expectedOutput }}</pre>
+                </div>
+              </el-collapse-item>
 
-              <div v-else class="output-content error">
-                <pre>{{ result.error }}</pre>
-              </div>
-            </el-collapse-item>
-          </el-collapse>
+              <el-collapse-item name="actual">
+                <template #title>
+                  <div class="collapse-header">
+                    <span class="output-title">Actual Output</span>
+                  </div>
+                </template>
+                <div class="output-content" :class="{ 'error': !result.passed }">
+                  <pre>{{ result.actualOutput || 'No output' }}</pre>
+                </div>
+              </el-collapse-item>
+
+              <el-collapse-item v-if="result.error" name="error">
+                <template #title>
+                  <div class="collapse-header">
+                    <span class="output-title error-title">Error</span>
+                  </div>
+                </template>
+                <div class="output-content error">
+                  <pre>{{ result.error }}</pre>
+                </div>
+              </el-collapse-item>
+            </el-collapse>
+          </div>
         </el-card>
       </div>
     </div>
 
-    <!-- 过去的运行结果 -->
-    <div v-else class="results-container">
-      <el-skeleton :loading="isHistoryLoading" animated v-if="isHistoryLoading">
-        <template #default>
-          <div class="skeleton-content">
-            <el-skeleton-item variant="p" style="width: 100%; height: 30px;"/>
-            <el-skeleton-item variant="p" style="width: 100%; height: 30px; margin-top: 10px;"/>
-            <el-skeleton-item variant="p" style="width: 100%; height: 30px; margin-top: 10px;"/>
-          </div>
-        </template>
-      </el-skeleton>
-
-      <el-empty v-if="!isHistoryLoading && !isHistoryLoaded"
-                description="Click the Load History button to view history records"/>
-
-      <div v-if="isHistoryLoaded" class="history-list">
-        <el-table :data="previousResults" stripe style="width: 100%">
-          <el-table-column prop="id" label="ID" width="70"/>
-          <el-table-column label="Status" width="100">
-            <template #default="scope">
-              <el-tag :type="getStatusType(scope.row)" size="small">
-                <el-icon class="icon-margin">
-                  <component :is="getStatusIcon(scope.row)"/>
-                </el-icon>
-                {{ scope.row.isExecutionSuccess ? 'Passed' : 'Failed' }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="memory" label="Memory" width="100"/>
-          <el-table-column prop="cpuTime" label="CPU Time" width="100"/>
-          <el-table-column prop="submitTime" label="Submit Time">
-            <template #default="scope">
-              {{ formatDate(scope.row.submitTime) }}
-            </template>
-          </el-table-column>
-          <el-table-column label="Actions" width="120">
-            <template #default="scope">
-              <el-button type="primary" link size="small" @click="scope.row.showDetails = !scope.row.showDetails">
-                View Details
-              </el-button>
-            </template>
-          </el-table-column>
-          <el-table-column type="expand">
-            <template #default="scope">
-              <div class="expanded-content">
-                <div class="expanded-section">
-                  <div class="section-title">Output</div>
-                  <div class="section-content">
-                    <pre>{{ scope.row.output || 'No output' }}</pre>
-                  </div>
-                </div>
-                <div v-if="scope.row.error" class="expanded-section">
-                  <div class="section-title">Error</div>
-                  <div class="section-content error">
-                    <pre>{{ scope.row.error }}</pre>
-                  </div>
-                </div>
-              </div>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-    </div>
+    <!-- Empty state when no results -->
+    <el-empty
+        v-if="!isLoading && !showLottieAnimation && !executionResult && animationPlayed"
+        description="No execution results available"
+    >
+      <el-button type="primary" @click="refreshResults">Run Code</el-button>
+    </el-empty>
   </el-main>
 </template>
 
 <style lang="scss" scoped>
 @use "@/assets/variables";
-
 
 .code-execution-container {
   width: 100%;
@@ -370,26 +310,38 @@ onMounted(() => {
   border-radius: 4px;
   border: 1px solid variables.$border-light;
 
-  .toolbar-left {
-    flex: 0 0 auto;
+  .execution-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 500;
   }
+}
 
-  .toolbar-center {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-  }
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
 
-  .toolbar-right {
-    flex: 0 0 auto;
+  .loading-info {
+    width: 80%;
+    max-width: 500px;
+    margin-top: 16px;
+
+    h3 {
+      margin-bottom: 16px;
+      color: variables.$text-secondary;
+    }
   }
 }
 
 .summary-bar {
   display: flex;
+  flex-wrap: wrap;
   gap: 24px;
-  padding: 8px 12px;
+  padding: 12px;
   background-color: variables.$background-light;
   border-radius: 4px;
   border: 1px solid variables.$border-light;
@@ -397,7 +349,7 @@ onMounted(() => {
   .summary-item {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 
     .label {
       font-weight: 500;
@@ -416,6 +368,25 @@ onMounted(() => {
     &.failed .value {
       color: variables.$danger-color;
     }
+
+    &.score .value {
+      color: #1989fa;
+    }
+  }
+}
+
+.execution-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  background-color: variables.$background-light;
+  border-radius: 4px;
+  border: 1px solid variables.$border-light;
+
+  .feedback {
+    font-weight: 500;
+    color: variables.$text-secondary;
   }
 }
 
@@ -425,7 +396,7 @@ onMounted(() => {
 
 .results-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 16px;
   align-items: start;
 }
@@ -444,19 +415,23 @@ onMounted(() => {
   .card-header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: space-between;
   }
 
-  .test-case-name {
+  .test-case-id {
     font-weight: 500;
     font-size: 14px;
+    color: variables.$text-secondary;
   }
 }
 
 .metrics-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  padding: 8px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
 
   .metric {
     display: flex;
@@ -475,6 +450,10 @@ onMounted(() => {
   }
 }
 
+.test-data-row {
+  margin-top: 8px;
+}
+
 .collapse-header {
   display: flex;
   align-items: center;
@@ -484,6 +463,9 @@ onMounted(() => {
 .output-title {
   font-size: 13px;
   font-weight: 500;
+  &.error-title {
+    color: variables.$danger-color;
+  }
 }
 
 .output-content {
@@ -509,58 +491,7 @@ onMounted(() => {
   }
 }
 
-.history-list {
-  width: 100%;
-}
-
-.expanded-content {
-  padding: 12px;
-  background-color: #fafafa;
-}
-
-.expanded-section {
-  margin-bottom: 16px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-
-  .section-title {
-    font-weight: 500;
-    font-size: 13px;
-    margin-bottom: 6px;
-    color: variables.$text-secondary;
-  }
-
-  .section-content {
-    background-color: variables.$background-light;
-    border-radius: 4px;
-    padding: 12px;
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid variables.$border-light;
-
-    pre {
-      margin: 0;
-      white-space: pre-wrap;
-      word-break: break-word;
-      font-family: monospace;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    &.error {
-      background-color: variables.$background-danger-light;
-      border-color: variables.$border-danger-light;
-    }
-  }
-}
-
 .icon-margin {
   margin-right: 4px;
-}
-
-.skeleton-content {
-  padding: 16px;
 }
 </style>

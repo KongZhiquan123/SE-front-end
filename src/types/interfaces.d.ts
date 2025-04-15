@@ -71,6 +71,7 @@ export interface Submission {
     codeSubmissions?: CodeSubmission[] | null
     grade?: Grade
     aiGrading?: AIGrading | null
+    codeExecutionResult?: CodeExecutionResult[]
 }
 
 //Calendar.vue
@@ -124,19 +125,7 @@ export interface Notification {
     relatedCourse?: string;          // 相关课程代码
     priority: 'low' | 'medium' | 'high'; // 优先级
 }
-//CodeRun.vue
-export interface CodeExecutionResult {
-    id: number;
-    output: string;
-    error: string;
-    statusCode: number;
-    memory: string;
-    cpuTime: string;
-    compilationStatus: string;
-    isExecutionSuccess: boolean;
-    isCompiled: boolean;
-    submitTime?: string;
-}
+
 //AssignmentManagement.vue
 export interface CodeAssignmentConfig {
     id: number
@@ -150,3 +139,32 @@ export interface CodeAssignmentConfig {
     autoGradingEnabled: boolean,
     showDetailedResults: boolean,
 }
+
+//CodeRun.vue
+interface CodeExecutionResult {
+    submissionId: number;
+    script: string;
+    language: string;
+    versionIndex: number;
+    score: number;
+    testCaseResults: TestCaseResult[];
+    status: string;
+    feedback: string;
+}
+
+interface TestCaseResult {
+    testCaseId: number;
+    input: string;
+    expectedOutput: string;
+    actualOutput: string;
+    error: string;
+    statusCode: number;
+    memory: string;
+    cpuTime: string;
+    compilationStatus: string;
+    executionSuccess: boolean;
+    compiled: boolean;
+    passed: boolean;
+    weight: number;
+}
+

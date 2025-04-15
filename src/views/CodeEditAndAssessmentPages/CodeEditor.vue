@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import {ref, onMounted, onBeforeUnmount, shallowRef} from 'vue';
 import {ElMessage} from "element-plus";
-import {useRouter} from 'vue-router';
+import {useRoute, useRouter} from 'vue-router';
 import { Document, Monitor, Cpu, Timer, Collection, Upload } from '@element-plus/icons-vue'
+import apiRequest from "@/utils/apiUtils";
+import {Assignment, CodeAssignmentConfig} from "@/types/interfaces";
 // editorContainer元素的引用，它在挂载到DOM后会被用来初始化monaco编辑器
 const editorContainer = shallowRef<HTMLElement | null>(null);
 // 用于导入monaco-editor
@@ -32,8 +34,8 @@ interface Problem {
 }
 // 测试
 const problem = ref<Problem>({
-  title: 'Two Sum',
-  description: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice.',
+  title: 'title',
+  description: 'description',
   instructions: 'You can return the answer in any order.',
   allowedLanguages: 'Python, Java, C++',
   memoryLimitEnabled: true,
@@ -41,7 +43,19 @@ const problem = ref<Problem>({
   timeLimitEnabled: true,
   timeLimitSeconds: 2
 });
-
+const route = useRoute();
+const assignmentId = route.query.assignmentId;
+Promise.all([
+  apiRequest<CodeAssignmentConfig>(`/teachers/code-config/${assignmentId}`),
+  apiRequest<Assignment>(`/students/assignments/${assignmentId}/details`)
+]).then(([codeConfigResponse, assignmentResponse]: [CodeAssignmentConfig, Assignment]) => {
+  if (codeConfigResponse) {
+    Object.assign(problem.value, codeConfigResponse);
+  }
+  if (assignmentResponse) {
+    Object.assign(problem.value, assignmentResponse);
+  }
+});
 //不同语言的代码模板
 const codeTemplates = {
   python: `def myFunc(arg1, arg2):
@@ -191,13 +205,29 @@ const handleLanguageChange = (newLanguage: 'python' | 'java' | 'cpp') => {
 };
 const router = useRouter();
 // 提交代码函数
-const submitCode = () => {
+const submitCode = async () => {
   if (!editorInstance.value) return;
+
   const code = editorInstance.value.getValue();
-  // TODO: 将code提交到后端进行评测
-  router.push('/code-edit-and-run/code-run');
-  console.log(`Submitting ${codeLanguage.value} code:`, code);
-  ElMessage.success('Submit successfully');
+  const submissionData = {
+    script: code,
+    language: codeLanguage.value,
+    versionIndex: 1073741824
+  };
+
+
+  const data = await apiRequest(
+      `/students/submissions/assignments/${assignmentId}/submissions/code`,
+      'post',
+      'Failed to submit code',
+      submissionData
+  );
+
+  if (data) {
+    ElMessage.success('Code submitted successfully');
+    await router.push('/code-edit-and-run/code-run?submissionId=' + data.id);
+  }
+
 };
 </script>
 
@@ -314,6 +344,7 @@ $card-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   background-color: $background-color;
 
   :deep(.el-card__body) {
+    width: 100%;
     height: 100%;
     padding: 0;
   }
