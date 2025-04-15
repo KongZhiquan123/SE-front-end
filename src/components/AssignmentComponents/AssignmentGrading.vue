@@ -53,7 +53,7 @@
       </div>
     </el-card>
 
-    <!-- Selected submission grading view -->
+    <!-- 选中的提交项的评分对话框 -->
     <el-dialog v-model="gradingDialogVisible" class="submission-details">
       <template #header>
         <div class="card-header">
@@ -77,7 +77,49 @@
           </div>
         </div>
       </div>
+      <!-- AI评分部分 -->
+      <div v-if="selectedSubmission.aiGrading" class="ai-grading-section">
+        <h3>AI Grading Results</h3>
+        <el-alert
+            title="AI assessment is provided for reference only. Please review and provide your own evaluation."
+            type="info"
+            :closable="false"
+            class="ai-disclaimer"
+        />
 
+        <div class="ai-score-container">
+          <div class="ai-score-box">
+            <div class="ai-score-label">AI Score</div>
+            <div class="ai-score-value">{{ selectedSubmission.aiGrading.aiScore }}</div>
+          </div>
+
+          <div class="ai-confidence">
+            <span class="confidence-label">Confidence:</span>
+            <el-progress
+                :percentage="selectedSubmission.aiGrading.confidence * 100"
+                :color="getConfidenceColor(selectedSubmission.aiGrading.confidence)"
+                :stroke-width="8"
+                :show-text="false"
+                class="confidence-bar"
+            />
+            <span class="confidence-value">{{ Math.round(selectedSubmission.aiGrading.confidence * 100) }}%</span>
+          </div>
+        </div>
+
+        <div class="ai-feedback">
+          <div class="ai-feedback-label">AI Feedback Suggestions:</div>
+          <div class="ai-feedback-content">{{ selectedSubmission.aiGrading.feedbackSuggestions }}</div>
+          <el-button
+              type="primary"
+              size="small"
+              @click="useAIFeedback"
+              class="use-ai-feedback"
+              plain
+          >
+            Use AI Feedback
+          </el-button>
+        </div>
+      </div>
       <!-- 文本回答部分 -->
       <div v-if="selectedSubmission.textResponse" class="text-response">
         <h3>Text Response</h3>
@@ -161,7 +203,7 @@ import { ref, reactive, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import {formatDate} from "@/utils/formatDate";
 import {Submission, Attachment} from "@/types/interfaces";
-import {cloneDeep} from "lodash-es";
+import {cloneDeep, defaultTo} from "lodash-es";
 import apiRequest from "@/utils/apiUtils";
 import {useRoute} from "vue-router";
 import {submissionsConversion} from "@/utils/DataFormatConversion";
@@ -171,14 +213,11 @@ interface GradingForm {
   feedback: string;
 }
 
-const submissionsList = reactive<Submission[]>([]);
-const filteredSubmissions = ref<Submission[]>([]);
-const route = useRoute();
-const assignmentId = route.query.assignmentId;
-apiRequest<Submission[]>(`/teachers/submissions/assignment/${assignmentId}/latest`).then((data) => {
-  submissionsList.push(...submissionsConversion(data));
-  filteredSubmissions.value = submissionsList;
-})
+// 表单状态
+const grading = reactive<GradingForm>({
+  score: 0,
+  feedback: '',
+});
 
 const defaultSubmission = {
   id: 0,
@@ -189,6 +228,11 @@ const defaultSubmission = {
   codeSubmissions: [],
   attachments: []
 }
+const submissionsList = reactive<Submission[]>([]);
+const filteredSubmissions = ref<Submission[]>([]);
+const route = useRoute();
+const assignmentId = route.query.assignmentId;
+
 // UI 状态
 const selectedSubmission = ref<Submission>(cloneDeep(defaultSubmission));
 const activeCodeTab = ref('0');
@@ -198,11 +242,13 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 const totalSubmissions = ref(submissionsList.length);
 
-// 表单状态
-const grading = reactive<GradingForm>({
-  score: 0,
-  feedback: '',
-});
+
+
+apiRequest<Submission[]>(`/teachers/submissions/assignment/${assignmentId}/latest`).then((data) => {
+  submissionsList.push(...submissionsConversion(data));
+  filteredSubmissions.value = submissionsList;
+})
+
 
 // 获取状态类型（用于标签颜色）
 const getStatusType = (status: string): string => {
@@ -231,9 +277,8 @@ const selectSubmission = (submission: Submission): void => {
   selectedSubmission.value = { ...submission };
   gradingDialogVisible.value = true;
   // 根据选定的提交项初始化评分表单
-  grading.score = 0;
-  grading.feedback = '';
-
+  grading.score = defaultTo(submission.grade?.score, 0);
+  grading.feedback = defaultTo(submission.grade?.feedback, '');
   // 重置代码标签
   activeCodeTab.value = '0';
 };
@@ -250,7 +295,20 @@ const viewAttachment = (attachment: Attachment): void => {
   // 在实际应用中，可能会在新窗口打开或者使用预览组件
   window.open(attachment.url, '_blank');
 };
+//置信度颜色
+const getConfidenceColor = (confidence: number): string => {
+  if (confidence >= 0.8) return '#67C23A'; // High confidence - green
+  if (confidence >= 0.5) return '#E6A23C'; // Medium confidence - orange
+  return '#F56C6C'; // Low confidence - red
+};
 
+// Method to use AI feedback
+const useAIFeedback = (): void => {
+  if (selectedSubmission.value.aiGrading) {
+    grading.feedback = selectedSubmission.value.aiGrading.feedbackSuggestions;
+    ElMessage.success('AI feedback has been applied');
+  }
+};
 // 重置表单
 const resetGrading = (): void => {
   if (selectedSubmission.value) {
@@ -494,6 +552,105 @@ watch(statusFilter, () => {
     padding: vars.$spacing-extra-large;
     background-color: vars.$background-lighter;
     border-radius: vars.$border-radius-base;
+  }
+}
+
+.ai-grading-section {
+  margin-bottom: vars.$spacing-large;
+  padding: vars.$spacing-large;
+  background-color: vars.$background-lighter;
+  border-radius: vars.$border-radius-base;
+  border: 1px solid vars.$border-light;
+
+  h3 {
+    font-size: vars.$font-size-base;
+    font-weight: vars.$font-weight-medium;
+    margin-bottom: vars.$spacing-small;
+    color: vars.$text-primary;
+  }
+
+  .ai-disclaimer {
+    margin-bottom: vars.$spacing-medium;
+  }
+
+  .ai-score-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: vars.$spacing-medium;
+
+    .ai-score-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: vars.$background-white;
+      border-radius: vars.$border-radius-base;
+      padding: vars.$spacing-base;
+      box-shadow: vars.$box-shadow-light;
+      min-width: 100px;
+
+      .ai-score-label {
+        font-size: vars.$font-size-small;
+        color: vars.$text-tertiary;
+        margin-bottom: vars.$spacing-mini;
+      }
+
+      .ai-score-value {
+        font-size: 24px;
+        font-weight: vars.$font-weight-bold;
+        color: vars.$primary-color;
+      }
+    }
+
+    .ai-confidence {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      margin-left: vars.$spacing-large;
+
+      .confidence-label {
+        margin-right: vars.$spacing-small;
+        color: vars.$text-secondary;
+        font-size: vars.$font-size-small;
+      }
+
+      .confidence-bar {
+        flex: 1;
+        margin: 0 vars.$spacing-small;
+      }
+
+      .confidence-value {
+        font-weight: vars.$font-weight-medium;
+        min-width: 40px;
+      }
+    }
+  }
+
+  .ai-feedback {
+    background-color: vars.$background-white;
+    border-radius: vars.$border-radius-base;
+    padding: vars.$spacing-base;
+    box-shadow: vars.$box-shadow-light;
+
+    .ai-feedback-label {
+      font-weight: vars.$font-weight-medium;
+      color: vars.$text-primary;
+      margin-bottom: vars.$spacing-small;
+    }
+
+    .ai-feedback-content {
+      color: vars.$text-secondary;
+      white-space: pre-line;
+      margin-bottom: vars.$spacing-medium;
+      padding: vars.$spacing-small;
+      background-color: vars.$background-lighter;
+      border-radius: vars.$border-radius-small;
+      border-left: 3px solid vars.$primary-color;
+    }
+
+    .use-ai-feedback {
+      margin-top: vars.$spacing-small;
+    }
   }
 }
 

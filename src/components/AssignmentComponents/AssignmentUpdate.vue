@@ -8,7 +8,7 @@
             <el-input v-model="editForm.title"/>
           </el-form-item>
           <el-form-item label="Max Score">
-            <el-input-number v-model="editForm.maxScore" :min="0"/>
+            <el-input-number v-model="editForm.maxScore" :min="0" :max="100"/>
           </el-form-item>
 
           <el-form-item label="Open Date">

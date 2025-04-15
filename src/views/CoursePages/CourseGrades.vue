@@ -1,11 +1,20 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { Grade } from '@/types/interfaces'
+import type { Grade, Assignment } from '@/types/interfaces'
 import { filter, orderBy, sumBy, defaultTo, get } from 'lodash-es'
-import {ChatLineRound, Document, View, Warning, Timer, InfoFilled, Edit} from "@element-plus/icons-vue";
+import {
+  ChatLineRound,
+  Document,
+  View,
+  Warning,
+  Timer,
+  InfoFilled,
+  Edit,
+  Cpu
+} from "@element-plus/icons-vue";
 import {formatDate} from "@/utils/formatDate";
 import apiRequest from "@/utils/apiUtils";
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 const route = useRoute()
 const activeTab = ref('all')
 const sortBy = ref<'dueDate'|'score'|'title'>('dueDate')
@@ -80,6 +89,29 @@ const currentGrade = ref<Grade | null>(null)
 const showDetails = (row: Grade) => {
   currentGrade.value = row
   detailsDrawer.value = true
+}
+const router = useRouter();
+const startAssignment = (assignmentId: number) => {
+  apiRequest<Assignment>(`/students/assignments/${assignmentId}/details`).then(res => {
+    if (!res) {
+      return
+    }
+    const assignmentType = res.type;
+    const path = assignmentType === 'code'
+        ? '/code-edit-and-run/code-edit'
+        : '/student-course/submit-assignments'
+    router.push({
+      path: path,
+      query: {assignmentId: assignmentId,
+        courseId: router.currentRoute.value.query.courseId,
+        courseCode: router.currentRoute.value.query.courseCode}
+    })
+  })
+}
+const getConfidenceColor = (confidence: number) => {
+  if (confidence >= 0.8) return '#67C23A' // high confidence - green
+  if (confidence >= 0.5) return '#E6A23C' // medium confidence - orange
+  return '#F56C6C' // low confidence - red
 }
 </script>
 
@@ -193,6 +225,59 @@ const showDetails = (row: Grade) => {
             </div>
           </el-card>
 
+          <!-- AI Grading Card -->
+          <el-card
+              class="detail-section ai-grading-card"
+              shadow="hover"
+              v-if="currentGrade && currentGrade.aiGrading"
+          >
+            <template #header>
+              <div class="card-header">
+                <el-icon><Cpu /></el-icon>
+                <span>AI Assessment</span>
+              </div>
+            </template>
+
+            <div class="ai-grading-content">
+              <div class="ai-score-section">
+                <div class="ai-score-container">
+                  <div class="ai-score-box">
+                    <div class="ai-score-label">AI Suggested Score</div>
+                    <div class="ai-score-value">{{ currentGrade.aiGrading.aiScore }}</div>
+                  </div>
+
+                  <div class="ai-confidence">
+                    <div class="confidence-label">Confidence:</div>
+                    <el-progress
+                        class="confidence-bar"
+                        :percentage="currentGrade.aiGrading.confidence * 100"
+                        :color="getConfidenceColor(currentGrade.aiGrading.confidence)"
+                        :stroke-width="10"
+                    />
+                    <div class="confidence-value">{{ Math.round(currentGrade.aiGrading.confidence * 100) }}%</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ai-feedback" v-if="currentGrade.aiGrading.feedbackSuggestions">
+                <div class="ai-feedback-label">AI Feedback Suggestions:</div>
+                <div class="ai-feedback-content">{{ currentGrade.aiGrading.feedbackSuggestions }}</div>
+              </div>
+
+              <div class="ai-disclaimer">
+                <el-alert
+                    type="info"
+                    :closable="false"
+                    show-icon
+                >
+                  <div class="disclaimer-text">
+                    This is an AI-assisted assessment. The final grade is determined by your instructor.
+                  </div>
+                </el-alert>
+              </div>
+            </div>
+          </el-card>
+
           <!-- 时间信息卡片 -->
           <el-card class="detail-section dates-card" shadow="hover">
             <template #header>
@@ -297,7 +382,7 @@ const showDetails = (row: Grade) => {
               </div>
             </div>
             <div class="assignment-actions">
-              <el-button type="primary">
+              <el-button type="primary" @click="startAssignment(currentGrade.id)">
                 <el-icon> <Edit/> </el-icon>
                 Start Assignment
               </el-button>
@@ -348,17 +433,17 @@ const showDetails = (row: Grade) => {
 .grade-info {
   display: flex;
   flex-direction: column;
-}
 
-.grade-percent {
-  font-size: vars.$font-size-large;
-  font-weight: vars.$font-weight-bold;
-  color: vars.$text-primary;
-}
+  .grade-percent {
+    font-size: vars.$font-size-large;
+    font-weight: vars.$font-weight-bold;
+    color: vars.$text-primary;
+  }
 
-.grade-label {
-  font-size: vars.$font-size-base;
-  color: vars.$text-tertiary;
+  .grade-label {
+    font-size: vars.$font-size-base;
+    color: vars.$text-tertiary;
+  }
 }
 
 .grade-card {
@@ -371,191 +456,301 @@ const showDetails = (row: Grade) => {
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: vars.$spacing-base;
-}
 
-.sort-controls {
-  display: flex;
-  gap: vars.$spacing-mini;
-  margin-top: vars.$spacing-mini;
-}
+  .sort-controls {
+    display: flex;
+    gap: vars.$spacing-mini;
+    margin-top: vars.$spacing-mini;
 
-.sort-select, .sort-order {
-  width: 150px;
+    .sort-select, .sort-order {
+      width: 150px;
+    }
+  }
 }
 
 .grade-table {
   border-radius: vars.$border-radius-base;
   overflow: hidden;
-}
 
-.grade-table :deep(.el-table__row) {
-  cursor: pointer;
-  transition: background-color vars.$transition-duration;
-}
+  :deep(.el-table__row) {
+    cursor: pointer;
+    transition: background-color vars.$transition-duration;
 
-.grade-table :deep(.el-table__row:hover) {
-  background-color: vars.$background-light !important;
-}
+    &:hover {
+      background-color: vars.$background-light !important;
+    }
+  }
 
-.assignment-title {
-  display: flex;
-  align-items: center;
-  gap: vars.$spacing-small;
-}
+  .assignment-title {
+    display: flex;
+    align-items: center;
+    gap: vars.$spacing-small;
 
-.icon {
-  color: vars.$text-tertiary;
-}
+    .icon {
+      color: vars.$text-tertiary;
+    }
+  }
 
-.score-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: vars.$spacing-mini;
-}
+  .score-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: vars.$spacing-mini;
 
-.score-circle {
-  width: 36px;
-  height: 36px;
-  border-radius: vars.$border-radius-circle;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: vars.$background-white;
-  font-size: vars.$font-size-small;
-  font-weight: vars.$font-weight-bold;
-}
+    .score-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: vars.$border-radius-circle;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: vars.$background-white;
+      font-size: vars.$font-size-small;
+      font-weight: vars.$font-weight-bold;
+    }
 
-.score-value {
-  font-size: vars.$font-size-small;
-  color: vars.$text-secondary;
+    .score-value {
+      font-size: vars.$font-size-small;
+      color: vars.$text-secondary;
+    }
+  }
 }
 
 /* Drawer styles */
-.grade-details-drawer :deep(.el-drawer__header) {
-  margin-bottom: 0;
-  padding: vars.$spacing-base vars.$spacing-large;
-  border-bottom: 1px solid vars.$border-light;
-  font-size: vars.$font-size-large;
-  font-weight: vars.$font-weight-bold;
+.grade-details-drawer {
+  :deep(.el-drawer__header) {
+    margin-bottom: 0;
+    padding: vars.$spacing-base vars.$spacing-large;
+    border-bottom: 1px solid vars.$border-light;
+    font-size: vars.$font-size-large;
+    font-weight: vars.$font-weight-bold;
+  }
+
+  .drawer-content {
+    padding: vars.$spacing-large;
+    display: flex;
+    flex-direction: column;
+    gap: vars.$spacing-large;
+
+    .detail-section {
+      border-radius: vars.$border-radius-base;
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: vars.$spacing-small;
+        font-weight: vars.$font-weight-bold;
+        color: vars.$text-primary;
+      }
+    }
+
+    /* Score overview card */
+    .score-overview {
+      background-color: vars.$background-light;
+
+      .score-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .big-score {
+          font-size: 42px;
+          font-weight: vars.$font-weight-bold;
+
+          .max-score {
+            font-size: vars.$font-size-large;
+            color: vars.$text-tertiary;
+            font-weight: vars.$font-weight-regular;
+          }
+        }
+
+        .score-percentage {
+          padding: vars.$spacing-mini vars.$spacing-base;
+          border-radius: 20px;
+          color: vars.$background-white;
+          font-weight: vars.$font-weight-bold;
+        }
+      }
+    }
+
+    /* Timeline card */
+    .dates-card {
+      :deep(.el-timeline-item__content) {
+        font-weight: vars.$font-weight-bold;
+      }
+    }
+
+    /* Feedback card */
+    .feedback-card {
+      .feedback-content {
+        .feedback-text {
+          white-space: pre-line;
+          line-height: 1.6;
+          font-size: vars.$font-size-base;
+        }
+      }
+    }
+
+    /* Appeal card */
+    .appeal-card {
+      .appeal-status {
+        display: flex;
+        align-items: center;
+        gap: vars.$spacing-base;
+        margin-bottom: vars.$spacing-large;
+
+        .appeal-date {
+          color: vars.$text-tertiary;
+          font-size: vars.$font-size-base;
+        }
+      }
+
+      .appeal-content {
+        background-color: vars.$background-light;
+        padding: vars.$spacing-small;
+        border-radius: vars.$border-radius-small;
+
+        .appeal-label {
+          font-weight: vars.$font-weight-bold;
+          margin-bottom: vars.$spacing-small;
+          color: vars.$text-secondary;
+        }
+
+        .appeal-text {
+          line-height: 1.6;
+        }
+      }
+
+      .appeal-info {
+        margin-bottom: vars.$spacing-large;
+        color: vars.$text-secondary;
+        font-size: vars.$font-size-base;
+      }
+    }
+
+    /* Upcoming assignment card */
+    .upcoming-card {
+      .countdown-display {
+        text-align: center;
+        margin-bottom: vars.$spacing-large;
+
+        .countdown-title {
+          font-size: vars.$font-size-base;
+          color: vars.$text-tertiary;
+          margin-bottom: vars.$spacing-small;
+        }
+
+        .countdown-timer {
+          font-size: 28px;
+          font-weight: vars.$font-weight-bold;
+          color: vars.$primary-color;
+        }
+      }
+
+      .assignment-actions {
+        display: flex;
+        justify-content: center;
+        gap: vars.$spacing-base;
+      }
+    }
+  }
 }
 
-.drawer-content {
-  padding: vars.$spacing-large;
-  display: flex;
-  flex-direction: column;
-  gap: vars.$spacing-large;
-}
+/* AI评分卡片 */
+.ai-grading-card {
+  border: 1px solid var(--el-border-color-light);
 
-.detail-section {
-  border-radius: vars.$border-radius-base;
-}
+  .ai-grading-content {
+    display: flex;
+    flex-direction: column;
+    gap: vars.$spacing-medium;
 
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: vars.$spacing-small;
-  font-weight: vars.$font-weight-bold;
-  color: vars.$text-primary;
-}
+    .ai-score-section {
+      margin-bottom: vars.$spacing-base;
 
-/* Score overview card */
-.score-overview {
-  background-color: vars.$background-light;
-}
+      .ai-score-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
 
-.score-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+        .ai-score-box {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          background-color: vars.$background-white;
+          border-radius: vars.$border-radius-base;
+          padding: vars.$spacing-base;
+          box-shadow: vars.$box-shadow-light;
+          min-width: 100px;
 
-.big-score {
-  font-size: 42px;
-  font-weight: vars.$font-weight-bold;
-}
+          .ai-score-label {
+            font-size: vars.$font-size-small;
+            color: vars.$text-tertiary;
+            margin-bottom: vars.$spacing-mini;
+          }
 
-.max-score {
-  font-size: vars.$font-size-large;
-  color: vars.$text-tertiary;
-  font-weight: vars.$font-weight-regular;
-}
+          .ai-score-value {
+            font-size: 24px;
+            font-weight: vars.$font-weight-bold;
+            color: vars.$primary-color;
+          }
+        }
 
-.score-percentage {
-  padding: vars.$spacing-mini vars.$spacing-base;
-  border-radius: 20px;
-  color: vars.$background-white;
-  font-weight: vars.$font-weight-bold;
-}
+        .ai-confidence {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          margin-left: vars.$spacing-large;
 
-/* Timeline card */
-.dates-card :deep(.el-timeline-item__content) {
-  font-weight: vars.$font-weight-bold;
-}
+          .confidence-label {
+            margin-right: vars.$spacing-small;
+            color: vars.$text-secondary;
+            font-size: vars.$font-size-small;
+          }
 
-/* Feedback card */
-.feedback-text {
-  white-space: pre-line;
-  line-height: 1.6;
-  font-size: vars.$font-size-base;
-}
+          .confidence-bar {
+            flex: 1;
+            margin: 0 vars.$spacing-small;
+          }
 
-/* Appeal card */
-.appeal-status {
-  display: flex;
-  align-items: center;
-  gap: vars.$spacing-base;
-  margin-bottom: vars.$spacing-large;
-}
+          .confidence-value {
+            font-weight: vars.$font-weight-medium;
+            min-width: 40px;
+          }
+        }
+      }
+    }
 
-.appeal-date {
-  color: vars.$text-tertiary;
-  font-size: vars.$font-size-base;
-}
+    .ai-feedback {
+      background-color: vars.$background-white;
+      border-radius: vars.$border-radius-base;
+      padding: vars.$spacing-base;
+      box-shadow: vars.$box-shadow-light;
 
-.appeal-content {
-  background-color: vars.$background-light;
-  padding: vars.$spacing-small;
-  border-radius: vars.$border-radius-small;
-}
+      .ai-feedback-label {
+        font-weight: vars.$font-weight-medium;
+        color: vars.$text-primary;
+        margin-bottom: vars.$spacing-small;
+      }
 
-.appeal-label {
-  font-weight: vars.$font-weight-bold;
-  margin-bottom: vars.$spacing-small;
-  color: vars.$text-secondary;
-}
+      .ai-feedback-content {
+        color: vars.$text-secondary;
+        white-space: pre-line;
+        padding: vars.$spacing-small;
+        background-color: vars.$background-lighter;
+        border-radius: vars.$border-radius-small;
+        border-left: 3px solid vars.$primary-color;
+      }
+    }
 
-.appeal-text {
-  line-height: 1.6;
-}
+    .ai-disclaimer {
+      margin-top: vars.$spacing-small;
 
-.appeal-info {
-  margin-bottom: vars.$spacing-large;
-  color: vars.$text-secondary;
-  font-size: vars.$font-size-base;
-}
-
-/* Upcoming assignment card */
-.countdown-display {
-  text-align: center;
-  margin-bottom: vars.$spacing-large;
-}
-
-.countdown-title {
-  font-size: vars.$font-size-base;
-  color: vars.$text-tertiary;
-  margin-bottom: vars.$spacing-small;
-}
-
-.countdown-timer {
-  font-size: 28px;
-  font-weight: vars.$font-weight-bold;
-  color: vars.$primary-color;
-}
-
-.assignment-actions {
-  display: flex;
-  justify-content: center;
-  gap: vars.$spacing-base;
+      .disclaimer-text {
+        font-size: vars.$font-size-small;
+        color: vars.$text-secondary;
+      }
+    }
+  }
 }
 </style>

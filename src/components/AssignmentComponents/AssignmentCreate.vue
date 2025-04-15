@@ -23,7 +23,7 @@
           </el-form-item>
 
           <el-form-item label="Max Score" prop="maxScore">
-            <el-input-number v-model="form.maxScore" :min="0" style="width: 100%"/>
+            <el-input-number v-model="form.maxScore" :min="0" :max="100" style="width: 100%"/>
           </el-form-item>
 
           <el-form-item label="Open Date" prop="openDate">

@@ -13,6 +13,7 @@ export interface Grade {
     appealReason?: string | null;
     appealTime?: string | null;
     status: 'graded' | 'upcoming' | 'submitted' | 'missing' | 'appealing' | 'appealed';
+    assignmentId?: number;
 }
 
 export interface AIGrading {
@@ -66,8 +67,10 @@ export interface Submission {
     status: 'pending' | 'accepted' | 'rejected',
     attempts: number
     textResponse?: string
-    attachments?: Attachment[]
-    codeSubmissions?: CodeSubmission[]
+    attachments?: Attachment[] | null
+    codeSubmissions?: CodeSubmission[] | null
+    grade?: Grade
+    aiGrading?: AIGrading | null
 }
 
 //Calendar.vue
