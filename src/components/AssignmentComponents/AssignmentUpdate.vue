@@ -3,23 +3,27 @@
   <el-main>
     <template v-if="assignment">
       <el-card class="detail-section">
-        <el-form :model="editForm" label-width="120px">
-          <el-form-item label="Title">
+        <el-form
+            ref="formRef"
+            :model="editForm"
+            :rules="assignmentRules"
+            label-width="120px">
+          <el-form-item label="Title" prop="title">
             <el-input v-model="editForm.title"/>
           </el-form-item>
-          <el-form-item label="Max Score">
+          <el-form-item label="Max Score" prop="maxScore">
             <el-input-number v-model="editForm.maxScore" :min="0" :max="100"/>
           </el-form-item>
 
-          <el-form-item label="Open Date">
+          <el-form-item label="Open Date" prop="openDate">
             <el-date-picker v-model="editForm.openDate" type="datetime"/>
           </el-form-item>
 
-          <el-form-item label="Due Date">
+          <el-form-item label="Due Date" prop="dueDate">
             <el-date-picker v-model="editForm.dueDate" type="datetime"/>
           </el-form-item>
 
-          <el-form-item label="Description">
+          <el-form-item label="Description" prop="description">
             <el-input v-model="editForm.description" type="textarea" :rows="4"/>
           </el-form-item>
 
@@ -28,6 +32,7 @@
           </el-form-item>
 
           <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+            <el-button @click="cancelUpdate">Cancel</el-button>
             <el-button @click="resetEditing">Reset</el-button>
             <el-button type="primary" @click="saveChanges" :loading="isSaving">Save</el-button>
           </div>
@@ -188,7 +193,7 @@
 
 <script lang="ts" setup>
 import {ref, reactive} from 'vue';
-import {ElMessage, ElMessageBox, UploadFile, UploadRawFile} from 'element-plus';
+import {ElMessage, ElMessageBox, FormInstance, type FormRules, UploadFile, UploadRawFile} from 'element-plus';
 import {Assignment, Attachment, TestCase} from '@/types/interfaces';
 import request from "@/utils/request";
 import apiRequest from "@/utils/apiUtils";
@@ -196,7 +201,7 @@ import downloadFile from "@/utils/downloadFile";
 import {cloneDeep} from "lodash-es";
 import {checkDate} from "@/components/AssignmentComponents/checkDate";
 import CodeAssignmentConfigDialog from "@/components/Dialogs/CodeAssignmentConfigDialog.vue";
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 
 const codeConfig: CodeAssignmentConfigDialog = {
   id: 0,
@@ -227,9 +232,17 @@ const defaultForm: Assignment = {
   codeConfig: codeConfig
 }
 
+const assignmentRules: FormRules = {
+  title: [{required: true, message: 'Please input the title', trigger: 'blur'}],
+  description: [{required: true, message: 'Please input the description', trigger: 'blur'}],
+  dueDate: [{required: true, message: 'Please select the due date', trigger: 'change'}],
+  openDate: [{required: true, message: 'Please select the open date', trigger: 'change'}],
+  maxScore: [{required: true, message: 'Please input the max score', trigger: 'blur'}],
+};
+
 const assignment = ref<Assignment>(cloneDeep(defaultForm));
 const editForm = ref<Assignment>({...assignment.value})
-
+const formRef = ref<FormInstance>();
 const loadingTestCases = ref(true);
 const loadingAttachments = ref(true);
 const attachmentDialogVisible = ref(false);
@@ -270,6 +283,7 @@ const resetEditing = () => {
 };
 
 const route = useRoute();
+const router = useRouter();
 
 const assignmentId = route.query.assignmentId;
 apiRequest<Assignment>(
@@ -311,6 +325,15 @@ const saveChanges = async () => {
     if (!checkDate(openDate, dueDate)) {
       return;
     }
+
+    try {
+      await formRef.value?.validate();
+    } catch (error) {
+      ElMessage.error('Please complete the required fields');
+      console.error(error);
+      return;
+    }
+
     // API call to update assignment
     const updatedAssignment = await apiRequest<Assignment>(
         `/teachers/assignments/${assignment.value.id}`,
@@ -323,6 +346,14 @@ const saveChanges = async () => {
       Object.assign(assignment.value, editForm.value);
       ElMessage.success('Assignment updated successfully');
     }
+
+    await router.push({
+      path: '/teacher-course/assignment-management',
+      query: {
+        courseId: route.query.courseId,
+        courseCode: route.query.courseCode,
+      },
+    })
   } catch (error) {
     ElMessage.error('Failed to update assignment');
     console.error(error);
@@ -481,6 +512,16 @@ const deleteAttachment = async (attachment: Attachment) => {
       ElMessage.error('Failed to delete attachment');
     }
   }
+};
+
+const cancelUpdate = async () => {
+  await router.push({
+    path: '/teacher-course/assignment-management',
+    query: {
+      courseId: route.query.courseId,
+      courseCode: route.query.courseCode
+    },
+  })
 };
 </script>
 

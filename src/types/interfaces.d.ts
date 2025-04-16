@@ -30,12 +30,13 @@ export interface Attachment {
     size: number | string
     url: string
 }
-export interface CourseMaterial {
+export interface Resource {
     id: number
     title: string
     type: string
     description: string
     attachments?: Attachment[] | null
+    uploadTime: string
 }
 interface TestCase {
     id: number
@@ -44,7 +45,12 @@ interface TestCase {
     weight: number;
 }
 //CourseAssignment.vue
-export interface Assignment extends CourseMaterial {
+export interface Assignment {
+    id: number
+    title: string
+    type: string
+    description: string
+    attachments?: Attachment[] | null
     dueDate: string;
     maxScore: number;
     openDate: string;
@@ -63,6 +69,7 @@ export interface CodeSubmission {
 
 export interface Submission {
     id: number,
+    studentName: string,
     submitTime: string,
     status: 'pending' | 'accepted' | 'rejected',
     attempts: number

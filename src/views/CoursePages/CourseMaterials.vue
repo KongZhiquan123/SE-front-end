@@ -1,7 +1,7 @@
 <template>
   <el-main class="class-info-container" v-loading="loading">
     <div class="info-section">
-      <h2 class="page-title">Course Materials</h2>
+      <h2 class="page-title">Resources</h2>
 
       <!-- 空状态显示 -->
       <el-empty v-if="!loading && courseMaterials.length === 0"
@@ -18,6 +18,10 @@
               {{ material.type }}
             </el-tag>
           </div>
+
+          <p class="material-upload-time">
+            Upload time: {{ formatDate(material.uploadTime) }}
+          </p>
 
           <p class="material-description">{{ material.description }}</p>
 
@@ -65,17 +69,18 @@ import {
   Film,
   Collection
 } from '@element-plus/icons-vue'
-import type { CourseMaterial } from '@/types/interfaces'
+import type { Resource } from '@/types/interfaces'
 import apiRequest from "@/utils/apiUtils"
 import { useRoute } from "vue-router"
 import downloadFile from "@/utils/downloadFile"
 import formatFileSize from "@/utils/formatFileSize"
+import { formatDate} from "@/utils/formatDate";
 
-const courseMaterials = ref<CourseMaterial[]>([])
+const courseMaterials = ref<Resource[]>([])
 const route = useRoute()
 const loading = ref<boolean>(true)
 
-apiRequest<CourseMaterial[]>(`/students/courses/${route.query.courseId}/resources`)
+apiRequest<Resource[]>(`/students/courses/${route.query.courseId}/resources`)
     .then((data) => {
       courseMaterials.value = data ?? []
       // 将附件的大小转换为更友好的格式，如 1MB
@@ -201,6 +206,12 @@ const getTagType = (materialType: string) => {
     -webkit-box-orient: vertical;
     overflow: hidden;
     min-height: 66px;
+  }
+
+  &-upload-time {
+    color: vars.$text-secondary;
+    font-size: vars.$font-size-small;
+    margin-bottom: vars.$spacing-small;
   }
 }
 

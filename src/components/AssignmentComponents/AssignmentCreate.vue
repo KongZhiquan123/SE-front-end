@@ -115,6 +115,7 @@
         <el-form-item>
           <el-button type="primary" @click="resetForm">Reset</el-button>
           <el-button type="primary" @click="submitForm" :disabled="isSubmitting">Submit</el-button>
+          <el-button @click="cancel">Cancel</el-button>
         </el-form-item>
       </el-form>
 
@@ -335,6 +336,13 @@ const uploadTestCases = async (assignmentId: number) => {
   } else if (results.length > 0) {
     ElMessage.success(`${results.length} test case(s) uploaded successfully`);
   }
+};
+
+const cancel = async () => {
+  await router.push({
+    path: '/teacher-course/assignment-management',
+    query: {courseId: courseId, courseCode: courseCode},
+  })
 };
 </script>
 

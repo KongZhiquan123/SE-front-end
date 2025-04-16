@@ -88,7 +88,19 @@ const router = createRouter({
                 {
                     path: 'grading-assignment',
                     component: () => import('../components/AssignmentComponents/AssignmentGrading.vue')
-                }
+                },
+                {
+                    path: 'resource-management',
+                    component: () => import('../views/CoursePages/ResourceManagement.vue'),
+                },
+                {
+                    path: 'create-resource',
+                    component: () => import('@/components/ResourceComponents/ResourceCreate.vue')
+                },
+                {
+                    path: 'update-resource',
+                    component: () => import('@/components/ResourceComponents/ResourceUpdate.vue')
+                },
             ]
         },
         {

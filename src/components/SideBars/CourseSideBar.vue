@@ -5,7 +5,9 @@ import {useRoute} from 'vue-router'
 import {
   InfoFilled,
   Files,
-  GoldMedal
+  GoldMedal,
+  Collection,
+  Edit
 } from '@element-plus/icons-vue'
 import {useUserStore} from "@/stores/user"
 
@@ -20,13 +22,14 @@ const getCourseSideBarItems = (role: 'teacher' | 'student' | 'admin')  => {
   if (role === 'teacher') {
     return [
       {name: 'Basic Information', path: '/teacher-course/course-basic-info', icon: InfoFilled},
-      {name: 'Assignment Management', path: '/teacher-course/assignment-management', icon: Files},
+      {name: 'Assignment Management', path: '/teacher-course/assignment-management', icon: Edit},
+      {name: 'Resource Management', path: '/teacher-course/resource-management', icon: Collection},
     ]
   } else if (role === 'student') {
     return [
       {name: 'Basic Information', path: '/student-course/course-basic-info', icon: InfoFilled},
-      {name: 'Class Materials', path: '/student-course/course-materials', icon: Files},
-      {name: 'Assignments', path: '/student-course/course-assignments', icon: Files},
+      {name: 'Resources', path: '/student-course/course-materials', icon: Collection},
+      {name: 'Assignments', path: '/student-course/course-assignments', icon: Edit},
       {name: 'Your Grades', path: '/student-course/course-grades', icon: GoldMedal},
     ]
   } else {
