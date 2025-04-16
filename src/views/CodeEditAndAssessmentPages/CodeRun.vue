@@ -187,14 +187,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Execution Status -->
-    <div v-if="!isLoading && !showLottieAnimation && executionResult" class="execution-status">
-      <el-tag :type="executionResult.status === 'accepted' ? 'success' : 'info'" size="large">
-        {{ executionResult.status }}
-      </el-tag>
-      <div class="feedback" v-if="executionResult.feedback">{{ executionResult.feedback }}</div>
-    </div>
-
     <!-- Results Grid -->
     <div v-if="!isLoading && !showLottieAnimation && executionResult" class="results-container">
       <div class="results-grid">
@@ -232,27 +224,6 @@ onMounted(() => {
 
           <div class="test-data-row">
             <el-collapse>
-              <el-collapse-item name="input">
-                <template #title>
-                  <div class="collapse-header">
-                    <span class="output-title">Input</span>
-                  </div>
-                </template>
-                <div class="output-content">
-                  <pre>{{ result.input }}</pre>
-                </div>
-              </el-collapse-item>
-
-              <el-collapse-item name="expected">
-                <template #title>
-                  <div class="collapse-header">
-                    <span class="output-title">Expected Output</span>
-                  </div>
-                </template>
-                <div class="output-content">
-                  <pre>{{ result.expectedOutput }}</pre>
-                </div>
-              </el-collapse-item>
 
               <el-collapse-item name="actual">
                 <template #title>

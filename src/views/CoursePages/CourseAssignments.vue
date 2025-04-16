@@ -50,7 +50,7 @@ const filteredAssignments = computed(() => {
 const showSubmissionHistory = (assignment: Assignment) => {
   activeAssignment.value = assignment
   apiRequest<Submission[]>(`students/assignments/${assignment.id}/submissions`).then(data => {
-    submissions.value = submissionsConversion(JSON.parse(JSON.stringify(data)));
+    submissions.value = submissionsConversion(data);
   })
   drawerVisible.value = true
 }

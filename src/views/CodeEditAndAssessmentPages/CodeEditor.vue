@@ -9,8 +9,12 @@ import {Assignment, CodeAssignmentConfig} from "@/types/interfaces";
 const editorContainer = shallowRef<HTMLElement | null>(null);
 // 用于导入monaco-editor
 const monaco = shallowRef(null);
+//支持的语言
+type ProgrammingLanguage = 'python' | 'java' | 'cpp' | 'javascript' | 'typescript' |
+    'csharp' | 'c' | 'go' | 'ruby' | 'php';
+const allowedLanguages = ref<ProgrammingLanguage[]>(['python', 'java', 'cpp']);
 // 默认选择python语言
-const codeLanguage = ref<'python' | 'java' | 'cpp'>('python');
+const codeLanguage = ref<ProgrammingLanguage>('python');
 // 亮色主题默认开启
 const isLightTheme = ref<boolean>(true);
 /*
@@ -51,6 +55,7 @@ Promise.all([
 ]).then(([codeConfigResponse, assignmentResponse]: [CodeAssignmentConfig, Assignment]) => {
   if (codeConfigResponse) {
     Object.assign(problem.value, codeConfigResponse);
+    allowedLanguages.value = codeConfigResponse.allowedLanguages.split(',').map(lang => lang.trim()) as ProgrammingLanguage[];
   }
   if (assignmentResponse) {
     Object.assign(problem.value, assignmentResponse);
@@ -73,7 +78,51 @@ const codeTemplates = {
 std::vector<int> myFunc(std::vector<int>& nums, int target) {
     // Your code here
     return {0, 0};
-}`
+}`,
+  javascript: `function myFunc(nums, target) {
+    // Your code here
+    return [0, 0];
+}`,
+  typescript: `function myFunc(nums: number[], target: number): number[] {
+    // Your code here
+    return [0, 0];
+}`,
+  csharp: `using System;
+using System.Collections.Generic;
+
+public class Solution {
+    public int[] MyFunc(int[] nums, int target) {
+        // Your code here
+        return new int[] {0, 0};
+    }
+}`,
+  c: `#include <stdio.h>
+#include <stdlib.h>
+
+int* myFunc(int* nums, int numsSize, int target, int* returnSize) {
+    // Your code here
+    int* result = (int*)malloc(2 * sizeof(int));
+    result[0] = 0;
+    result[1] = 0;
+    *returnSize = 2;
+    return result;
+}`,
+  go: `package main
+
+func myFunc(nums []int, target int) []int {
+    // Your code here
+    return []int{0, 0}
+}`,
+  ruby: `def my_func(nums, target)
+    # Your code here
+    return [0, 0]
+end`,
+  php: `<?php
+function myFunc($nums, $target) {
+    // Your code here
+    return [0, 0];
+}
+?>`
 };
 
 // 懒加载Monaco Editor
@@ -190,7 +239,7 @@ onBeforeUnmount(() => {
 const editorModels = shallowRef({});
 
 // 切换语言处理函数
-const handleLanguageChange = (newLanguage: 'python' | 'java' | 'cpp') => {
+const handleLanguageChange = (newLanguage: ProgrammingLanguage) => {
   if (!editorInstance.value || !monaco.value) return;
 
   if (!editorModels.value[newLanguage]) {
@@ -290,9 +339,10 @@ const submitCode = async () => {
                   <span>Language:</span>
                   <el-select v-model="codeLanguage" size="default" placeholder="Select language"
                              @change="handleLanguageChange">
-                    <el-option label="Python" value="python"/>
-                    <el-option label="Java" value="java"/>
-                    <el-option label="C++" value="cpp"/>
+                    <el-option
+                        v-for="lang in allowedLanguages" :key="lang" :label="lang" :value="lang">
+                      {{ lang }}
+                    </el-option>
                   </el-select>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">

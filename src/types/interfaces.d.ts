@@ -148,8 +148,6 @@ interface CodeExecutionResult {
     versionIndex: number;
     score: number;
     testCaseResults: TestCaseResult[];
-    status: string;
-    feedback: string;
 }
 
 interface TestCaseResult {
