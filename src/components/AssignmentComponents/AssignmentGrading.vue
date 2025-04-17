@@ -8,8 +8,7 @@
           <el-select v-model="statusFilter" placeholder="Filter by status" clearable style="width: 240px">
             <el-option label="All" value="" />
             <el-option label="Pending" value="pending" />
-            <el-option label="Accepted" value="accepted" />
-            <el-option label="Rejected" value="rejected" />
+            <el-option label="Graded" value="graded" />
           </el-select>
         </div>
       </template>
@@ -22,6 +21,7 @@
           :row-class-name="getRowClassName"
       >
         <el-table-column prop="id" label="ID" />
+        <el-table-column prop="studentName" label="Student Name" />
         <el-table-column prop="submitTime" label="Submit Time"  />
         <el-table-column prop="attempts" label="Attempts"  />
         <el-table-column prop="status" label="Status" >
@@ -41,6 +41,7 @@
       </el-table>
 
       <div class="pagination-container">
+        <el-button @click="goBack" class="cancel-button">Cancel</el-button>
         <el-pagination
             v-model:current-page="currentPage"
             v-model:page-size="pageSize"
@@ -71,6 +72,9 @@
         <div class="info-row">
           <div class="info-item">
             <strong>Submit Time:</strong> {{ formatDate(selectedSubmission.submitTime) }}
+          </div>
+          <div class="info-item">
+            <strong>Student:</strong> {{ selectedSubmission.studentName }}
           </div>
           <div class="info-item">
             <strong>Attempt Count:</strong> {{ selectedSubmission.attempts }}
@@ -199,13 +203,13 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, watch } from 'vue';
+import {ref, reactive, watch, computed} from 'vue';
 import { ElMessage } from 'element-plus';
 import {formatDate} from "@/utils/formatDate";
 import {Submission, Attachment} from "@/types/interfaces";
 import {cloneDeep, defaultTo} from "lodash-es";
 import apiRequest from "@/utils/apiUtils";
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import {submissionsConversion} from "@/utils/DataFormatConversion";
 
 interface GradingForm {
@@ -231,6 +235,7 @@ const defaultSubmission = {
 const submissionsList = reactive<Submission[]>([]);
 const filteredSubmissions = ref<Submission[]>([]);
 const route = useRoute();
+const router = useRouter();
 const assignmentId = route.query.assignmentId;
 
 // UI 状态
@@ -240,7 +245,7 @@ const isSubmitting = ref(false);
 const statusFilter = ref('');
 const currentPage = ref(1);
 const pageSize = ref(10);
-const totalSubmissions = ref(submissionsList.length);
+const totalSubmissions = computed(() => submissionsList.length);
 
 
 
@@ -253,8 +258,7 @@ apiRequest<Submission[]>(`/teachers/submissions/assignment/${assignmentId}/lates
 // 获取状态类型（用于标签颜色）
 const getStatusType = (status: string): string => {
   switch (status) {
-    case 'accepted': return 'success';
-    case 'rejected': return 'danger';
+    case 'graded': return 'success';
     case 'pending': return 'warning';
     default: return 'info';
   }
@@ -263,11 +267,20 @@ const getStatusType = (status: string): string => {
 // 获取状态文本
 const getStatusText = (status: string): string => {
   switch (status) {
-    case 'accepted': return 'Accepted';
-    case 'rejected': return 'Rejected';
+    case 'graded': return 'Graded';
     case 'pending': return 'Pending';
     default: return 'Unknown';
   }
+};
+
+const goBack = async () => {
+  await router.push({
+    path: '/teacher-course/assignment-management',
+    query: {
+      courseId: route.query.courseId,
+      courseCode: route.query.courseCode
+    },
+  })
 };
 
 const gradingDialogVisible = ref<boolean>(false);
@@ -343,7 +356,6 @@ const submitGrading = async (): Promise<void> => {
     const submissionId = selectedSubmission.value.id;
     const data = await apiRequest(`/teachers/grades/${submissionId}`,
         'POST', 'Error submitting grading', {...grading});
-    console.log(data);
     if (!data) {
       return;
     }
@@ -391,6 +403,22 @@ watch(statusFilter, () => {
 
 <style lang="scss" scoped>
 @use "@/assets/variables" as vars;
+
+.pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: vars.$spacing-large;
+
+  .cancel-button {
+    margin-right: vars.$spacing-base;
+  }
+
+  :deep(.el-pagination) {
+    flex: 1;
+    justify-content: flex-end;
+  }
+}
 
 .grading-container {
   .submissions-list {

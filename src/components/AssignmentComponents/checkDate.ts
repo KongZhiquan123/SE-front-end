@@ -17,8 +17,8 @@ export function checkDate(openDate: Date, dueDate: Date): boolean {
         ElMessage.warning("Due date should be at least 7 days after open date");
         return false;
     }
-    if (dayDifference > 30) {
-        ElMessage.warning("Due date should be within 30 days from open date");
+    if (dayDifference > 365) {
+        ElMessage.warning("Due date should be within 365 days from open date");
         return false;
     }
     return true;
