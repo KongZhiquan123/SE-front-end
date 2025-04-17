@@ -60,9 +60,8 @@ const calculateGrade = computed(() => {
 const getGradeLevel = (score: number) => {
   if (score >= 90) return { label: 'A', color: '#67C23A' }
   if (score >= 80) return { label: 'B', color: '#409EFF' }
-  if (score >= 70) return { label: 'C', color: '#E6A23C' }
-  if (score >= 60) return { label: 'D', color: '#F56C6C' }
-  return { label: 'F', color: '#F56C6C' }
+  if (score >= 60) return { label: 'C', color: '#E6A23C' }
+  return { label: 'D', color: '#F56C6C' }
 }
 
 // 计算成绩等级

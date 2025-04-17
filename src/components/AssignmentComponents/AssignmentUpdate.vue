@@ -241,7 +241,9 @@ const assignmentRules: FormRules = {
 };
 
 const assignment = ref<Assignment>(cloneDeep(defaultForm));
-const editForm = ref<Assignment>({...assignment.value})
+//解构，只提取需要的属性
+const {id, title, description, instructions, type, status, maxScore, openDate, dueDate} = assignment.value;
+const editForm = ref<Assignment>({id, title, description, instructions, type, status, maxScore, openDate, dueDate})
 const formRef = ref<FormInstance>();
 const loadingTestCases = ref(true);
 const loadingAttachments = ref(true);
@@ -278,8 +280,8 @@ const showAttachmentForm = () => {
 };
 
 const resetEditing = () => {
-  // Reset form data
-  Object.assign(editForm.value, assignment.value);
+  const {id, title, description, instructions, type, status, maxScore, openDate, dueDate} = assignment.value;
+  editForm.value =  {id, title, description, instructions, type, status, maxScore, openDate, dueDate};
 };
 
 const route = useRoute();
@@ -347,13 +349,7 @@ const saveChanges = async () => {
       ElMessage.success('Assignment updated successfully');
     }
 
-    await router.push({
-      path: '/teacher-course/assignment-management',
-      query: {
-        courseId: route.query.courseId,
-        courseCode: route.query.courseCode,
-      },
-    })
+
   } catch (error) {
     ElMessage.error('Failed to update assignment');
     console.error(error);
