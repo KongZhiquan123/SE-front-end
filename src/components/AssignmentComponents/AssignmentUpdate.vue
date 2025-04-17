@@ -228,7 +228,8 @@ const defaultForm: Assignment = {
 }
 
 const assignment = ref<Assignment>(cloneDeep(defaultForm));
-const editForm = ref<Assignment>({...assignment.value})
+const { id, title, description, instructions, type, status, maxScore, openDate, dueDate } = assignment.value;
+const editForm = ref<Assignment>({id, title, description, instructions, type, status, maxScore, openDate, dueDate})
 
 const loadingTestCases = ref(true);
 const loadingAttachments = ref(true);
@@ -265,8 +266,9 @@ const showAttachmentForm = () => {
 };
 
 const resetEditing = () => {
+  const { id, title, description, instructions, type, status, maxScore, openDate, dueDate } = assignment.value;
   // Reset form data
-  Object.assign(editForm.value, assignment.value);
+  editForm.value = { id, title, description, instructions, type, status, maxScore, openDate, dueDate };
 };
 
 const route = useRoute();

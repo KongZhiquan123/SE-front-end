@@ -17,9 +17,7 @@ const executionResult = ref<CodeExecutionResult>({
   language: "",
   versionIndex: 0,
   score: 0,
-  testCaseResults: [],
-  status: "Completed",
-  feedback: "No results available"
+  testCaseResults: []
 });
 const isLoading = ref(false);
 const loadingStartTime = ref<number>(0);
@@ -80,9 +78,10 @@ const fetchExecutionResults = async () => {
     showLottieAnimation.value = false;
     animationPlayed.value = true;
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     ElMessage.error('Failed to load execution results');
-    console.error(error);
+
     loadingProgress.value = 100;
     showLottieAnimation.value = false;
   } finally {

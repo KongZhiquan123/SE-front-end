@@ -1,6 +1,7 @@
 // src/utils/request.ts
 import axios from 'axios'
 import type {AxiosError} from "axios";
+import {useUserStore} from "@/stores/user";
 
 
 const request = axios.create({
@@ -11,8 +12,9 @@ const request = axios.create({
 // 请求拦截器，主要是为了添加 token
 request.interceptors.request.use(
     config => {
-        if (localStorage.getItem('token')) {
-            config.headers.Authorization = `Bearer ${localStorage.getItem('token')}`
+        const userStore = useUserStore();
+        if (userStore.token) {
+            config.headers.Authorization = `Bearer ${userStore.token}`
         }
         return config
     },
