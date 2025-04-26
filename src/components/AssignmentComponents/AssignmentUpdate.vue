@@ -79,14 +79,14 @@
         <div v-if="assignment.type === 'code'" class="test-cases-section">
           <div class="section-header">
             <h3>Test Cases</h3>
-            <span style="display: flex; gap: 10px; align-items: center;justify-content: center;">
+            <el-button-group>
               <el-button type="primary" size="small" plain @click="showTestCaseForm">
                 Add Test Case
               </el-button>
               <el-button type="primary" size="small" plain @click="showCodeConfigDialog">
                 Edit Code Config
               </el-button>
-            </span>
+            </el-button-group>
           </div>
 
           <div v-if="loadingTestCases" class="loading-section">

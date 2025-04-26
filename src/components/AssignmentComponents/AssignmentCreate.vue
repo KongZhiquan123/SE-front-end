@@ -113,8 +113,8 @@
         <el-divider/>
         <h2>Operations</h2>
         <el-form-item>
-          <el-button type="primary" @click="resetForm">Reset</el-button>
           <el-button type="primary" @click="submitForm" :disabled="isSubmitting">Submit</el-button>
+          <el-button type="primary" @click="resetForm">Reset</el-button>
           <el-button @click="cancel">Cancel</el-button>
         </el-form-item>
       </el-form>
