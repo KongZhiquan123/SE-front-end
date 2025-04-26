@@ -30,7 +30,7 @@ export const useUserStore = defineStore('user', () => {
 
 
     function setUser(userData: Partial<UserState>) {
-        const refToProperty = {id, username, email, role, token};
+        const refToProperty = {id, username, email, role, token, createdAt, updatedAt, avatarUrl, bio};
         Object.entries(refToProperty).forEach(([key, ref]) => {
             ref.value = userData[key] ?? ref.value;
         })
@@ -48,16 +48,12 @@ export const useUserStore = defineStore('user', () => {
                 clearUser();
                 return false;
             }
+
             const userData = response.data;
             setUser({
+                ...userData,
                 id: userData.userId,
-                username: userData.username,
-                email: userData.email,
-                role: userData.role,
-                createdAt: userData.createdAt,
-                updatedAt: userData.updatedAt,
-                avatarUrl: userData.avatarUrl,
-                bio: userData.bio,
+                avatarUrl: userData.avatarUrl === 'default_avatar.png' ? '' : userData.avatarUrl,
                 authorized: true
             });
 

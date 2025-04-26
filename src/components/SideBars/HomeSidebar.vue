@@ -22,7 +22,7 @@
       </el-menu-item>
       <el-menu-item index="/settings">
         <el-icon><Setting /></el-icon>
-        <span>Settings</span>
+        <span>Profile Settings</span>
       </el-menu-item>
       <el-menu-item index="/notifications">
         <el-icon><Notification /></el-icon>
