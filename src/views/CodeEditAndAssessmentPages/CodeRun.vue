@@ -2,11 +2,11 @@
 import { ref, onMounted, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { RefreshRight, Check, Close, Warning } from '@element-plus/icons-vue';
-import * as LottiePlayer from "@lottiefiles/lottie-player";
+import { Vue3Lottie } from 'vue3-lottie'
 import {useRoute} from "vue-router";
 import {CodeExecutionResult, TestCaseResult} from "@/types/interfaces";
 import apiRequest from "@/utils/apiUtils";
-// Type definition to match backend format
+import CodeRunningAnimation from "@/assets/CodeRunningAnimation.json";
 
 const route = useRoute();
 const submissionId = route.query.submissionId;
@@ -124,6 +124,15 @@ const getResultsSummary = computed(() => {
   };
 });
 
+// Progress color gradient for different stages
+const progressColorGradient = [
+  {color: '#FFCC00', percentage: 0},
+  {color: '#FFB366', percentage: 25},
+  {color: '#FF99CC', percentage: 50},
+  {color: '#CC99FF', percentage: 75},
+  {color: '#9966FF', percentage: 100},
+];
+
 onMounted(() => {
   fetchExecutionResults();
 });
@@ -152,17 +161,21 @@ onMounted(() => {
 
     <!-- Loading Animation -->
     <div v-if="isLoading || showLottieAnimation" class="loading-container">
-      <lottie-player
-          src="https://assets3.lottiefiles.com/packages/lf20_szlepvdh.json"
-          speed="1"
+      <Vue3Lottie
+          :animationData="CodeRunningAnimation"
+          :speed="1"
           style="width: 300px; height: 300px; background: transparent;"
           loop
           autoplay
-      ></lottie-player>
+      ></Vue3Lottie>
 
       <div class="loading-info">
         <h3>{{ loadingMessage }}</h3>
-        <el-progress :percentage="loadingProgress" :stroke-width="8" />
+        <el-progress
+            :percentage="loadingProgress"
+            :stroke-width="8"
+            :color="progressColorGradient"
+        />
       </div>
     </div>
 
