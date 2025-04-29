@@ -15,12 +15,12 @@ import {
 import {formatDate} from "@/utils/formatDate";
 import apiRequest from "@/utils/apiUtils";
 import {useRoute, useRouter} from "vue-router";
-const route = useRoute()
-const activeTab = ref('all')
-const sortBy = ref<'dueDate'|'score'|'title'>('dueDate')
-const sortOrder = ref<'ascending'|'descending'>('ascending')
-const loading = ref<boolean>(true)
-const grades = ref<Grade[]>([])
+const route = useRoute();
+const activeTab = ref<'all'|'graded'|'upcoming'|'submitted'>('all');
+const sortBy = ref<'dueDate'|'score'|'title'>('dueDate');
+const sortOrder = ref<'ascending'|'descending'>('ascending');
+const loading = ref<boolean>(true);
+const grades = ref<Grade[]>([]);
 apiRequest<Grade[]>(`/students/courses/courses/${route.query.courseId}`).then(res => {
   grades.value = res ?? []
   loading.value = false

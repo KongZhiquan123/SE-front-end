@@ -4,17 +4,18 @@ import {ElMessage} from "element-plus";
 import {useRoute, useRouter} from 'vue-router';
 import { Document, Monitor, Cpu, Timer, Collection, Upload } from '@element-plus/icons-vue'
 import apiRequest from "@/utils/apiUtils";
+import { ProgrammingLanguage, codeTemplates, languageVersions } from './supportLanguages';
 import {Assignment, CodeAssignmentConfig} from "@/types/interfaces";
 // editorContainer元素的引用，它在挂载到DOM后会被用来初始化monaco编辑器
 const editorContainer = shallowRef<HTMLElement | null>(null);
 // 用于导入monaco-editor
 const monaco = shallowRef(null);
-//支持的语言
-type ProgrammingLanguage = 'python' | 'java' | 'cpp' | 'javascript' | 'typescript' |
-    'csharp' | 'c' | 'go' | 'ruby' | 'php';
-const allowedLanguages = ref<ProgrammingLanguage[]>(['python', 'java', 'cpp']);
+
+const allowedLanguages = ref<ProgrammingLanguage[]>(['python3', 'java', 'cpp']);
 // 默认选择python语言
-const codeLanguage = ref<ProgrammingLanguage>('python');
+const codeLanguage = ref<ProgrammingLanguage>('python3');
+// 存储用户选择的版本索引
+const selectedVersionIndex = ref<number>(0);
 // 亮色主题默认开启
 const isLightTheme = ref<boolean>(true);
 /*
@@ -41,7 +42,7 @@ const problem = ref<Problem>({
   title: 'title',
   description: 'description',
   instructions: 'You can return the answer in any order.',
-  allowedLanguages: 'Python, Java, C++',
+  allowedLanguages: 'python3, java, cpp',
   memoryLimitEnabled: true,
   memoryLimitMB: 512,
   timeLimitEnabled: true,
@@ -61,69 +62,6 @@ Promise.all([
     Object.assign(problem.value, assignmentResponse);
   }
 });
-//不同语言的代码模板
-const codeTemplates = {
-  python: `def myFunc(arg1, arg2):
-    # Your code here
-    pass
-`,
-  java: `class Solution {
-    public int[] myFunc(int[] nums, int target) {
-        // Your code here
-        return new int[]{0, 0};
-    }
-}`,
-  cpp: `#include <vector>
-
-std::vector<int> myFunc(std::vector<int>& nums, int target) {
-    // Your code here
-    return {0, 0};
-}`,
-  javascript: `function myFunc(nums, target) {
-    // Your code here
-    return [0, 0];
-}`,
-  typescript: `function myFunc(nums: number[], target: number): number[] {
-    // Your code here
-    return [0, 0];
-}`,
-  csharp: `using System;
-using System.Collections.Generic;
-
-public class Solution {
-    public int[] MyFunc(int[] nums, int target) {
-        // Your code here
-        return new int[] {0, 0};
-    }
-}`,
-  c: `#include <stdio.h>
-#include <stdlib.h>
-
-int* myFunc(int* nums, int numsSize, int target, int* returnSize) {
-    // Your code here
-    int* result = (int*)malloc(2 * sizeof(int));
-    result[0] = 0;
-    result[1] = 0;
-    *returnSize = 2;
-    return result;
-}`,
-  go: `package main
-
-func myFunc(nums []int, target int) []int {
-    // Your code here
-    return []int{0, 0}
-}`,
-  ruby: `def my_func(nums, target)
-    # Your code here
-    return [0, 0]
-end`,
-  php: `<?php
-function myFunc($nums, $target) {
-    // Your code here
-    return [0, 0];
-}
-?>`
-};
 
 // 懒加载Monaco Editor
 const loadMonacoEditor = async () => {
@@ -151,7 +89,7 @@ const setupEditor = async (monaco) => {
     // 创建编辑器实例
     editorInstance.value = monaco.editor.create(editorContainer.value, {
       value: codeTemplates[codeLanguage.value],
-      language: codeLanguage.value,
+      language: codeLanguage.value === 'python3' ? 'python' : codeLanguage.value,
       theme: isLightTheme.value ? 'customLightTheme' : 'customDarkTheme',
       automaticLayout: true,
       minimap: {enabled: true},
@@ -245,12 +183,16 @@ const handleLanguageChange = (newLanguage: ProgrammingLanguage) => {
   if (!editorModels.value[newLanguage]) {
     editorModels.value[newLanguage] = monaco.value.editor.createModel(
         codeTemplates[newLanguage],
-        newLanguage
+        newLanguage === 'python3' ? 'python' : newLanguage
     );
   }
 
   editorInstance.value.setModel(editorModels.value[newLanguage]);
   codeLanguage.value = newLanguage;
+  // 切换语言时重置版本选择为该语言的第一个可用版本
+  if (languageVersions[newLanguage] && languageVersions[newLanguage].length > 0) {
+    selectedVersionIndex.value = languageVersions[newLanguage][0].versionIndex;
+  }
 };
 const router = useRouter();
 // 提交代码函数
@@ -261,7 +203,7 @@ const submitCode = async () => {
   const submissionData = {
     script: code,
     language: codeLanguage.value,
-    versionIndex: 1073741824
+    versionIndex: selectedVersionIndex.value
   };
 
 
@@ -312,21 +254,20 @@ const submitCode = async () => {
               </el-card>
             </div>
 
-            <h3 v-if="problem.allowedLanguages">
+            <h3>
               <el-icon><Collection /></el-icon>
               Allowed Languages:
             </h3>
-            <template v-if="problem.allowedLanguages">
-              <el-tag
-                  v-for="lang in problem.allowedLanguages.split(',')"
-                  :key="lang"
-                  class="language-tag"
-                  type="info"
-                  effect="plain"
-              >
-                {{ lang.trim() }}
-              </el-tag>
-            </template>
+
+            <el-tag
+                v-for="lang in problem.allowedLanguages.split(',')"
+                :key="lang"
+                class="language-tag"
+                type="info"
+                effect="plain"
+            >
+              {{ lang.trim() }}
+            </el-tag>
           </div>
         </el-col>
 
@@ -345,7 +286,19 @@ const submitCode = async () => {
                     </el-option>
                   </el-select>
                 </div>
-                <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="version-selector">
+                  <span>Version:</span>
+                  <el-select v-model="selectedVersionIndex" size="default" placeholder="Select version">
+                    <el-option
+                        v-for="version in languageVersions[codeLanguage]"
+                        :key="version.versionIndex"
+                        :label="version.version"
+                        :value="version.versionIndex">
+                      {{ version.version }}
+                    </el-option>
+                  </el-select>
+                </div>
+                <div class="theme-switcher">
                   <span>Theme:</span>
                   <el-switch v-model="isLightTheme" active-text="Light" inactive-text="Dark"
                              @change="toggleEditorTheme"/>
@@ -523,19 +476,34 @@ $card-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 
   .editor-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 15px;
 
-    .language-selector {
+    .language-selector, .version-selector {
       display: flex;
       align-items: center;
       gap: 10px;
-      width: 25%;
 
       span {
         font-weight: 500;
         color: $text-color;
+        white-space: nowrap;
       }
+
+      .el-select {
+        min-width: 120px; // 设置最小宽度确保下拉框有足够空间
+      }
+    }
+
+    .theme-switcher {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto; // 将主题切换推到右侧
+    }
+
+    .el-button {
+      margin-left: 10px; // 给按钮额外的左侧间距
     }
   }
 

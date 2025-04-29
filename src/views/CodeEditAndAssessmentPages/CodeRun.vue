@@ -40,22 +40,22 @@ const fetchExecutionResults = async () => {
   if (loadingInterval.value) clearInterval(loadingInterval.value);
   loadingInterval.value = setInterval(() => {
     const elapsedTime = Date.now() - loadingStartTime.value;
-    // Calculate progress for a 10 second loading time
-    const maxTime = 10000;
+    // Calculate progress for a 20 seconds loading time
+    const maxTime = 20000;
 
     // Update loading message based on elapsed time
-    if (elapsedTime < 2000) {
+    if (elapsedTime < 4000) {
       loadingMessage.value = "Compiling your code...";
       loadingProgress.value = Math.min((elapsedTime / maxTime) * 100, 20);
-    } else if (elapsedTime < 4000) {
+    } else if (elapsedTime < 8000) {
       loadingMessage.value = "Running test cases...";
-      loadingProgress.value = Math.min(20 + ((elapsedTime - 2000) / maxTime) * 100, 50);
-    } else if (elapsedTime < 6000) {
+      loadingProgress.value = Math.min(20 + ((elapsedTime - 4000) / maxTime) * 100, 50);
+    } else if (elapsedTime < 12000) {
       loadingMessage.value = "Analyzing results...";
-      loadingProgress.value = Math.min(50 + ((elapsedTime - 4000) / maxTime) * 100, 80);
+      loadingProgress.value = Math.min(50 + ((elapsedTime - 8000) / maxTime) * 100, 80);
     } else {
       loadingMessage.value = "Finalizing results...";
-      loadingProgress.value = Math.min(80 + ((elapsedTime - 6000) / maxTime) * 100, 95);
+      loadingProgress.value = Math.min(80 + ((elapsedTime - 12000) / maxTime) * 100, 95);
     }
     loadingProgress.value = Math.round(loadingProgress.value);
     // Stop at 95% - will reach 100% when data is actually received
@@ -72,7 +72,6 @@ const fetchExecutionResults = async () => {
     const response = await apiRequest(`/students/submissions/assignments/submissions/code/${submissionId}`);
     executionResult.value = response ?? executionResult.value;
     loadingProgress.value = 100;
-
     // Delay for smooth animation completion
     await new Promise(resolve => setTimeout(resolve, 500));
     showLottieAnimation.value = false;
@@ -120,7 +119,7 @@ const getResultsSummary = computed(() => {
     total,
     success,
     failed,
-    score: executionResult.value.score * 100
+    score: executionResult.value.score
   };
 });
 
@@ -195,7 +194,7 @@ onMounted(() => {
       </div>
       <div class="summary-item score">
         <span class="label">Score:</span>
-        <span class="value">{{ getResultsSummary.score.toFixed(0) }}%</span>
+        <span class="value">{{ getResultsSummary.score?.toFixed(0) }}%</span>
       </div>
     </div>
 

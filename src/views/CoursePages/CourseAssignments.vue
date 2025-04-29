@@ -65,9 +65,9 @@ const getStatusType = (status: string) => {
     'open': 'success',
     'upcoming': 'info',
     'closed': 'danger',
-    'accepted': 'success',
+    'graded': 'success',
     'pending': 'warning',
-    'rejected': 'danger'
+    'draft': 'info',
   }
 
   return get(statusMap, status, 'info')

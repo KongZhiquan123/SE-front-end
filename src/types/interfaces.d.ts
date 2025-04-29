@@ -141,10 +141,6 @@ export interface CodeAssignmentConfig {
     memoryLimitMB: number,
     timeLimitEnabled: boolean,
     timeLimitSeconds: number,
-    languageVersions: string,
-    disabledLibraries: string,
-    autoGradingEnabled: boolean,
-    showDetailedResults: boolean,
 }
 
 //CodeRun.vue

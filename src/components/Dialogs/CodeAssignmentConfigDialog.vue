@@ -110,10 +110,6 @@ const form = reactive<CodeAssignmentConfig>({
   memoryLimitMB: 256,
   timeLimitEnabled: false,
   timeLimitSeconds: 5,
-  languageVersions: '',
-  disabledLibraries: '',
-  autoGradingEnabled: true,
-  showDetailedResults: true,
 });
 const formRef = ref<FormInstance>();
 // Form validation rules
@@ -162,16 +158,11 @@ const saving = ref(false);
 
 // Available programming languages
 const availableLanguages = [
-  { value: 'python', label: 'Python' },
+  { value: 'python3', label: 'Python3' },
   { value: 'java', label: 'Java' },
-  { value: 'javascript', label: 'JavaScript' },
-  { value: 'typescript', label: 'TypeScript' },
-  { value: 'csharp', label: 'C#' },
   { value: 'cpp', label: 'C++' },
   { value: 'c', label: 'C' },
-  { value: 'go', label: 'Go' },
-  { value: 'ruby', label: 'Ruby' },
-  { value: 'php', label: 'PHP' }
+  { value: 'sql', label: 'SQLite'}
 ];
 
 // Convert between string and array for languages
