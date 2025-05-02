@@ -629,7 +629,7 @@ const goBack = () => {
   }
 }
 
-.preview {
+.preview-able {
   &-container {
     width: 100%;
     display: flex;

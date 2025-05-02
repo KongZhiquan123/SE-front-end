@@ -53,160 +53,12 @@
         />
       </div>
     </el-card>
-
-    <!-- 选中的提交项的评分对话框 -->
-    <el-dialog v-model="gradingDialogVisible" class="submission-details">
-      <template #header>
-        <div class="card-header">
-          <div class="submission-header">
-            <h2>Grading: {{ selectedSubmission.id }}</h2>
-            <el-tag :type="getStatusType(selectedSubmission.status)">
-              {{ getStatusText(selectedSubmission.status) }}
-            </el-tag>
-          </div>
-
-        </div>
-      </template>
-
-      <div class="submission-info">
-        <div class="info-row">
-          <div class="info-item">
-            <strong>Submit Time:</strong> {{ formatDate(selectedSubmission.submitTime) }}
-          </div>
-          <div class="info-item">
-            <strong>Student:</strong> {{ selectedSubmission.studentName }}
-          </div>
-          <div class="info-item">
-            <strong>Attempt Count:</strong> {{ selectedSubmission.attempts }}
-          </div>
-        </div>
-      </div>
-      <!-- AI评分部分 -->
-      <div v-if="selectedSubmission.aiGrading" class="ai-grading-section">
-        <h3>AI Grading Results</h3>
-        <el-alert
-            title="AI assessment is provided for reference only. Please review and provide your own evaluation."
-            type="info"
-            :closable="false"
-            class="ai-disclaimer"
-        />
-
-        <div class="ai-score-container">
-          <div class="ai-score-box">
-            <div class="ai-score-label">AI Score</div>
-            <div class="ai-score-value">{{ selectedSubmission.aiGrading.aiScore }}</div>
-          </div>
-
-          <div class="ai-confidence">
-            <span class="confidence-label">Confidence:</span>
-            <el-progress
-                :percentage="selectedSubmission.aiGrading.confidence * 100"
-                :color="getConfidenceColor(selectedSubmission.aiGrading.confidence)"
-                :stroke-width="8"
-                :show-text="false"
-                class="confidence-bar"
-            />
-            <span class="confidence-value">{{ Math.round(selectedSubmission.aiGrading.confidence * 100) }}%</span>
-          </div>
-        </div>
-
-        <div class="ai-feedback">
-          <div class="ai-feedback-label">AI Feedback Suggestions:</div>
-          <div class="ai-feedback-content">{{ selectedSubmission.aiGrading.feedbackSuggestions }}</div>
-          <el-button
-              type="primary"
-              size="small"
-              @click="useAIFeedback"
-              class="use-ai-feedback"
-              plain
-          >
-            Use AI Feedback
-          </el-button>
-        </div>
-      </div>
-      <!-- 文本回答部分 -->
-      <div v-if="selectedSubmission.textResponse" class="text-response">
-        <h3>Text Response</h3>
-        <div class="response-content">{{ selectedSubmission.textResponse }}</div>
-      </div>
-
-      <!-- 代码提交部分 -->
-      <div v-if="selectedSubmission?.codeSubmissions?.length" class="code-submissions">
-        <h3>Code Submissions</h3>
-        <el-tabs v-model="activeCodeTab" type="border-card">
-          <el-tab-pane
-              v-for="(code, index) in selectedSubmission.codeSubmissions"
-              :key="code.id"
-              :label="`${code.language} (v${code.versionIndex})`"
-              :name="String(index)"
-          >
-            <div class="code-header">
-              <span><strong>Language:</strong> {{ code.language }}</span>
-              <span><strong>Version:</strong> {{ code.versionIndex }}</span>
-            </div>
-            <pre class="code-display"><code>{{ code.script }}</code></pre>
-          </el-tab-pane>
-        </el-tabs>
-      </div>
-
-      <!-- 附件部分 -->
-      <div v-if="selectedSubmission?.attachments?.length" class="attachments">
-        <h3>Attachments</h3>
-        <el-table :data="selectedSubmission.attachments" stripe style="width: 100%">
-          <el-table-column prop="name" label="Name" />
-          <el-table-column prop="size" label="Size"  width="120" />
-          <el-table-column label="Actions" width="120">
-            <template #default="scope">
-              <el-button @click="viewAttachment(scope.row)" type="primary" size="small">
-                View
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-
-      <!-- 评分部分 -->
-      <div class="grading-section">
-        <h3>Grade Submission</h3>
-        <el-form :model="grading" label-position="top">
-          <el-form-item label="Score" prop="score">
-            <el-input-number
-                v-model="grading.score"
-                :min="0"
-                :max="100"
-                :step="1"
-                controls-position="right"
-                placeholder="Enter score"
-            />
-          </el-form-item>
-
-          <el-form-item label="Feedback" prop="feedback">
-            <el-input
-                v-model="grading.feedback"
-                type="textarea"
-                :rows="4"
-                placeholder="Provide constructive feedback for the student"
-            />
-          </el-form-item>
-
-          <div class="form-actions">
-            <el-button @click="closeSubmission">Close</el-button>
-            <el-button @click="resetGrading">Reset</el-button>
-            <el-button type="primary" @click="submitGrading" :loading="isSubmitting">
-              Submit Grading
-            </el-button>
-          </div>
-        </el-form>
-      </div>
-    </el-dialog>
   </el-main>
 </template>
 
 <script lang="ts" setup>
 import {ref, reactive, watch, computed} from 'vue';
-import { ElMessage } from 'element-plus';
-import {formatDate} from "@/utils/formatDate";
-import {Submission, Attachment} from "@/types/interfaces";
+import {Submission} from "@/types/interfaces";
 import {cloneDeep, defaultTo} from "lodash-es";
 import apiRequest from "@/utils/apiUtils";
 import {useRoute, useRouter} from "vue-router";
@@ -241,7 +93,6 @@ const assignmentId = route.query.assignmentId;
 // UI 状态
 const selectedSubmission = ref<Submission>(cloneDeep(defaultSubmission));
 const activeCodeTab = ref('0');
-const isSubmitting = ref(false);
 const statusFilter = ref('');
 const currentPage = ref(1);
 const pageSize = ref(10);
@@ -294,84 +145,14 @@ const selectSubmission = (submission: Submission): void => {
   grading.feedback = defaultTo(submission.grade?.feedback, '');
   // 重置代码标签
   activeCodeTab.value = '0';
-};
-
-// 关闭当前选定的提交项
-const closeSubmission = (): void => {
-  selectedSubmission.value = cloneDeep(defaultSubmission);
-  gradingDialogVisible.value = false;
-  resetGrading();
-};
-
-// 查看附件
-const viewAttachment = (attachment: Attachment): void => {
-  // 在实际应用中，可能会在新窗口打开或者使用预览组件
-  window.open(attachment.url, '_blank');
-};
-//置信度颜色
-const getConfidenceColor = (confidence: number): string => {
-  if (confidence >= 0.8) return '#67C23A'; // High confidence - green
-  if (confidence >= 0.5) return '#E6A23C'; // Medium confidence - orange
-  return '#F56C6C'; // Low confidence - red
-};
-
-// Method to use AI feedback
-const useAIFeedback = (): void => {
-  if (selectedSubmission.value.aiGrading) {
-    grading.feedback = selectedSubmission.value.aiGrading.feedbackSuggestions;
-    ElMessage.success('AI feedback has been applied');
-  }
-};
-// 重置表单
-const resetGrading = (): void => {
-  if (selectedSubmission.value) {
-    // 重置为当前已有的值
-    grading.score = selectedSubmission.value.score || 0;
-    grading.feedback = selectedSubmission.value.feedback || '';
-  } else {
-    // 完全重置
-    grading.score = 0;
-    grading.feedback = '';
-  }
-};
-
-// 提交评分
-const submitGrading = async (): Promise<void> => {
-  // 表单验证
-  if (grading.feedback.trim() === '') {
-    ElMessage.warning('Please provide feedback for the student');
-    return;
-  }
-
-  if (!selectedSubmission.value) {
-    ElMessage.error('No submission selected');
-    return;
-  }
-
-  try {
-    isSubmitting.value = true;
-
-
-    // 成功后更新状态 (更新当前选定的项目和列表中的项目)
-    const submissionId = selectedSubmission.value.id;
-    const data = await apiRequest(`/teachers/grades/${submissionId}`,
-        'POST', 'Error submitting grading', {...grading});
-    if (!data) {
-      return;
-    }
-    // 更新列表中的项目
-    const submissionIndex = submissionsList.findIndex(s => s.id === submissionId);
-    if (submissionIndex !== -1) {
-      submissionsList[submissionIndex].status = 'pending';
-    }
-
-    // 更新当前选定的项目
-    selectedSubmission.value.status = 'pending';
-
-    ElMessage.success(`Grading for ${selectedSubmission.value.studentName} has been submitted successfully`);
-  } finally {
-    isSubmitting.value = false;
-  }
+  router.push({
+    path: '/teacher-course/grading-submission',
+    query: {
+      courseId: route.query.courseId,
+      courseCode: route.query.courseCode,
+      submissionId: submission.id
+    },
+  })
 };
 
 // 处理分页变化

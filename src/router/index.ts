@@ -10,72 +10,72 @@ const router = createRouter({
     routes: [
         {
             path: '/',
-            component: () => import('../views/HomeLayout.vue'),
+            component: () => import('@/views/HomeLayout.vue'),
             meta: {requiresAuth: true, roles: ['student', 'teacher', 'admin']},
             children: [
                 {
                     path: '',
-                    component: () => import('../views/HomePages/Home.vue'),
+                    component: () => import('@/views/HomePages/Home.vue'),
                     meta: {requiresAuth: false, roles: ['student', 'teacher', 'admin', null]},
                 },
                 {
                     path: 'calendar',
-                    component: () => import('../views/HomePages/Calendar.vue'),
+                    component: () => import('@/views/HomePages/Calendar.vue'),
                 },
                 {
                     path: 'archived-classes',
-                    component: () => import('../views/HomePages/ArchivedClasses.vue'),
+                    component: () => import('@/views/HomePages/ArchivedClasses.vue'),
                 },
                 {
                     path: 'settings',
-                    component: () => import('../views/HomePages/ProfileSettings.vue'),
+                    component: () => import('@/views/HomePages/ProfileSettings.vue'),
                 },
                 {
                     path: 'notifications',
-                    component: () => import('../views/HomePages/Notifications.vue'),
+                    component: () => import('@/views/HomePages/Notifications.vue'),
                 }
             ]
         },
         {
             path: '/student-course',
-            component: () => import('../views/CourseLayout.vue'),
+            component: () => import('@/views/CourseLayout.vue'),
             meta: {requiresAuth: true, roles: ['student', 'admin']},
             children: [
                 {
                     path: 'course-materials',
-                    component: () => import('../views/CoursePages/CourseMaterials.vue'),
+                    component: () => import('@/views/CoursePages/CourseMaterials.vue'),
 
                 },
                 {
                     path: 'course-basic-info',
-                    component: () => import('../views/CoursePages/CourseBasicInformation.vue'),
+                    component: () => import('@/views/CoursePages/CourseBasicInformation.vue'),
                 },
                 {
                     path: 'course-grades',
-                    component: () => import('../views/CoursePages/CourseGrades.vue'),
+                    component: () => import('@/views/CoursePages/CourseGrades.vue'),
                 },
                 {
                     path: 'course-assignments',
-                    component: () => import('../views/CoursePages/CourseAssignments.vue'),
+                    component: () => import('@/views/CoursePages/CourseAssignments.vue'),
                 },
                 {
                     path: 'submit-assignments',
-                    component: () => import('../views/CoursePages/CourseSubmission.vue'),
+                    component: () => import('@/views/CoursePages/CourseSubmission.vue'),
                 }
             ]
         },
         {
             path: '/teacher-course',
-            component: () => import('../views/CourseLayout.vue'),
+            component: () => import('@/views/CourseLayout.vue'),
             meta: {requiresAuth: true, roles: ['teacher', 'admin']},
             children: [
                 {
                     path: 'course-basic-info',
-                    component: () => import('../views/CoursePages/CourseBasicInformation.vue'),
+                    component: () => import('@/views/CoursePages/CourseBasicInformation.vue'),
                 },
                 {
                     path: 'assignment-management',
-                    component: () => import('../views/CoursePages/AssignmentManagement.vue'),
+                    component: () => import('@/views/CoursePages/AssignmentManagement.vue'),
                 },
                 {
                     path: 'create-assignment',
@@ -87,11 +87,15 @@ const router = createRouter({
                 },
                 {
                     path: 'grading-assignment',
-                    component: () => import('../components/AssignmentComponents/AssignmentGrading.vue')
+                    component: () => import('@/components/AssignmentComponents/AssignmentGrading.vue')
+                },
+                {
+                    path: 'grading-submission',
+                    component: () => import('@/components/AssignmentComponents/SubmissionView.vue')
                 },
                 {
                     path: 'resource-management',
-                    component: () => import('../views/CoursePages/ResourceManagement.vue'),
+                    component: () => import('@/views/CoursePages/ResourceManagement.vue'),
                 },
                 {
                     path: 'create-resource',
@@ -101,6 +105,7 @@ const router = createRouter({
                     path: 'update-resource',
                     component: () => import('@/components/ResourceComponents/ResourceUpdate.vue')
                 },
+                
             ]
         },
         {
@@ -108,37 +113,37 @@ const router = createRouter({
             children: [
                 {
                     path: 'login',
-                    component: () => import('../views/AuthPages/Login.vue')
+                    component: () => import('@/views/AuthPages/Login.vue')
                 },
                 {
                     path: 'register',
-                    component: () => import('../views/AuthPages/Register.vue')
+                    component: () => import('@/views/AuthPages/Register.vue')
                 },
                 {
                     path: 'reset-password',
-                    component: () => import('../views/AuthPages/ResetPassword.vue')
+                    component: () => import('@/views/AuthPages/ResetPassword.vue')
                 }
             ]
         },
         {
             path: '/code-edit-and-run',
-            component: () => import('../views/CodeEditorLayout.vue'),
+            component: () => import('@/views/CodeEditorLayout.vue'),
             meta: {requiresAuth: true},
             children: [
                 {
                     path: 'code-edit',
-                    component: () => import('../views/CodeEditAndAssessmentPages/CodeEditor.vue'),
+                    component: () => import('@/views/CodeEditAndAssessmentPages/CodeEditor.vue'),
                 },
                 {
                     path: 'code-run',
-                    component: () => import('../views/CodeEditAndAssessmentPages/CodeRun.vue'),
+                    component: () => import('@/views/CodeEditAndAssessmentPages/CodeRun.vue'),
                 }
             ]
         },
         {
             path: '/:pathMatch(.*)*',
             name: 'not-found',
-            component: () => import('../views/404NotFound.vue')
+            component: () => import('@/views/404NotFound.vue')
         }
     ]
 })

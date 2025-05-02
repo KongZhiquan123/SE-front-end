@@ -3,7 +3,7 @@ import {defaultTo} from "lodash-es";
 import formatFileSize from "@/utils/formatFileSize";
 import {formatDate} from "@/utils/formatDate";
 
-export function submissionsConversion(submissions?: Submission[]) {
+export function submissionsConversion(submissions?): Submission[] {
     if (!submissions || submissions.length === 0) {
         return [];
     }
@@ -20,4 +20,19 @@ export function submissionsConversion(submissions?: Submission[]) {
             codeSubmissions: submission.contents.filter(content => content.type.toLowerCase() === 'code')
                 .map(content => content.codeSubmission)
         })).reverse();
+}
+export function submissionConversion(submission): Submission {
+    if (!submission) {
+        return null;
+    }
+    return {
+        ...submission,
+        submitTime: formatDate(submission.submitTime),
+        status: submission.status.toLowerCase(),
+        textResponse: defaultTo(submission.contents.filter(content => content.type.toLowerCase() === 'text')[0]?.content, ''),
+        attachments: submission.contents.filter(content => content.type.toLowerCase() === 'file' && content.file)
+            .map(content => ({...content.file, size: formatFileSize(content.file.size)})),
+        codeSubmissions: submission.contents.filter(content => content.type.toLowerCase() === 'code')
+            .map(content => content.codeSubmission)
+    };
 }

@@ -64,7 +64,7 @@
             <el-table-column prop="size" label="Size" width="120"/>
             <el-table-column label="Operations" width="200">
               <template #default="{ row }">
-                <el-button type="primary" size="small" @click="downloadFile(row.url)">
+                <el-button type="primary" size="small" @click="downloadFile(row)">
                   Download
                 </el-button>
                 <el-button type="danger" size="small" @click="deleteAttachment(row)">

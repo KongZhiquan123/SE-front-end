@@ -43,7 +43,7 @@
                   <span class="filesize">{{ file.size }}</span>
                   <el-button type="primary"
                              class="download-btn"
-                             @click="downloadFile(file.url)">
+                             @click="downloadFile(file)">
                     <el-icon><Download /></el-icon>
                     Download
                   </el-button>

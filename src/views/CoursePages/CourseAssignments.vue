@@ -207,7 +207,7 @@ const copyToClipboard = (text: string) => {
                 <span class="file-name">{{ file.name }}</span>
                 <span class="file-size">{{ file.size }}</span>
               </div>
-              <el-button size="default" type="primary" text @click="downloadFile(file?.url)" :icon="Download">
+              <el-button size="default" type="primary" text @click="downloadFile(file)" :icon="Download">
                 Download
               </el-button>
             </div>
@@ -268,7 +268,7 @@ const copyToClipboard = (text: string) => {
                       <Document/>
                     </el-icon>
                     <span>{{ file.name }}</span>
-                    <el-button size="small" type="primary" text @click="downloadFile(file?.url)">
+                    <el-button size="small" type="primary" text @click="downloadFile(file)">
                       Download
                     </el-button>
                   </div>
