@@ -6,7 +6,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { useRouter } from 'vue-router'
 import request from "@/utils/request.ts"
 import type { AxiosError } from "axios"
-import useVerificationCode from '@/utils/useVerificationCode.ts'
+import useVerificationCode from '@/views/AuthPages/useVerificationCode.ts'
 
 // 定义重置密码表单接口
 interface ResetPasswordForm {

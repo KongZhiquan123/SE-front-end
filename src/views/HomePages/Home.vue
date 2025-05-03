@@ -117,11 +117,15 @@ const getCardColor = (index: number): string => {
 }
 
 const openCreateDialog = () => {
-  createDialogRef.value.open()
+  if (createDialogRef.value) {
+    createDialogRef.value.open()
+  }
 }
 
 const openJoinDialog = () => {
-  joinDialogRef.value.open()
+  if (joinDialogRef.value) {
+    joinDialogRef.value.open()
+  }
 }
 
 const handleCourseCreated = (newCourse: CourseItem) => {

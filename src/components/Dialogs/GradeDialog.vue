@@ -42,8 +42,6 @@ const submitting = ref(false)
 // 关闭对话框
 const closeDialog = () => {
   visible.value = false
-  gradeForm.value.score = props.currentGrade?.score || null
-  gradeForm.value.feedback = props.currentGrade?.feedback || ''
 }
 
 // 提交评分

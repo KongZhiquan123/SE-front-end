@@ -7,7 +7,7 @@ import { useRouter } from 'vue-router'
 import request from "@/utils/request.ts";
 import type { RegisterForm } from '@/types/interfaces'
 import type {AxiosError} from "axios";
-import useVerificationCode from "@/utils/useVerificationCode.ts";
+import useVerificationCode from "@/views/AuthPages/useVerificationCode.ts";
 
 const router = useRouter()
 const loading = ref(false)

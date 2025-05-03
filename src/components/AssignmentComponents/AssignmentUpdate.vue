@@ -184,9 +184,9 @@
       </template>
     </el-dialog>
     <CodeAssignmentConfigDialog
+        ref="codeConfigDialog"
         v-model:config="assignment.codeConfig"
         :assignment-id="assignment.id"
-        v-model:visible="codeConfigDialogVisible"
     />
   </el-main>
 </template>
@@ -256,10 +256,12 @@ const currentTestCase = reactive<TestCase>({
   weight: 10,
 });
 const isSaving = ref(false);
-const codeConfigDialogVisible = ref(false);
+const codeConfigDialog = ref<InstanceType<typeof CodeAssignmentConfigDialog> | null>(null);
 
 const showCodeConfigDialog = () => {
-  codeConfigDialogVisible.value = true;
+  if (codeConfigDialog.value) {
+    codeConfigDialog.value.open();
+  }
 };
 
 // Test Case Management

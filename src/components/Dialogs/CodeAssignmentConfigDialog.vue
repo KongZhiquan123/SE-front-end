@@ -80,11 +80,6 @@ import {ElMessage, FormInstance, FormRules} from 'element-plus';
 import { CodeAssignmentConfig } from '@/types/interfaces';
 import apiRequest from '@/utils/apiUtils';
 
-const visible = defineModel<boolean>('visible', {
-  type: Boolean,
-  default: false,
-});
-
 const props = defineProps({
   config: {
     type: Object as () => CodeAssignmentConfig,
@@ -102,6 +97,8 @@ const props = defineProps({
     default: 0,
   }
 });
+
+const visible = ref(false);
 const emit = defineEmits(['update:config']);
 const form = reactive<CodeAssignmentConfig>({
   id: 0,
@@ -193,6 +190,7 @@ const saveConfig = async () => {
   if (!form.id){
     emit('update:config', {...form});
     visible.value = false;
+    ElMessage.success(`Configuration saved successfully`);
     return
   }
   saving.value = true;
@@ -217,6 +215,10 @@ const saveConfig = async () => {
     saving.value = false;
   }
 };
+const open = () => {
+  visible.value = true;
+};
+defineExpose({open});
 </script>
 
 <style lang="scss" scoped>

@@ -120,7 +120,10 @@
       </el-form>
 
     </el-card>
-    <CodeAssignmentConfigDialog v-model:visible="codeConfigDialogVisible" v-model:config="codeConfig" :assignment-id="0"/>
+    <CodeAssignmentConfigDialog
+        ref="codeConfigDialog"
+        v-model:config="codeConfig"
+        :assignment-id="0"/>
   </el-main>
 </template>
 
@@ -183,9 +186,11 @@ const assignmentRules: FormRules = {
   openDate: [{required: true, message: 'Please select the open date', trigger: 'change'}],
   maxScore: [{required: true, message: 'Please input the max score', trigger: 'blur'}],
 };
-const codeConfigDialogVisible = ref(false);
+const codeConfigDialog = ref<InstanceType<typeof CodeAssignmentConfigDialog> | null>(null);
 const showCodeConfigDialog = () => {
-  codeConfigDialogVisible.value = true;
+  if (codeConfigDialog.value) {
+    codeConfigDialog.value.open();
+  }
 };
 const beforeAttachmentUpload = (file: UploadRawFile) => {
   // Check file size (10MB max)

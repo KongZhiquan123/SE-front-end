@@ -8,6 +8,7 @@ import type { Assignment } from "@/types/interfaces";
 import downloadFile from "@/utils/downloadFile";
 import request from "@/utils/request";
 import apiRequest from "@/utils/apiUtils";
+import convertWordToHtml from "@/utils/convertWordToHtml";
 
 const route = useRoute();
 const router = useRouter();
@@ -79,9 +80,15 @@ const removeFile = (file: UploadFile) => {
 };
 
 // 预览文件
-const previewFileHandler = (file: UploadFile) => {
+const previewFileHandler = async (file: UploadFile) => {
   if (!file.url && file.raw) {
-    file.url = URL.createObjectURL(file.raw);
+    if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
+      // 如果是Word文件，转换为HTML
+      file.url = await convertWordToHtml(file.raw);
+    } else {
+      // 其他文件类型直接创建URL
+      file.url = URL.createObjectURL(file.raw);
+    }
   }
 
   previewFile.value = file;
@@ -96,7 +103,7 @@ const closePreview = () => {
 // 判断文件是否可预览
 const isPreviewable = (fileName: string) => {
   const extension = fileName.split('.').pop()?.toLowerCase() || '';
-  const previewableExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'txt', 'html', 'htm'];
+  const previewableExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'txt', 'html', 'htm', 'doc', 'docx'];
   return previewableExtensions.includes(extension);
 };
 
@@ -143,7 +150,7 @@ const processSubmission = async () => {
       formData.append('files', file.raw);
     });
 
-    const response = await request.post(
+    await request.post(
         `/students/submissions/${assignmentId}/submissions`,
         formData,
         {
@@ -152,7 +159,6 @@ const processSubmission = async () => {
           }
         }
     );
-    console.log('Submission result:', response.data);
     ElMessage.success('Assignment submitted successfully!');
     goBack();
   } catch (error) {
@@ -373,7 +379,7 @@ const goBack = () => {
     <div class="preview-container">
       <iframe
           v-if="previewFile?.url"
-          :src="previewFile.url"
+          :src="previewFile?.url"
           class="preview-iframe"
       ></iframe>
       <div v-else class="preview-fallback">
@@ -629,7 +635,7 @@ const goBack = () => {
   }
 }
 
-.preview-able {
+.preview {
   &-container {
     width: 100%;
     display: flex;

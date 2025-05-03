@@ -2,13 +2,14 @@
 import {ref, computed, onBeforeUnmount} from 'vue'
 import { ElMessage } from 'element-plus'
 import type {Attachment, CodeSubmission, Submission} from "@/types/interfaces";
-import {capitalize} from "lodash-es";
-import {Document, Picture, Folder, Download, CoffeeCup} from '@element-plus/icons-vue'
+import {capitalize, defaultTo} from "lodash-es";
+import {Document, Picture, Folder, Download, CoffeeCup, Edit, Plus} from '@element-plus/icons-vue'
 import apiRequest from "@/utils/apiUtils";
 import {useRoute} from "vue-router";
 import {submissionConversion} from "@/utils/DataFormatConversion";
 import GradingDialog from '../Dialogs/GradeDialog.vue';
 import downloadFile from "@/utils/downloadFile";
+import convertWordToHtml from "@/utils/convertWordToHtml";
 const submission = ref<Submission>({
   id: 0,
   studentName: '',
@@ -31,22 +32,21 @@ const route = useRoute();
 apiRequest<Submission>(`/teachers/submissions/${route.query.submissionId}`).then((res) => {
   submission.value = res ?? submission.value;
   submission.value = submissionConversion(submission.value);
-  if (submission.value.grade?.score) {
-    submission.value.grade.maxScore = submission.value.grade.maxScore || 100;
+  if (submission.value.grade) {
+    submission.value.grade.score = defaultTo(submission.value.grade.score, "N/A");
+    submission.value.grade.maxScore = defaultTo(submission.value.grade.maxScore, 100);
   }
-}).then(
-    //初始化当前附件和代码提交，以便预览
-    () => {
-      if (submission.value.attachments && submission.value.attachments.length > 0) {
-        currentAttachment.value = submission.value.attachments[0]
-        loadBlob(submission.value.attachments[0])
-      }
-
-      if (submission.value.codeSubmissions && submission.value.codeSubmissions.length > 0) {
-        currentCodeSubmission.value = submission.value.codeSubmissions[0]
-      }
+  //初始化当前附件和代码提交，以便预览
+}).then(() => {
+    if (submission.value.attachments && submission.value.attachments.length > 0) {
+      currentAttachment.value = submission.value.attachments[0]
+      loadBlob(submission.value.attachments[0])
     }
-).catch(() => {
+
+    if (submission.value.codeSubmissions && submission.value.codeSubmissions.length > 0) {
+      currentCodeSubmission.value = submission.value.codeSubmissions[0]
+    }
+}).catch(() => {
   ElMessage.error('Failed to load submission data');
 })
 // UI 状态
@@ -57,7 +57,8 @@ const gradingDialog = ref<InstanceType<typeof GradingDialog> | null>(null)
 
 onBeforeUnmount(() => {
   if (blobUrl.value) {
-    window.URL.revokeObjectURL(blobUrl.value)
+    window.URL.revokeObjectURL(blobUrl.value);
+    blobUrl.value = null
   }
 })
 // Calculate AI confidence level display
@@ -72,7 +73,7 @@ const confidenceLevel = computed(() => {
 
 const blobUrl = ref<string | null>(null)
 const loadBlob = async (attachment: Attachment) => {
-  if (!attachment || !attachment.id) return
+  if (!attachment || !attachment.id) return null;
   try {
     const blob = await apiRequest({
       url: `/attachments/${attachment.id}/download`,
@@ -82,12 +83,23 @@ const loadBlob = async (attachment: Attachment) => {
       }
     })
 
+    // 如果有之前的 URL，先释放它
     if (blobUrl.value) {
       window.URL.revokeObjectURL(blobUrl.value)
+      blobUrl.value = null
     }
 
-    blobUrl.value = window.URL.createObjectURL(blob)
-    return blobUrl.value
+    // 检查是否为 Word 文档类型 (.doc 或 .docx)
+    const fileName = attachment.name.toLowerCase()
+    if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
+      const htmlUrl = await convertWordToHtml(blob)
+      blobUrl.value = htmlUrl
+      return htmlUrl
+    } else {
+      // 其他类型的文件直接创建 URL
+      blobUrl.value = window.URL.createObjectURL(blob)
+      return blobUrl.value
+    }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     ElMessage.error('Failed to load file')
@@ -112,26 +124,14 @@ const showCodeSubmission = (codeSubmission: CodeSubmission) => {
 
 // Get file icon based on extension
 const getFileIcon = (fileName: string) => {
-  const fileIconMap = {
+  const fileIconMap: Record<string, string> = Object.fromEntries([
     // 文档类
-    pdf: Document,
-    doc: Document,
-    docx: Document,
-    xls: Document,
-    xlsx: Document,
-    ppt: Document,
-    pptx: Document,
-
+    ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].map(ext => [ext, Document]),
     // 图片类
-    jpg: Picture,
-    jpeg: Picture,
-    png: Picture,
-    gif: Picture,
-
+    ['jpg', 'jpeg', 'png', 'gif'].map(ext => [ext, Picture]),
     // 压缩文件
-    zip: Folder,
-    rar: Folder,
-  }
+    ['zip', 'rar'].map(ext => [ext, Folder])
+  ].flat())
   const extension = fileName.split('.').pop()?.toLowerCase() || ''
   return fileIconMap[extension] || Document // 默认返回Document图标
 }
@@ -160,7 +160,7 @@ const getLanguageDisplay = (language: string): string => {
 }
 // Calculate score percentage for the progress bar
 const scorePercentage = computed(() => {
-  if (!submission.value.grade?.score) return 0
+  if (!submission.value.grade) return 0
   return (submission.value.grade.score / submission.value.grade.maxScore) * 100
 })
 
@@ -190,10 +190,9 @@ const openGradingDialog = () => {
 }
 const isPreviewable = computed<boolean>(() => {
   if (!currentAttachment.value) return false;
-  const imageExtensions = ['jpg', 'jpeg', 'png', 'gif'];
-  const pdfExtensions = ['pdf'];
+  const previewableExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'htm', 'txt', 'docx', 'doc'];
   const fileExtension = currentAttachment.value.name.split('.').pop()?.toLowerCase() || '';
-  return imageExtensions.includes(fileExtension) || pdfExtensions.includes(fileExtension);
+  return previewableExtensions.includes(fileExtension);
 })
 </script>
 
@@ -280,17 +279,17 @@ const isPreviewable = computed<boolean>(() => {
           <el-button
               type="primary"
               @click="openGradingDialog"
-              :icon="submission.status === 'graded' ? 'Edit' : 'Plus'"
+              :icon="submission.status === 'graded' ? Edit : Plus"
               class="grade-button"
           >
             {{ submission.status === 'graded' ? 'Edit Grade' : 'Submit Grade' }}
           </el-button>
         </div>
         <!-- Grade information -->
-        <div class="score-section" >
+        <div class="score-section" v-if="submission.grade || submission.aiGrading">
           <h4>Grade Information</h4>
           <div class="score-container" >
-            <div class="score-display" v-if="submission.grade?.score">
+            <div class="score-display" v-if="submission.grade">
               <span class="score-text" :style="{ color: scoreColor }">
                 {{ submission.grade.score }}
               </span>
@@ -298,7 +297,7 @@ const isPreviewable = computed<boolean>(() => {
               <span class="max-score">{{ submission.grade.maxScore }}</span>
             </div>
             <el-progress
-                v-if="submission.grade?.score"
+                v-if="submission.grade"
                 :percentage="scorePercentage"
                 :color="scoreColor"
                 :stroke-width="10"
@@ -459,6 +458,7 @@ const isPreviewable = computed<boolean>(() => {
 
       .code-preview {
         width: 100%;
+        box-sizing: border-box;
         height: 100%;
         overflow: auto;
         padding: 20px;
