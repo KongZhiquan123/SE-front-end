@@ -71,11 +71,12 @@ const formRef = shallowRef<FormInstance>();
 const uploadRef = ref<UploadInstance>();
 const isSubmitting = ref<boolean>(false);
 // State
-const defaultForm = {
+const defaultForm: Resource = {
   id: 0,
   title: '',
   type: '',
   description: '',
+  uploadTime: '',
 };
 const form = reactive<Resource>({...defaultForm});
 

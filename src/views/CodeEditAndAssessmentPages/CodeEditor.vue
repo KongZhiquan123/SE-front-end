@@ -4,8 +4,8 @@ import {ElMessage} from "element-plus";
 import {useRoute, useRouter} from 'vue-router';
 import { Document, Monitor, Cpu, Timer, Collection, Upload } from '@element-plus/icons-vue'
 import apiRequest from "@/utils/apiUtils";
-import { ProgrammingLanguage, codeTemplates, languageVersions } from './supportLanguages';
-import {Assignment, CodeAssignmentConfig} from "@/types/interfaces";
+import {type ProgrammingLanguage, codeTemplates, languageVersions } from './supportLanguages';
+import type {Assignment, CodeAssignmentConfig} from "@/types/interfaces";
 // editorContainer元素的引用，它在挂载到DOM后会被用来初始化monaco编辑器
 const editorContainer = shallowRef<HTMLElement | null>(null);
 // 用于导入monaco-editor

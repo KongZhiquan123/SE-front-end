@@ -58,7 +58,7 @@
 
 <script lang="ts" setup>
 import {ref, reactive, watch, computed} from 'vue';
-import {Submission} from "@/types/interfaces";
+import type {Submission} from "@/types/interfaces";
 import {cloneDeep, defaultTo} from "lodash-es";
 import apiRequest from "@/utils/apiUtils";
 import {useRoute, useRouter} from "vue-router";
@@ -75,8 +75,9 @@ const grading = reactive<GradingForm>({
   feedback: '',
 });
 
-const defaultSubmission = {
+const defaultSubmission: Submission = {
   id: 0,
+  studentName: '',
   submitTime: '',
   status: 'pending',
   attempts: 0,

@@ -6,10 +6,13 @@ import { ElMessage } from 'element-plus';
  * @param input 原始文档的 Blob 对象或 Blob URL
  * @returns 转换后的 HTML 内容的 Blob URL，失败时返回 null
  */
-async function convertWordToHtml(input: Blob | string): Promise<string | null> {
+async function convertWordToHtml(input: Blob | string | null): Promise<string | null> {
+    if (!input) {
+        ElMessage.warning('Invalid file input');
+        return null;
+    }
     try {
         let blob: Blob;
-
         // 判断输入是 Blob 对象还是 Blob URL
         if (typeof input === 'string') {
             // 如果是 URL，则获取 Blob

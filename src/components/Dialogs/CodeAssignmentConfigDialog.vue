@@ -76,8 +76,8 @@
 
 <script lang="ts" setup>
 import { ref, reactive, watch, computed } from 'vue';
-import {ElMessage, FormInstance, FormRules} from 'element-plus';
-import { CodeAssignmentConfig } from '@/types/interfaces';
+import {ElMessage, type FormInstance, type FormRules} from 'element-plus';
+import type { CodeAssignmentConfig } from '@/types/interfaces';
 import apiRequest from '@/utils/apiUtils';
 
 const props = defineProps({
@@ -114,7 +114,7 @@ const rules: FormRules = {
   allowedLanguages: [
     { required: true, message: 'Please select at least one language', trigger: 'change' },
     {
-      validator: (rule, value, callback) => {
+      validator: (_, value, callback) => {
         if (!value || value.trim() === '') {
           callback(new Error('Please select at least one language'));
         } else {
@@ -126,7 +126,7 @@ const rules: FormRules = {
   ],
   memoryLimitMB: [
     {
-      validator: (rule, value, callback) => {
+      validator: (_, value, callback) => {
         if (form.memoryLimitEnabled && (!value || value < 1)) {
           callback(new Error('Please enter a valid memory limit'));
         } else {
@@ -138,7 +138,7 @@ const rules: FormRules = {
   ],
   timeLimitSeconds: [
     {
-      validator: (rule, value, callback) => {
+      validator: (_, value, callback) => {
         if (form.timeLimitEnabled && (!value || value < 1)) {
           callback(new Error('Please enter a valid time limit'));
         } else {

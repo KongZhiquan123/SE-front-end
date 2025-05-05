@@ -76,7 +76,6 @@
       <el-upload
           :http-request="() => {}"
           :before-upload="beforeUpload"
-          :on-success="onSuccess"
           v-model:file-list="fileList"
           multiple
           :limit="10"
@@ -106,8 +105,8 @@
 
 <script lang="ts" setup>
 import {ref, shallowRef} from 'vue';
-import {ElMessage, ElMessageBox, type FormInstance, type FormRules, UploadFile, UploadRawFile} from 'element-plus';
-import {Attachment, Resource} from '@/types/interfaces';
+import {ElMessage, ElMessageBox, type FormInstance, type FormRules, type UploadFile, type UploadRawFile} from 'element-plus';
+import type {Attachment, Resource} from '@/types/interfaces';
 import request from "@/utils/request";
 import apiRequest from "@/utils/apiUtils";
 import downloadFile from "@/utils/downloadFile";
@@ -122,6 +121,7 @@ const defaultForm: Resource = {
   description: '',
   type: 'code',
   attachments: [],
+  uploadTime: '',
 }
 
 const resourceRules: FormRules = {
@@ -158,7 +158,7 @@ apiRequest<Resource>(
 ).then(
     (resourceData) => {
       resource.value = resourceData ?? resource.value;
-      resource.value.attachments = resourceData.attachments ?? [];
+      resource.value.attachments = resourceData?.attachments ?? [];
       resetEditing();
       loadingAttachments.value = false;
       return resourceData;
@@ -219,19 +219,6 @@ const beforeUpload = (file: UploadRawFile) => {
   }
 
   return true;
-};
-
-// On success hook after successful upload
-const onSuccess = (response) => {
-  // If we have a resource, add the new attachment to the list
-  if (resource.value && resource.value.attachments) {
-    resource.value.attachments.push(response.data);
-  }
-
-  // Reset and close dialog
-  fileList.value = [];
-  attachmentDialogVisible.value = false;
-  ElMessage.success('Attachment uploaded successfully');
 };
 
 // Upload attachment function

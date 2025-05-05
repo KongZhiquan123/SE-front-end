@@ -12,7 +12,7 @@ const route = useRoute();
 const submissionId = route.query.submissionId;
 // Data
 const executionResult = ref<CodeExecutionResult>({
-  submissionId: submissionId,
+  submissionId: Number(submissionId),
   script: "",
   language: "",
   versionIndex: 0,

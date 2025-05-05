@@ -1,4 +1,4 @@
-import {Submission} from "@/types/interfaces";
+import type {Submission} from "@/types/interfaces";
 import {defaultTo} from "lodash-es";
 import formatFileSize from "@/utils/formatFileSize";
 import {formatDate} from "@/utils/formatDate";
@@ -22,9 +22,6 @@ export function submissionsConversion(submissions?): Submission[] {
         })).reverse();
 }
 export function submissionConversion(submission): Submission {
-    if (!submission) {
-        return null;
-    }
     return {
         ...submission,
         submitTime: formatDate(submission.submitTime),

@@ -2,7 +2,7 @@
 import {ref, computed, onBeforeUnmount} from 'vue'
 import { ElMessage } from 'element-plus'
 import type {Attachment, CodeSubmission, Submission} from "@/types/interfaces";
-import {capitalize, defaultTo} from "lodash-es";
+import {capitalize} from "lodash-es";
 import {Document, Picture, Folder, Download, CoffeeCup, Edit, Plus} from '@element-plus/icons-vue'
 import apiRequest from "@/utils/apiUtils";
 import {useRoute} from "vue-router";
@@ -18,23 +18,14 @@ const submission = ref<Submission>({
   textResponse: '',
   attachments: [],
   codeSubmissions: [],
-  grade: {
-    score: 0,
-    maxScore: 100,
-    feedback: ""
-  },
-  aiGrading: {
-    aiScore: 0,
-    confidence: 0.8
-  }
 })
 const route = useRoute();
 apiRequest<Submission>(`/teachers/submissions/${route.query.submissionId}`).then((res) => {
   submission.value = res ?? submission.value;
   submission.value = submissionConversion(submission.value);
   if (submission.value.grade) {
-    submission.value.grade.score = defaultTo(submission.value.grade.score, "N/A");
-    submission.value.grade.maxScore = defaultTo(submission.value.grade.maxScore, 100);
+    submission.value.grade.score = submission.value.grade.score ?? NaN;
+    submission.value.grade.maxScore = submission.value.grade.maxScore || 100;
   }
   //初始化当前附件和代码提交，以便预览
 }).then(() => {
@@ -72,16 +63,19 @@ const confidenceLevel = computed(() => {
 })
 
 const blobUrl = ref<string | null>(null)
+const loadingBlob = ref<boolean>(false)
 const loadBlob = async (attachment: Attachment) => {
   if (!attachment || !attachment.id) return null;
+  loadingBlob.value = true
   try {
-    const blob = await apiRequest({
+    const blob = await apiRequest<Blob>({
       url: `/attachments/${attachment.id}/download`,
       requestType: 'GET',
       config: {
         responseType: 'blob'
       }
     })
+    if (!blob) return null
 
     // 如果有之前的 URL，先释放它
     if (blobUrl.value) {
@@ -104,6 +98,8 @@ const loadBlob = async (attachment: Attachment) => {
   } catch (error) {
     ElMessage.error('Failed to load file')
     return null
+  } finally {
+    loadingBlob.value = false;
   }
 }
 const showAttachment = async (attachment: Attachment) => {
@@ -161,7 +157,7 @@ const getLanguageDisplay = (language: string): string => {
 // Calculate score percentage for the progress bar
 const scorePercentage = computed(() => {
   if (!submission.value.grade) return 0
-  return (submission.value.grade.score / submission.value.grade.maxScore) * 100
+  return (submission.value.grade.score! / submission.value.grade.maxScore) * 100
 })
 
 // Determine the color based on score percentage
@@ -173,7 +169,7 @@ const scoreColor = computed(() => {
 })
 
 // 处理评分成功
-const handleGradeSubmitted = (gradeData) => {
+const handleGradeSubmitted = (gradeData: {score: number, feedback: string})=> {
   // 更新本地数据
   submission.value.grade = {
     score: gradeData.score,
@@ -223,11 +219,10 @@ const isPreviewable = computed<boolean>(() => {
           </template>
 
           <template v-else-if="isPreviewable">
-            <div class="preview-container preview-able">
+            <div class="preview-container preview-able" v-loading="loadingBlob">
               <iframe
-                  v-loading="!blobUrl"
                   element-loading-text="Loading File..."
-                  :src="blobUrl"
+                  :src="blobUrl || ''"
               />
             </div>
           </template>

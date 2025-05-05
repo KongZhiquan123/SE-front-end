@@ -133,7 +133,6 @@
       <el-upload
           :http-request="() => {}"
           :before-upload="beforeUpload"
-          :on-success="onSuccess"
           v-model:file-list="fileList"
           multiple
           :limit="10"
@@ -185,7 +184,7 @@
     </el-dialog>
     <CodeAssignmentConfigDialog
         ref="codeConfigDialog"
-        v-model:config="assignment.codeConfig"
+        v-model:config="assignment.codeConfig!"
         :assignment-id="assignment.id"
     />
   </el-main>
@@ -193,8 +192,8 @@
 
 <script lang="ts" setup>
 import {ref, reactive} from 'vue';
-import {ElMessage, ElMessageBox, FormInstance, type FormRules, UploadFile, UploadRawFile} from 'element-plus';
-import {Assignment, Attachment, TestCase} from '@/types/interfaces';
+import {ElMessage, ElMessageBox, type FormInstance, type FormRules, type UploadFile, type UploadRawFile} from 'element-plus';
+import type {Assignment, Attachment, TestCase, CodeAssignmentConfig} from '@/types/interfaces';
 import request from "@/utils/request";
 import apiRequest from "@/utils/apiUtils";
 import downloadFile from "@/utils/downloadFile";
@@ -203,17 +202,13 @@ import {checkDate} from "@/components/AssignmentComponents/checkDate";
 import CodeAssignmentConfigDialog from "@/components/Dialogs/CodeAssignmentConfigDialog.vue";
 import {useRoute, useRouter} from "vue-router";
 
-const codeConfig: CodeAssignmentConfigDialog = {
+const codeConfig: CodeAssignmentConfig = {
   id: 0,
   allowedLanguages: '',
   memoryLimitEnabled: false,
   memoryLimitMB: 256,
   timeLimitEnabled: false,
-  timeLimitSeconds: 5,
-  languageVersions: '',
-  disabledLibraries: '',
-  autoGradingEnabled: true,
-  showDetailedResults: true,
+  timeLimitSeconds: 5
 }
 
 const defaultForm: Assignment = {
@@ -224,11 +219,10 @@ const defaultForm: Assignment = {
   type: 'code',
   status: 'upcoming',
   maxScore: 100,
-  openDate: new Date(),
-  dueDate: new Date(),
+  openDate: new Date().toISOString(),
+  dueDate: new Date().toISOString(),
   attachments: [],
   testcases: [],
-  codeSubmissions: [],
   codeConfig: codeConfig
 }
 
@@ -297,16 +291,17 @@ apiRequest<Assignment>(
 ).then(
     (assignmentData) => {
       assignment.value = assignmentData ?? assignment.value;
-      assignment.value.attachments = assignmentData.attachments ?? [];
-      assignment.value.testcases = assignmentData.testcases ?? [];
+      assignment.value.attachments = assignmentData?.attachments ?? [];
+      assignment.value.testcases = assignmentData?.testcases ?? [];
+      assignment.value.codeConfig = assignmentData?.codeConfig ?? assignment.value.codeConfig;
       resetEditing();
       loadingTestCases.value = false;
       loadingAttachments.value = false;
-      return assignmentData;
+      return assignment.value;
     }
 ).then((assignmentData) => {
   if (assignmentData.type === 'code') {
-    return apiRequest<CodeAssignmentConfigDialog>(
+    return apiRequest<CodeAssignmentConfig>(
         `/teachers/code-config/${assignmentData.id}`,
         'get',
         'Failed to load code config'
@@ -368,7 +363,7 @@ const editTestCase = (testCase: TestCase) => {
 
 const saveTestCase = async () => {
   try {
-    const testcases = assignment.value.testcases;
+    const testcases = assignment.value.testcases!;
     if (currentTestCase.id) {
       // API CALL: Update existing test case
       await request.put(`/teachers/assignments/${assignment.value.id}/testcases/${currentTestCase.id}`, currentTestCase);
@@ -407,7 +402,7 @@ const deleteTestCase = async (testCase: TestCase) => {
     await request.delete(`/teachers/assignments/${assignment.value.id}/testcases/${testCase.id}`);
 
     // Remove from local state
-    assignment.value.testcases = assignment.value.testcases.filter(tc => tc.id !== testCase.id);
+    assignment.value.testcases = assignment.value.testcases!.filter(tc => tc.id !== testCase.id);
     ElMessage.success('Test case deleted successfully');
   } catch (error) {
     if (error !== 'cancel') {
@@ -431,18 +426,6 @@ const beforeUpload = (file: UploadRawFile) => {
   return true;
 };
 
-// On success hook after successful upload
-const onSuccess = (response) => {
-  // If we have an assignment, add the new attachment to the list
-  if (assignment.value && assignment.value.attachments) {
-    assignment.value.attachments.push(response.data);
-  }
-
-  // Reset and close dialog
-  fileList.value = [];
-  attachmentDialogVisible.value = false;
-  ElMessage.success('Attachment uploaded successfully');
-};
 
 // Upload attachment function
 const uploadAttachment = async () => {

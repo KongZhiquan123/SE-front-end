@@ -72,7 +72,7 @@ export interface Submission {
     studentName: string,
     submitTime: string,
     status: 'pending' | 'graded' | 'draft',
-    attempts: number
+    attempts?: number
     textResponse?: string
     attachments?: Attachment[] | null
     codeSubmissions?: CodeSubmission[] | null

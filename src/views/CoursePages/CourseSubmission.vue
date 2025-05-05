@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import {ElMessage, ElMessageBox, UploadFile, UploadRawFile} from 'element-plus';
+import {ElMessage, ElMessageBox, type UploadFile, type UploadRawFile} from 'element-plus';
 import {Document, Upload, Close, ArrowLeft, InfoFilled, View, Download} from '@element-plus/icons-vue';
 import { formatDate } from '@/utils/formatDate';
 import type { Assignment } from "@/types/interfaces";
@@ -12,7 +12,7 @@ import convertWordToHtml from "@/utils/convertWordToHtml";
 
 const route = useRoute();
 const router = useRouter();
-const assignmentId: string = route.query.assignmentId;
+const assignmentId = route.query.assignmentId;
 const assignment = ref<Assignment | null>(null);
 const loading = ref(true);
 const submitting = ref(false);

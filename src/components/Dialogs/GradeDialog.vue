@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import {ref, watch} from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Grade, AIGrading } from "@/types/interfaces"
 import apiRequest from "@/utils/apiUtils"
@@ -10,7 +10,7 @@ const props = defineProps({
     required: true
   },
   currentGrade: {
-    type: Object as () => Grade | undefined,
+    type: Object as () => Grade | null,
     default: () => ({
       id: 0,
       title: '',
@@ -21,7 +21,7 @@ const props = defineProps({
     })
   },
   aiGrading: {
-    type: Object as () => AIGrading | undefined,
+    type: Object as () => AIGrading | undefined | null,
     default: undefined
   }
 })
@@ -36,7 +36,16 @@ const gradeForm = ref<{
   score: props.currentGrade?.score || null,
   feedback: props.currentGrade?.feedback || ''
 })
-
+watch(
+    () => props.currentGrade,
+    (newVal) => {
+      if (newVal) {
+        gradeForm.value.score = newVal.score
+        gradeForm.value.feedback = newVal.feedback
+      }
+    },
+    { immediate: true, deep: true }
+)
 const submitting = ref(false)
 
 // 关闭对话框
@@ -76,7 +85,7 @@ const submitGrade = async () => {
       ElMessage.success('Grade submitted successfully')
       // 发送成功事件，通知父组件更新数据
       emit('grade-submitted', {
-        score: gradeForm.value.score,
+        score: gradeForm.value.score || NaN,
         feedback: gradeForm.value.feedback,
       })
       closeDialog()

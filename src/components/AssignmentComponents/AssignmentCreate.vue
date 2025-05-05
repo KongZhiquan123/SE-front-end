@@ -132,7 +132,7 @@ import {ref, reactive, shallowRef} from 'vue';
 import type {FormInstance, UploadInstance, UploadFile, UploadRawFile, FormRules} from 'element-plus';
 import {ElMessage} from 'element-plus';
 import {Close} from "@element-plus/icons-vue";
-import {Assignment, TestCase} from '@/types/interfaces';
+import type {Assignment, TestCase, CodeAssignmentConfig} from '@/types/interfaces';
 import request from "@/utils/request";
 import {useRoute} from "vue-router";
 import {checkDate} from "./checkDate";
@@ -156,7 +156,7 @@ const defaultForm = {
   dueDate: '',
   maxScore: 100,
   openDate: '',
-  status: 'upcoming',
+  status: 'upcoming' as 'open' | 'closed' | 'upcoming',
   instructions: ''
 };
 const form = reactive<Assignment>({...defaultForm});
@@ -166,7 +166,7 @@ const resetForm = () => {
   fileList.value = [];
   testCases.value = [];
 };
-const codeConfig = ref<CodeAssignmentConfigDialog>({
+const codeConfig = ref<CodeAssignmentConfig>({
   id: 0,
   allowedLanguages: '',
   memoryLimitEnabled: false,

@@ -41,7 +41,7 @@
 import { ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { formatDate} from "@/utils/formatDate";
-import { Assignment } from '@/types/interfaces';
+import type { Assignment } from '@/types/interfaces';
 import request from "@/utils/request";
 import {useRoute, useRouter} from "vue-router";
 
