@@ -72,10 +72,12 @@ export const useUserStore = defineStore('user', () => {
         authorized.value = false;
         localStorage.removeItem('token');
     }
-
+    function setAvatarUrl(avatarUrl: string) {
+        this.avatarUrl = avatarUrl;
+    }
     return {
         id, username, email, role, token, createdAt, updatedAt, avatarUrl, bio, authorized,
-        setUser, clearUser, autoLogin
+        setUser, clearUser, autoLogin, setAvatarUrl
     }
 }, {
     persist: {

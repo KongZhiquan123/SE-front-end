@@ -47,3 +47,41 @@
     height: 100vh;
     margin-top: 0;
 }
+
+.el-button {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(var(--el-color-primary-rgb), 0.3);
+    }
+}
+
+@mixin input-wrapper-style {
+    border-radius: 8px;
+    padding: 5px 10px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+
+    &:hover, &:focus-within {
+        box-shadow: 0 0 0 2px var(--el-color-primary-light-5);
+    }
+}
+
+$input-wrappers: ".el-input__wrapper", ".el-select__wrapper";
+
+@each $wrapper in $input-wrappers {
+    #{$wrapper} {
+        @include input-wrapper-style;
+    }
+}
+
+.el-textarea__inner {
+    border-radius: 8px;
+    padding: 10px 15px;
+    min-height: 120px;
+    resize: vertical;
+    &:hover, &:focus-within {
+        box-shadow: 0 0 0 2px var(--el-color-primary-light-5);
+    }
+}

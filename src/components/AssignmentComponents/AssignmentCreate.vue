@@ -9,10 +9,15 @@
           label-width="120px"
           label-position="top"
       >
+        <div class="form-row">
+          <el-form-item label="Title" prop="title">
+            <el-input v-model="form.title"/>
+          </el-form-item>
 
-        <el-form-item label="Title" prop="title">
-          <el-input v-model="form.title"/>
-        </el-form-item>
+          <el-form-item label="Max Score" prop="maxScore">
+            <el-input-number v-model="form.maxScore" :min="0" :max="100" style="width: 100%"/>
+          </el-form-item>
+        </div>
         <div class="form-row">
           <el-form-item label="Type" prop="type">
             <el-select v-model="form.type" placeholder="Select type" style="width: 100%">
@@ -20,10 +25,6 @@
               <el-option label="Essay" value="essay"/>
               <el-option label="Quiz" value="quiz"/>
             </el-select>
-          </el-form-item>
-
-          <el-form-item label="Max Score" prop="maxScore">
-            <el-input-number v-model="form.maxScore" :min="0" :max="100" style="width: 100%"/>
           </el-form-item>
 
           <el-form-item label="Open Date" prop="openDate">

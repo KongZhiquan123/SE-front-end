@@ -17,7 +17,10 @@ const userInfo = reactive<Partial<UserState>>({id, username, email, role, create
 const editForm = reactive({
   username: '',
   bio: '',
-  avatarUrl: ''
+  avatarUrl: '',
+  oldPassword: '',
+  newPassword: '',
+  email: ''
 });
 
 // 重置编辑表单
@@ -25,6 +28,9 @@ const resetEditForm = () => {
   editForm.username = userInfo.username || '';
   editForm.bio = userInfo.bio || '';
   editForm.avatarUrl = userInfo.avatarUrl || '';
+  editForm.oldPassword = '';
+  editForm.newPassword = '';
+  editForm.email = userInfo.email || '';
 };
 
 // 获取用户角色名称
@@ -38,6 +44,26 @@ const getRoleName = (role) => {
   return roleMap[role] || 'Unknown role';
 };
 
+// Base64转Blob工具函数
+const base64ToBlob = (base64Data, contentType) => {
+  const byteCharacters = atob(base64Data);
+  const byteArrays = [];
+
+  for (let i = 0; i < byteCharacters.length; i += 512) {
+    const slice = byteCharacters.slice(i, i + 512);
+    const byteNumbers = new Array(slice.length);
+
+    for (let j = 0; j < slice.length; j++) {
+      byteNumbers[j] = slice.charCodeAt(j);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    byteArrays.push(byteArray);
+  }
+
+  return new Blob(byteArrays, { type: contentType });
+};
+
 // 保存用户信息
 const saveChanges = async () => {
   if (!editForm.username.trim()) {
@@ -45,14 +71,23 @@ const saveChanges = async () => {
     return;
   }
 
-  // 根据用户角色决定使用哪个 API 端点
-  const apiEndpoint = userInfo.role === 'teacher'
-      ? '/teachers/profile'
-      : '/students/profile';
+  // 创建不包含头像URL的数据对象
+  const profileData = {
+    username: editForm.username,
+    bio: editForm.bio,
+    email: editForm.email
+  };
+
+  // 如果用户修改了密码，添加密码字段
+  if (editForm.oldPassword && editForm.newPassword) {
+    profileData.oldPassword = editForm.oldPassword;
+    profileData.newPassword = editForm.newPassword;
+  }
+
 
   // 调用 API 保存用户资料
   const result = await apiRequest({
-    url: apiEndpoint,
+    url: '/profile',
     requestType: 'put',
     errorMessage: 'Failed to update profile',
     data:  {...editForm}
@@ -64,6 +99,7 @@ const saveChanges = async () => {
     const { id, username, email, role, createdAt, bio, avatarUrl } = userStore;
     Object.assign(userInfo, { id, username, email, role, createdAt, bio, avatarUrl });
     isEditing.value = false;
+    resetEditForm();
     ElMessage.success('Profile updated successfully');
   }
 };
@@ -83,11 +119,41 @@ const showAvatarUploader = () => {
   showCropper.value = true;
 };
 
-// 头像裁剪成功回调
-const onCropSuccess = (avatarBase64) => {
-  editForm.avatarUrl = avatarBase64;
-  showCropper.value = false;
+const onCropSuccess = async (avatarBase64) => {
+  try {
+    // 将Base64转换为Blob
+    const base64Data = avatarBase64.split(',')[1];
+    const blob = base64ToBlob(base64Data, 'image/jpeg');
+
+    // 创建FormData对象
+    const formData = new FormData();
+    formData.append('file', blob, 'avatar.jpg');
+
+    // 调用专门的头像上传API
+    const result = await apiRequest({
+      url: '/profile/avatar',
+      requestType: 'post',
+      errorMessage: 'Failed to upload avatar',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    if (result && result.avatarUrl) {
+      // 更新本地头像URL
+      editForm.avatarUrl = result.avatarUrl;
+      userStore.setAvatarUrl(result.avatarUrl);
+      ElMessage.success('头像上传成功');
+    }
+  } catch (error) {
+    console.error('Failed to upload avatar:', error)
+    ElMessage.error('Failed to upload avatar');
+  } finally {
+    showCropper.value = false;
+  }
 };
+
 </script>
 
 
@@ -125,7 +191,14 @@ const onCropSuccess = (avatarBase64) => {
 
         <div class="info-item">
           <span class="label">Email:</span>
-          <span>{{ userInfo.email || 'Not set' }}</span>
+          <span v-if="!isEditing">{{ userInfo.email || 'Not set' }}</span>
+          <el-input
+            v-else
+            v-model="editForm.email"
+            placeholder="Please enter email"
+            maxlength="40"
+            show-word-limit
+          />
         </div>
 
         <div class="info-item">
@@ -136,6 +209,27 @@ const onCropSuccess = (avatarBase64) => {
         <div class="info-item">
           <span class="label">Account Created:</span>
           <span>{{ formatDate(userInfo.createdAt) }}</span>
+        </div>
+
+
+        <div class="info-item" v-if="isEditing">
+          <span class="label">Old Password:</span>
+          <el-input
+              v-model="editForm.oldPassword"
+              placeholder="If you want to change your password, you must enter your old password again to confirm your authority"
+              maxlength="40"
+              show-word-limit
+          />
+        </div>
+
+        <div class="info-item" v-if="isEditing">
+          <span class="label">New Password:</span>
+          <el-input
+              v-model="editForm.newPassword"
+              placeholder="You can enter your new password here"
+              maxlength="40"
+              show-word-limit
+          />
         </div>
 
         <div class="info-item bio-item">
@@ -257,22 +351,7 @@ const onCropSuccess = (avatarBase64) => {
         line-height: 1.5;
       }
 
-      :deep(.el-input__wrapper) {
-        border-radius: 8px;
-        padding: 10px 15px;
-        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
 
-        &:hover, &:focus-within {
-          box-shadow: 0 0 0 2px var(--el-color-primary-light-5);
-        }
-      }
-
-      :deep(.el-textarea__inner) {
-        border-radius: 8px;
-        padding: 10px 15px;
-        min-height: 120px;
-        resize: vertical;
-      }
     }
 
     .bio-item {
@@ -331,19 +410,6 @@ const onCropSuccess = (avatarBase64) => {
 
   .el-dialog__body {
     padding: 24px;
-  }
-}
-
-// 按钮样式
-:deep(.el-button) {
-  &.el-button--primary {
-    border-radius: 8px;
-    transition: all 0.2s ease;
-
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(var(--el-color-primary-rgb), 0.3);
-    }
   }
 }
 

@@ -67,7 +67,7 @@ const fetchExecutionResults = async () => {
 
   try {
     // Wait 10 seconds before fetching (as requested)
-    await new Promise(resolve => setTimeout(resolve, 10000));
+    await new Promise(resolve => setTimeout(resolve, 21000));
 
     const response = await apiRequest(`/students/submissions/assignments/submissions/code/${submissionId}`);
     executionResult.value = response ?? executionResult.value;

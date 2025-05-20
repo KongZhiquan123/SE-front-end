@@ -189,7 +189,7 @@ const handleResetPassword = async (formEl?: FormInstance) => {
 
 .reset-card {
   width: 100%;
-  max-width: 400px;
+  max-width: 800px;
 }
 
 .reset-title {
@@ -200,7 +200,13 @@ const handleResetPassword = async (formEl?: FormInstance) => {
 }
 
 .reset-button {
-  width: 100%;
+  width: 50%;
+  max-width: 300px;
+  height: 44px;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  margin: 0 auto;
 }
 
 .reset-links {

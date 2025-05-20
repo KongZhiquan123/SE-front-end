@@ -131,7 +131,7 @@ const handleLogin = async (formEl?: FormInstance) => {
 
 .login-card {
   width: 100%;
-  max-width: 400px;
+  max-width: 800px;
 }
 
 .login-title {
@@ -142,7 +142,13 @@ const handleLogin = async (formEl?: FormInstance) => {
 }
 
 .login-button {
-  width: 100%;
+  width: 50%;
+  max-width: 300px;
+  height: 44px;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  margin: 0 auto;
 }
 
 .login-links {

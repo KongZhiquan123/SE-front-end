@@ -124,7 +124,7 @@ const beforeAttachmentUpload = (file: UploadRawFile) => {
 // Modify createAssignment to return the created assignment
 const createResource = async (resourceData: Assignment): Promise<Assignment | null> => {
   try {
-    const {data} = await request.post(`/teachers/resources/${courseId}`, resourceData);
+    const {data} = await request.post(`/teachers/resources/${courseId}/resources`, resourceData);
     ElMessage.success(`Resource created successfully`);
     return data;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

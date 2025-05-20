@@ -130,6 +130,22 @@ const handleRegister = async (formEl?: FormInstance) => {
           />
         </el-form-item>
 
+        <el-form-item label="Verification Code" prop="verificationCode">
+          <div class="verification-code">
+            <el-input
+                v-model="registerForm.verificationCode"
+                placeholder="Enter verification code"
+            />
+            <el-button
+                type="primary"
+                :disabled="countdown > 0"
+                @click="sendVerificationCode"
+            >
+              {{ countdown > 0 ? `${countdown}s` : 'Get Code' }}
+            </el-button>
+          </div>
+        </el-form-item>
+
         <el-form-item label="Password" prop="password">
           <el-input
               v-model="registerForm.password"
@@ -155,22 +171,6 @@ const handleRegister = async (formEl?: FormInstance) => {
             <el-radio value="STUDENT">Student</el-radio>
             <el-radio value="TEACHER">Teacher</el-radio>
           </el-radio-group>
-        </el-form-item>
-
-        <el-form-item label="Verification Code" prop="verificationCode">
-          <div class="verification-code">
-            <el-input
-                v-model="registerForm.verificationCode"
-                placeholder="Enter verification code"
-            />
-            <el-button
-                type="primary"
-                :disabled="countdown > 0"
-                @click="sendVerificationCode"
-            >
-              {{ countdown > 0 ? `${countdown}s` : 'Get Code' }}
-            </el-button>
-          </div>
         </el-form-item>
 
         <el-form-item>
@@ -205,7 +205,7 @@ const handleRegister = async (formEl?: FormInstance) => {
 
 .register-card {
   width: 100%;
-  max-width: 400px;
+  max-width: 800px;
 }
 
 .register-title {
@@ -216,7 +216,13 @@ const handleRegister = async (formEl?: FormInstance) => {
 }
 
 .register-button {
-  width: 100%;
+  width: 50%;
+  max-width: 300px;
+  height: 44px;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  margin: 0 auto;
 }
 
 .register-links {
