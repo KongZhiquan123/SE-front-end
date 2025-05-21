@@ -168,7 +168,6 @@ const getTagType = (materialType: string) => {
 
 .material {
   &-card {
-    border-radius: vars.$border-radius-base;
     transition: all 0.3s ease;
     height: 100%;
 

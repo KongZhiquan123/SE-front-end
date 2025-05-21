@@ -57,7 +57,7 @@ export interface Assignment {
     status: 'open' | 'closed' | 'upcoming';
     instructions?: string | null;
     codeConfig?: CodeAssignmentConfig | null
-    testcases? : TestCase[] | null
+    testCases? : TestCase[] | null
 }
 
 export interface CodeSubmission {

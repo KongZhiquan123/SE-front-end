@@ -80,6 +80,14 @@ const saveChanges = async () => {
 
   // 如果用户修改了密码，添加密码字段
   if (editForm.oldPassword && editForm.newPassword) {
+    if (editForm.oldPassword === editForm.newPassword) {
+      ElMessage.warning('New password cannot be the same as old password');
+      return;
+    }
+    if (editForm.newPassword.length < 4) {
+      ElMessage.warning('New password must be at least 4 characters long');
+      return;
+    }
     profileData.oldPassword = editForm.oldPassword;
     profileData.newPassword = editForm.newPassword;
   }

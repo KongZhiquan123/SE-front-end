@@ -247,7 +247,7 @@ onMounted(() => {
                 </div>
               </el-collapse-item>
 
-              <el-collapse-item v-if="result.error" name="error">
+              <el-collapse-item v-if="result.error && result.error !== 'null'" name="error">
                 <template #title>
                   <div class="collapse-header">
                     <span class="output-title error-title">Error</span>

@@ -93,11 +93,11 @@
             <el-skeleton :rows="3" animated/>
           </div>
 
-          <el-empty v-else-if="!assignment.testcases?.length" description="No test cases"/>
+          <el-empty v-else-if="!assignment.testCases?.length" description="No test cases"/>
 
           <el-table
               v-else
-              :data="assignment.testcases"
+              :data="assignment.testCases"
               border
               style="width: 100%"
           >
@@ -222,7 +222,7 @@ const defaultForm: Assignment = {
   openDate: new Date().toISOString(),
   dueDate: new Date().toISOString(),
   attachments: [],
-  testcases: [],
+  testCases: [],
   codeConfig: codeConfig
 }
 
@@ -292,7 +292,7 @@ apiRequest<Assignment>(
     (assignmentData) => {
       assignment.value = assignmentData ?? assignment.value;
       assignment.value.attachments = assignmentData?.attachments ?? [];
-      assignment.value.testcases = assignmentData?.testcases ?? [];
+      assignment.value.testCases = assignmentData?.testCases ?? [];
       assignment.value.codeConfig = assignmentData?.codeConfig ?? assignment.value.codeConfig;
       resetEditing();
       loadingTestCases.value = false;
@@ -363,7 +363,7 @@ const editTestCase = (testCase: TestCase) => {
 
 const saveTestCase = async () => {
   try {
-    const testcases = assignment.value.testcases!;
+    const testcases = assignment.value.testCases!;
     if (currentTestCase.id) {
       // API CALL: Update existing test case
       await request.put(`/teachers/assignments/${assignment.value.id}/testcases/${currentTestCase.id}`, currentTestCase);
@@ -402,7 +402,7 @@ const deleteTestCase = async (testCase: TestCase) => {
     await request.delete(`/teachers/assignments/${assignment.value.id}/testcases/${testCase.id}`);
 
     // Remove from local state
-    assignment.value.testcases = assignment.value.testcases!.filter(tc => tc.id !== testCase.id);
+    assignment.value.testCases = assignment.value.testCases!.filter(tc => tc.id !== testCase.id);
     ElMessage.success('Test case deleted successfully');
   } catch (error) {
     if (error !== 'cancel') {

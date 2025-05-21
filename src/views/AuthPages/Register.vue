@@ -138,6 +138,7 @@ const handleRegister = async (formEl?: FormInstance) => {
             />
             <el-button
                 type="primary"
+                size="large"
                 :disabled="countdown > 0"
                 @click="sendVerificationCode"
             >

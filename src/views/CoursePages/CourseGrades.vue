@@ -445,11 +445,6 @@ const getConfidenceColor = (confidence: number) => {
   }
 }
 
-.grade-card {
-  margin-bottom: vars.$spacing-base;
-  border-radius: vars.$border-radius-base;
-}
-
 .filters {
   display: flex;
   justify-content: space-between;
