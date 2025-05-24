@@ -18,7 +18,7 @@ app.directive('role', vRole)
 app.mount('#app')
 
 const userStore = useUserStore()
-await userStore.autoLogin().then(res => {
+userStore.autoLogin().then(res => {
     if (res) {
         console.log('auto login success')
     } else {
