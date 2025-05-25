@@ -5,7 +5,7 @@ import {useUserStore} from "@/stores/user";
 
 
 const request = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL,
+    baseURL: "/api", // 这里的 /api 是在 vite.config.ts 中配置的代理
     timeout: 5000
 })
 

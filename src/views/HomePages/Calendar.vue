@@ -12,7 +12,11 @@
       </el-col>
     </el-row>
 
-    <el-calendar v-model="currentDate" :range="calendarRange">
+    <el-card v-if="loading" class="loading-card">
+      <el-skeleton :rows="6" animated />
+    </el-card>
+
+    <el-calendar v-else v-model="currentDate" :range="calendarRange">
       <template #header="{ date }">
         <span>{{ date }}</span>
         <el-button-group>
@@ -33,18 +37,16 @@
           <div class="task-dots">
             <template v-for="task in getTasksForDate(data.day)" :key="task.id">
               <el-tooltip
-                  :content="`${task.courseName}: ${task.title} (${task.completed ? 'Completed' : 'Pending'})`"
+                  :content="`${task.courseName}: ${task.title} (Due Date: ${task.deadline})`"
                   placement="top"
               >
                 <div
-                    class="task-dot"
-                    :class="{
-                      'completed': task.completed,
-                      'pending': !task.completed,
-                      'overdue': isOverdue(task)
-                    }"
+                    class="task-item"
+                    :class="{ 'overdue': isOverdue(task) }"
                     @click="openTaskDetails(task)"
-                />
+                >
+                  {{ task.title }}
+                </div>
               </el-tooltip>
             </template>
           </div>
@@ -59,20 +61,12 @@
     >
       <template v-if="selectedTask">
         <p><strong>Class:</strong> {{ selectedTask.courseName }}</p>
-        <p><strong>Deadline:</strong> {{ formatDate(selectedTask.deadline) }}</p>
+        <p><strong>Deadline:</strong> {{ selectedTask.deadline }}</p>
         <p><strong>Description:</strong> {{ selectedTask.description }}</p>
-        <p><strong>Status:</strong> {{ selectedTask.completed ? 'Completed' : 'Pending' }}</p>
       </template>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="taskDialogVisible = false">Close</el-button>
-          <el-button
-              type="primary"
-              @click="toggleTaskStatus"
-              :disabled="!selectedTask"
-          >
-            {{ selectedTask?.completed ? 'Mark as Incomplete' : 'Mark as Complete' }}
-          </el-button>
         </span>
       </template>
     </el-dialog>
@@ -80,43 +74,52 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref} from 'vue'
-import {ArrowLeft, ArrowRight} from "@element-plus/icons-vue";
-import type {Task} from '@/types/interfaces.d.ts'
-import {formatDate} from "@/utils/formatDate.ts";
+import { computed, ref } from 'vue'
+import { ArrowLeft, ArrowRight } from "@element-plus/icons-vue";
+import type { Task } from '@/types/interfaces.d.ts'
+import apiRequest from "@/utils/apiUtils";
 
 const currentDate = ref(new Date())
 const viewType = ref('month')
 const taskDialogVisible = ref(false)
 const selectedTask = ref<Task | null>(null)
+const loading = ref(true)
 
-const tasks = ref<Task[]>([
-  {
-    id: 1,
-    title: 'Math Assignment',
-    deadline: '2025-03-20',
-    completed: false,
-    courseId: '1',
-    courseName: 'Mathematics',
-    description: 'Complete exercises 1-10'
-  },
-  {
-    id: 2,
-    title: 'Physics Lab Report',
-    deadline: '2025-03-22',
-    completed: true,
-    courseId: '7',
-    courseName: 'Physics',
-    description: 'Write lab report for experiment #3'
-  },
-])
+// 使用对象存储任务，键为日期字符串，值为该日期的任务数组
+const tasksByDate = ref<Record<string, Task[]>>({})
+const formatDateToYYYYMMDD = (isoString: string): string => {
+  const date = new Date(isoString);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+};
+
+// 加载日历事件
+const loadCalendarEvents = async () => {
+  loading.value = true
+  const events = await apiRequest<Task[]>("/calendar/events")
+  if (events === null) {
+    loading.value = false
+    return
+  }
+  // 重置并按日期组织任务
+  tasksByDate.value = {}
+  events.forEach((task: Task) => {
+    task.deadline = formatDateToYYYYMMDD(task.deadline)
+    if (!tasksByDate.value[task.deadline]) {
+      tasksByDate.value[task.deadline] = []
+    }
+    tasksByDate.value[task.deadline].push(task)
+  })
+  loading.value = false
+}
+
+loadCalendarEvents()
 
 const getTasksForDate = (date: string) => {
-  return tasks.value.filter(task => task.deadline === date)
+  return tasksByDate.value[date] || []
 }
 
 const isOverdue = (task: Task) => {
-  return !task.completed && new Date(task.deadline) < new Date()
+  return new Date(task.deadline) < new Date()
 }
 
 const openTaskDetails = (task: Task) => {
@@ -124,16 +127,7 @@ const openTaskDetails = (task: Task) => {
   taskDialogVisible.value = true
 }
 
-const toggleTaskStatus = () => {
-  if (selectedTask.value) {
-    const task = tasks.value.find(t => t.id === selectedTask.value!.id)
-    if (task) {
-      task.completed = !task.completed
-      selectedTask.value = { ...task }
-    }
-  }
-}
-//国外的周日是一周的第一天，所以这里要设置为周日（getDay()返回0-6，0是周日）
+// 国外的周日是一周的第一天，所以这里要设置为周日（getDay()返回0-6，0是周日）
 const calendarRange = computed((): Date[] | undefined => {
   if (viewType.value === 'week') {
     const start = new Date(currentDate.value)
@@ -162,7 +156,6 @@ const changeDate = (type: 'prev' | 'today' | 'next') => {
   }
   currentDate.value = newDate
 }
-
 </script>
 
 <style scoped>
@@ -192,24 +185,26 @@ const changeDate = (type: 'prev' | 'today' | 'next') => {
   gap: 4px;
   margin-top: 4px;
 }
-
-.task-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+.task-item {
+  background-color: #ecf5ff;
+  color: #409eff;
+  font-size: 10px;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  border-left: 3px solid #409eff;
 }
 
-.task-dot.completed {
-  background-color: #67C23A;
+.task-item.overdue {
+  background-color: #fef0f0;
+  color: #f56c6c;
+  border-left-color: #f56c6c;
 }
-
-.task-dot.pending {
-  background-color: #E6A23C;
-}
-
-.task-dot.overdue {
-  background-color: #F56C6C;
+.loading-card {
+  margin: 20px 0;
+  padding: 20px;
 }
 
 :deep(.el-calendar-table .el-calendar-day) {

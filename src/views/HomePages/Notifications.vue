@@ -1,19 +1,23 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import {ref, computed, shallowRef} from 'vue';
 import { formatDate } from '@/utils/formatDate.ts';
 import { ElMessage } from 'element-plus';
-import {Bell, Check, Refresh, Reading, User} from "@element-plus/icons-vue";
+import {Bell, Check, Refresh, Reading, User, Delete, Connection} from "@element-plus/icons-vue";
 import type { Notification } from '@/types/interfaces';
+import apiRequest from "@/utils/apiUtils";
+import {capitalize} from "lodash-es";
+import {useUserStore} from "@/stores/user";
+import SendNotificationDialog from "@/components/Dialogs/SendNotificationDialog.vue";
 
-
-// 示例数据（替换为实际API调用）
+const sendNotificationDialogRef = shallowRef<InstanceType<typeof SendNotificationDialog> | null>(null);
+const role = useUserStore().role;
 const notifications = ref<Notification[]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
-
+const activeFilter = ref('all');
 // 用于过滤的计算属性
 const unreadCount = computed(() => notifications.value.filter(n => !n.isRead).length);
-const filteredNotifications = computed(() => {
+const filteredNotifications = computed<Notification[]>(() => {
   if (activeFilter.value === 'all') return sortedNotifications.value;
   if (activeFilter.value === 'unread') return sortedNotifications.value.filter(n => !n.isRead);
   return sortedNotifications.value.filter(n => n.priority === activeFilter.value);
@@ -31,42 +35,69 @@ const sortedNotifications = computed(() => {
   });
 });
 
-const activeFilter = ref('all');
+
 
 const fetchNotifications = async () => {
   loading.value = true;
-
-  // TODO: 替换为实际API调用(await fetchData<Notification[]>('/notifications'))
-  notifications.value = [
-    {
-      id: 1,
-      title: 'Assignment deadline changed',
-      content: 'Math assignment deadline has been extended to next Friday',
-      isRead: false,
-      createdAt: '2024-10-15T14:30:00',
-      sender: 'Zhang Hengqian',
-      relatedCourse: 'MATH101',
-      priority: 'medium'
-    },
-    {
-      id: 2,
-      title: 'Missed deadline',
-      content: 'You have missed the submission deadline for the physics lab report',
-      isRead: false,
-      createdAt: '2024-10-14T09:15:00',
-      sender: 'Liu Yifan',
-      relatedCourse: 'PHYS102',
-      priority: 'high'
-    },
-  ];
-
+  const url = role === 'student' ? '/students/notifications' : '/teachers/notifications/sent';
+  const data = await apiRequest<Notification[]>(url);
+  notifications.value = data ?? [];
+  notifications.value.forEach((notification: Notification) => {
+    notification.createdAt = formatDate(notification.createdAt);
+    notification.isRead = notification.read || role === 'teacher'; // 教师角色默认已读
+    notification.priority = notification.priority.split(' ')[0].toLowerCase() || 'low'; // 确保优先级为小写
+    notification.selected = false; // 添加选中状态
+    notification.sender = notification.senderUsername || 'System'; // 默认发送者为系统
+  });
   loading.value = false
 };
-fetchNotifications();
+
+// 用于存储选中的通知ID
+const selectedNotifications = ref<number[]>([]);
+
+// 批量删除选中的通知
+const deleteSelected = async () => {
+  if (selectedNotifications.value.length === 0) {
+    ElMessage.warning('Please select notifications to delete');
+    return;
+  }
+  const results = await Promise.all(
+      selectedNotifications.value.map(id =>
+          apiRequest<object>({
+            url: `/students/notifications/${id}`,
+            requestType: 'DELETE'
+          })
+      )
+  );
+
+  if (results.some(result => result === null)) {
+    ElMessage.warning('Some notifications failed to delete');
+  } else {
+    // 从列表中移除已删除的通知
+    notifications.value = notifications.value.filter(
+        n => !selectedNotifications.value.includes(n.id)
+    );
+    selectedNotifications.value = []; // 清空选择
+    ElMessage.success('Selected notifications deleted');
+  }
+
+};
+
+// 处理选择变化
+const handleSelectionChange = (selection: Notification[]) => {
+  selectedNotifications.value = selection.map(item => item.id);
+};
+
 // 标记通知为已读
 const markAsRead = async (notification: Notification) => {
   if (notification.isRead) return;
-  // TODO: 替换为实际API调用
+  const success = await apiRequest<object>({
+    url: `/students/notifications/${notification.id}/read`,
+    requestType: 'PUT'
+  });
+  if (success === null) {
+    return
+  }
   // 更新本地状态
   const index = notifications.value.findIndex(n => n.id === notification.id);
   if (index !== -1) {
@@ -79,7 +110,21 @@ const markAsRead = async (notification: Notification) => {
 // 全部标记为已读
 const markAllAsRead = async () => {
 
-  // TODO: 替换为实际API调用
+  const successes = await Promise.all<object[]>(
+    notifications.value.map(notification => {
+      if (!notification.isRead) {
+        return apiRequest({
+          url: `/students/notifications/${notification.id}/read`,
+          requestType: 'PUT'
+        });
+      }
+      return Promise.resolve({});
+    })
+  );
+  if (successes.some((res) => res === null)) {
+    ElMessage.warning('Some notifications failed to mark as read');
+    return
+  }
   // 更新本地状态
   notifications.value = notifications.value.map(n => ({ ...n, isRead: true }));
   ElMessage.success('All notifications marked as read');
@@ -95,6 +140,8 @@ const getPriorityColor = (priority: string) => {
   }
   return priorityMap[priority] || 'info';
 };
+
+fetchNotifications();
 </script>
 
 <template>
@@ -110,6 +157,7 @@ const getPriorityColor = (priority: string) => {
 
       <div class="actions">
         <el-button
+            v-role="['student']"
             v-if="unreadCount > 0"
             @click="markAllAsRead"
             type="primary"
@@ -117,6 +165,18 @@ const getPriorityColor = (priority: string) => {
             :icon="Check"
         >
           Mark All as Read
+        </el-button>
+
+        <!-- 添加批量删除按钮 -->
+        <el-button
+            v-role="['student']"
+            v-if="selectedNotifications.length > 0"
+            @click="deleteSelected"
+            type="danger"
+            size="large"
+            :icon="Delete"
+        >
+          Delete Selected ({{ selectedNotifications.length }})
         </el-button>
 
         <el-tooltip content="Refresh notifications">
@@ -134,7 +194,7 @@ const getPriorityColor = (priority: string) => {
     <div class="filter-section">
       <el-radio-group v-model="activeFilter">
         <el-radio-button value="all">All</el-radio-button>
-        <el-radio-button value="unread">
+        <el-radio-button value="unread" v-role="['student']">
           Unread
           <el-badge :value="unreadCount" :hidden="unreadCount === 0" />
         </el-radio-button>
@@ -176,7 +236,7 @@ const getPriorityColor = (priority: string) => {
             v-for="notification in filteredNotifications"
             :key="notification.id"
             :type="getPriorityColor(notification.priority)"
-            :timestamp="formatDate(notification.createdAt)"
+            :timestamp="notification.createdAt"
             :hollow="notification.isRead"
             size="large"
         >
@@ -191,6 +251,12 @@ const getPriorityColor = (priority: string) => {
           >
             <div class="notification-header">
               <div class="title-wrapper">
+                <el-checkbox
+                    v-model="notification.selected"
+                    @change="() => handleSelectionChange(filteredNotifications.filter(n => n.selected))"
+                    style="margin-right: 8px"
+                    v-role="['student']"
+                ></el-checkbox>
                 <h3>{{ notification.title }}</h3>
                 <div class="tags">
                   <el-tag v-if="!notification.isRead" size="small" type="info" effect="dark">New</el-tag>
@@ -200,10 +266,7 @@ const getPriorityColor = (priority: string) => {
                       :type="getPriorityColor(notification.priority)"
                       effect="plain"
                   >
-                    {{
-                      notification.priority === 'high' ? 'High Priority' :
-                          notification.priority === 'medium' ? 'Medium Priority' : 'Low Priority'
-                    }}
+                    {{ capitalize(notification.priority) }} Priority
                   </el-tag>
                 </div>
               </div>
@@ -228,6 +291,16 @@ const getPriorityColor = (priority: string) => {
         </el-timeline-item>
       </el-timeline>
     </el-card>
+    <el-button v-role="['teacher', 'admin']" type="primary" size="large"
+      @click="sendNotificationDialogRef?.open()"
+    >
+      <el-icon><Connection /></el-icon>
+      <span>Send Notification to students </span>
+    </el-button>
+    <SendNotificationDialog
+        ref="sendNotificationDialogRef"
+        @add:notification="(notification: Notification) => notifications.unshift(notification)"
+    />
   </el-main>
 </template>
 

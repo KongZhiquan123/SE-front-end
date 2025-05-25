@@ -39,9 +39,9 @@ export interface Resource {
     uploadTime: string
 }
 interface TestCase {
-    id: number
-    input: string
-    expectedOutput: string
+    id: number;
+    input: string;
+    expectedOutput: string;
     weight: number;
 }
 //CourseAssignment.vue
@@ -86,7 +86,6 @@ export interface Task {
     id: number;
     title: string;
     deadline: string;
-    completed: boolean;
     courseId: string;
     courseName: string;
     description?: string | null;
@@ -131,6 +130,7 @@ export interface Notification {
     sender?: string;                 // 发送者名称
     relatedCourse?: string;          // 相关课程代码
     priority: 'low' | 'medium' | 'high'; // 优先级
+    selected?: boolean;
 }
 
 //AssignmentManagement.vue
