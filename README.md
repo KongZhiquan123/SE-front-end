@@ -1,5 +1,5 @@
 # Software Engineering Project
-**project detailed information link:** [软件工程project](https://bb.sustech.edu.cn/bbcswebdav/pid-508647-dt-content-rid-17334213_1/courses/CS304-30018694-2025SP/project-intro-2025.pdf)  
+**project detailed information link:** [Blackboard Software Engineering Project](https://bb.sustech.edu.cn/bbcswebdav/pid-508647-dt-content-rid-17334213_1/courses/CS304-30018694-2025SP/project-intro-2025.pdf)  
 
 CS students use Blackboard (BB) for text and image-based assignments submission, Online Judge (OJ) for
 code submissions, while midterm and final exams are assessed through traditional paper-based grading.   
@@ -28,3 +28,16 @@ seamless integration with university systems.
 
 The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.   
 Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).  
+The `package.json` file includes all the necessary dependencies for a Vue 3 project with TypeScript support, run `npm install` to install them.  
+`Vite` is used as the build tool.
+## Dev Server
+Run the following command to start the development server:
+```bash
+npm run dev
+```
+## Build
+Run the following command to build the project for production:
+```bash
+npm run build
+```
+The output will be in the `dist` directory.

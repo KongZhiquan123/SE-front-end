@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import { fileURLToPath } from 'url'
 import path from 'path'
 import monacoEditorPluginModule from 'vite-plugin-monaco-editor'
+import Inspect from 'vite-plugin-inspect'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -20,6 +21,7 @@ const monacoEditorPlugin = isObjectWithDefaultFunction(monacoEditorPluginModule)
 export default defineConfig({
   plugins: [
     vue(),
+    Inspect(),
     monacoEditorPlugin({})
   ],
   server: {
