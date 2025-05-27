@@ -12,7 +12,13 @@
             <el-input v-model="editForm.title"/>
           </el-form-item>
           <el-form-item label="Type" prop="type">
-            <el-input v-model="editForm.type"/>
+            <el-select v-model="editForm.type" placeholder="Please select resource type">
+              <el-option label="Code" value="code" />
+              <el-option label="Assignment" value="assignment" />
+              <el-option label="Video" value="video" />
+              <el-option label="Reading" value="reading" />
+              <el-option label="Lecture" value="lecture" />
+            </el-select>
           </el-form-item>
           <el-form-item label="Description" prop="description">
             <el-input v-model="editForm.description" type="textarea" :rows="4"/>

@@ -29,7 +29,7 @@ apiRequest<Assignment>(`/students/assignments/${assignmentId}/details`).then(dat
     type: '',
     description: '',
     dueDate: '',
-    maxScore: NaN,
+    maxScore: 100,
     openDate: '',
     status: 'unknown',
     instructions: ''

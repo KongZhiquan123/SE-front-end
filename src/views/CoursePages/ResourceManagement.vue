@@ -48,6 +48,7 @@ const courseId = route.query.courseId;
 const fetchResources = async () => {
   try {
     const {data} = await request.get(`/teachers/resources/course/${courseId}`)
+    data.sort((a: Resource, b: Resource) => a.id - b.id); // 按照ID排序
     resources.value = data ?? [];
   } catch (error) {
     ElMessage.error('Failed to fetch resources');

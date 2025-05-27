@@ -30,10 +30,10 @@ const emit = defineEmits([ 'grade-submitted'])
 const visible = ref<boolean>(false)
 // 评分表单
 const gradeForm = ref<{
-  score: number | null;
+  score: number;
   feedback: string;
 }>({
-  score: props.currentGrade?.score || null,
+  score: props.currentGrade?.score || 0,
   feedback: props.currentGrade?.feedback || ''
 })
 watch(
@@ -56,7 +56,7 @@ const closeDialog = () => {
 // 提交评分
 const submitGrade = async () => {
   // 验证成绩是否合法
-  if (gradeForm.value.score === null || isNaN(gradeForm.value.score)) {
+  if (isNaN(gradeForm.value.score)) {
     ElMessage.warning('Please enter a valid score')
     return
   }
@@ -85,7 +85,7 @@ const submitGrade = async () => {
       ElMessage.success('Grade submitted successfully')
       // 发送成功事件，通知父组件更新数据
       emit('grade-submitted', {
-        score: gradeForm.value.score || NaN,
+        score: gradeForm.value.score || 0,
         feedback: gradeForm.value.feedback,
       })
       closeDialog()

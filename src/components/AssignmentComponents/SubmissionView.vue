@@ -24,7 +24,7 @@ apiRequest<Submission>(`/teachers/submissions/${route.query.submissionId}`).then
   submission.value = res ?? submission.value;
   submission.value = submissionConversion(submission.value);
   if (submission.value.grade) {
-    submission.value.grade.score = submission.value.grade.score ?? NaN;
+    submission.value.grade.score = submission.value.grade.score ?? 0;
     submission.value.grade.maxScore = submission.value.grade.maxScore || 100;
   }
   //初始化当前附件和代码提交，以便预览

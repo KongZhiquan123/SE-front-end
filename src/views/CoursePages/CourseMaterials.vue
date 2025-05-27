@@ -69,9 +69,9 @@ import {
   Film,
   Collection
 } from '@element-plus/icons-vue'
+import { useRoute } from "vue-router"
 import type { Resource } from '@/types/interfaces'
 import apiRequest from "@/utils/apiUtils"
-import { useRoute } from "vue-router"
 import downloadFile from "@/utils/downloadFile"
 import formatFileSize from "@/utils/formatFileSize"
 import { formatDate} from "@/utils/formatDate";
@@ -85,6 +85,7 @@ apiRequest<Resource[]>(`/students/courses/${route.query.courseId}/resources`)
       courseMaterials.value = data ?? []
       // 将附件的大小转换为更友好的格式，如 1MB
       courseMaterials.value.forEach(material => {
+        material.type = material.type.toLowerCase();
         material.attachments?.forEach(attachment => {
           attachment.size = formatFileSize(attachment.size)
         })
@@ -92,8 +93,6 @@ apiRequest<Resource[]>(`/students/courses/${route.query.courseId}/resources`)
 
       loading.value = false
     })
-
-
 
 // 获取文件类型图标
 const getFileIcon = (filename: string) => {
@@ -137,11 +136,11 @@ const getFileIconColor = (filename: string) => {
 // 获取标签类型
 const getTagType = (materialType: string) => {
   const typeMap: Record<string, string> = {
-    'Lecture': 'success',
-    'Assignment': 'warning',
-    'Reading': 'info',
-    'Video': 'danger',
-    'Quiz': 'primary'
+    'lecture': 'success',
+    'assignment': 'warning',
+    'reading': 'info',
+    'video': 'danger',
+    'quiz': 'primary'
   }
 
   return typeMap[materialType] || 'info'

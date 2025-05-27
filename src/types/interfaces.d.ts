@@ -33,7 +33,7 @@ export interface Attachment {
 export interface Resource {
     id: number
     title: string
-    type: string
+    type: 'reading' | 'video' | 'quiz' | 'lecture' | 'assignment'
     description: string
     attachments?: Attachment[] | null
     uploadTime: string
@@ -88,6 +88,9 @@ export interface Task {
     deadline: string;
     courseId: string;
     courseName: string;
+    courseCode: string;
+    assignmentId?: number;
+    assignmentType?: string;
     description?: string | null;
 }
 
@@ -144,7 +147,7 @@ export interface CodeAssignmentConfig {
 }
 
 //CodeRun.vue
-interface CodeExecutionResult {
+export interface CodeExecutionResult {
     submissionId: number;
     script: string;
     language: string;
@@ -153,7 +156,7 @@ interface CodeExecutionResult {
     testCaseResults: TestCaseResult[];
 }
 
-interface TestCaseResult {
+export interface TestCaseResult {
     testCaseId: number;
     input: string;
     expectedOutput: string;

@@ -66,6 +66,7 @@
       </template>
       <template #footer>
         <span class="dialog-footer">
+          <el-button @click="goToAssignment" :disabled="isOverdue(selectedTask)">Go to Finish Assignment</el-button>
           <el-button @click="taskDialogVisible = false">Close</el-button>
         </span>
       </template>
@@ -78,7 +79,10 @@ import { computed, ref } from 'vue'
 import { ArrowLeft, ArrowRight } from "@element-plus/icons-vue";
 import type { Task } from '@/types/interfaces.d.ts'
 import apiRequest from "@/utils/apiUtils";
+import {useRouter} from "vue-router";
+import {ElMessage} from "element-plus";
 
+const router = useRouter();
 const currentDate = ref(new Date())
 const viewType = ref('month')
 const taskDialogVisible = ref(false)
@@ -119,9 +123,28 @@ const getTasksForDate = (date: string) => {
 }
 
 const isOverdue = (task: Task) => {
+  if (!task || !task.deadline) return true
   return new Date(task.deadline) < new Date()
 }
-
+const goToAssignment = () => {
+  if (!selectedTask.value) {
+    ElMessage.warning('No task selected or task details not available.')
+    return
+  }
+  if (isOverdue(selectedTask.value)) {
+    ElMessage.warning('This task is overdue, you cannot submit it.')
+    return;
+  }
+  const path = selectedTask.value?.assignmentType === 'code'
+      ? '/code-edit-and-run/code-edit'
+      : '/student-course/submit-assignments'
+  router.push({
+    path: path,
+    query: {assignmentId: selectedTask.value.assignmentId,
+      courseId: selectedTask.value.courseId,
+      courseCode: selectedTask.value.courseCode}
+  })
+}
 const openTaskDetails = (task: Task) => {
   selectedTask.value = task
   taskDialogVisible.value = true

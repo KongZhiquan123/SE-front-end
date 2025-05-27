@@ -13,11 +13,15 @@
         <el-form-item label="Title" prop="title">
           <el-input v-model="form.title"/>
         </el-form-item>
-        <div class="form-row">
-          <el-form-item label="Type" prop="type">
-            <el-input v-model="form.type"/>
-          </el-form-item>
-        </div>
+        <el-form-item label="Type" prop="type">
+          <el-select v-model="form.type" placeholder="Please select resource type">
+            <el-option label="Code" value="code" />
+            <el-option label="Assignment" value="assignment" />
+            <el-option label="Video" value="video" />
+            <el-option label="Reading" value="reading" />
+            <el-option label="Lecture" value="lecture" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="Description" prop="description">
           <el-input v-model="form.description" type="textarea" :rows="4"/>
         </el-form-item>

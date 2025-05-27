@@ -54,8 +54,9 @@ const courseId = route.query.courseId;
 // 获取作业
 const fetchAssignments = async () => {
   try {
-    const {data} = await request.get(`/teachers/assignments/course/${courseId}`)
+    const {data} = await request.get(`/teachers/assignments/course/${courseId}`);
     assignments.value = data ?? [];
+    assignments.value.sort((a: Assignment, b: Assignment) => a.id - b.id); // 按照ID排序
   } catch (error) {
     ElMessage.error('Failed to fetch assignments');
     console.error(error);

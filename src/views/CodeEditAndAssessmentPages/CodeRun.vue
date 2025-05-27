@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus';
 import { RefreshRight, Check, Close, Warning } from '@element-plus/icons-vue';
 import { Vue3Lottie } from 'vue3-lottie'
 import {useRoute} from "vue-router";
-import {CodeExecutionResult, TestCaseResult} from "@/types/interfaces";
+import type {CodeExecutionResult, TestCaseResult} from "@/types/interfaces";
 import apiRequest from "@/utils/apiUtils";
 import CodeRunningAnimation from "@/assets/CodeRunningAnimation.json";
 

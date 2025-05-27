@@ -23,7 +23,6 @@
         <el-table-column prop="id" label="ID" />
         <el-table-column prop="studentName" label="Student Name" />
         <el-table-column prop="submitTime" label="Submit Time"  />
-        <el-table-column prop="attempts" label="Attempts"  />
         <el-table-column prop="status" label="Status" >
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.status)">
