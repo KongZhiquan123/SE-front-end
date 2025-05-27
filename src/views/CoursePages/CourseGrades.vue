@@ -21,7 +21,7 @@ const sortBy = ref<'dueDate'|'score'|'title'>('dueDate');
 const sortOrder = ref<'ascending'|'descending'>('ascending');
 const loading = ref<boolean>(true);
 const grades = ref<Grade[]>([]);
-apiRequest<Grade[]>(`/students/courses/courses/${route.query.courseId}`).then(res => {
+apiRequest<Grade[]>(`/students/courses/${route.query.courseId}/grade`).then(res => {
   grades.value = res ?? []
   loading.value = false
 })
