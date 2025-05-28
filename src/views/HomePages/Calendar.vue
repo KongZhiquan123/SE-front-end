@@ -66,7 +66,7 @@
       </template>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="goToAssignment" :disabled="isOverdue(selectedTask)">Go to Finish Assignment</el-button>
+          <el-button @click="goToAssignment">Go to Finish Assignment</el-button>
           <el-button @click="taskDialogVisible = false">Close</el-button>
         </span>
       </template>
@@ -130,10 +130,6 @@ const goToAssignment = () => {
   if (!selectedTask.value) {
     ElMessage.warning('No task selected or task details not available.')
     return
-  }
-  if (isOverdue(selectedTask.value)) {
-    ElMessage.warning('This task is overdue, you cannot submit it.')
-    return;
   }
   const path = selectedTask.value?.assignmentType === 'code'
       ? '/code-edit-and-run/code-edit'

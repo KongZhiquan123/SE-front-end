@@ -112,7 +112,9 @@ const isDeadlinePassed = computed(() => {
   if (!assignment.value?.dueDate) return false;
   return new Date(assignment.value.dueDate) < new Date();
 });
-
+const isUpcoming = computed(() => {
+  return assignment.value?.status.toLowerCase() === 'upcoming';
+});
 // 提交作业
 const submitAssignment = async () => {
   if (!isDeadlinePassed.value) {
@@ -198,13 +200,20 @@ const goBack = () => {
       <div v-if="assignment" class="assignment-content">
         <el-alert
             v-if="isDeadlinePassed"
-            title="The deadline has passed! Late submissions may be penalized."
+            title="The deadline has passed! You can still submit, but zero points will be awarded."
             type="warning"
             :closable="false"
             show-icon
             class="deadline-alert"
         />
-
+        <el-alert
+            v-else-if="isUpcoming"
+            title="This assignment is not yet open for submission, please check back later."
+            type="info"
+            :closable="false"
+            show-icon
+            class="deadline-alert"
+        />
         <el-descriptions :column="1" border size="large" class="assignment-info">
           <el-descriptions-item label="Assignment Title">
             {{ assignment.title }}
@@ -219,6 +228,14 @@ const goBack = () => {
                   class="status-tag"
               >
                 Overdue
+              </el-tag>
+              <el-tag
+                  v-else-if="isUpcoming"
+                  type="info"
+                  size="small"
+                  class="status-tag"
+              >
+                Upcoming
               </el-tag>
               <el-tag
                   v-else
@@ -344,7 +361,7 @@ const goBack = () => {
                 size="large"
                 @click="submitAssignment"
                 :loading="submitting"
-                :disabled="submitting"
+                :disabled="submitting || isUpcoming || isDeadlinePassed"
                 class="submit-button"
             >
               Submit Assignment
