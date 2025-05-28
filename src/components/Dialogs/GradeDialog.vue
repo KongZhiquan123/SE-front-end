@@ -158,7 +158,7 @@ defineExpose({open})
         <el-button
             v-if="aiGrading"
             @click="useAIGrading"
-            type="info"
+            color="#626aef"
         >
           Use AI Grading
         </el-button>

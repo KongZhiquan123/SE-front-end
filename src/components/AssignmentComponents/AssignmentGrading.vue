@@ -5,11 +5,20 @@
       <template #header>
         <div class="card-header">
           <h2>Student Submissions</h2>
-          <el-select v-model="statusFilter" placeholder="Filter by status" clearable style="width: 240px">
-            <el-option label="All" value="" />
-            <el-option label="Pending" value="pending" />
-            <el-option label="Graded" value="graded" />
-          </el-select>
+          <div class="header-actions">
+            <el-select v-model="statusFilter" placeholder="Filter by status" clearable style="width: 240px">
+              <el-option label="All" value="" />
+              <el-option label="Pending" value="pending" />
+              <el-option label="Graded" value="graded" />
+            </el-select>
+            <el-button
+                type="warning"
+                :disabled="selectedSubmissions.length !== 2"
+                @click="checkPlagiarism"
+                size="default">
+              Check Plagiarism
+            </el-button>
+          </div>
         </div>
       </template>
 
@@ -17,9 +26,10 @@
           :data="filteredSubmissions"
           stripe
           style="width: 100%"
-          @row-click="selectSubmission"
           :row-class-name="getRowClassName"
+          @selection-change="handleSelectionChange"
       >
+        <el-table-column type="selection" width="55" />
         <el-table-column prop="id" label="ID" />
         <el-table-column prop="studentName" label="Student Name" />
         <el-table-column prop="submitTime" label="Submit Time"  />
@@ -52,6 +62,69 @@
         />
       </div>
     </el-card>
+
+    <!-- Plagiarism Check Results Dialog -->
+    <el-dialog
+        v-model="plagiarismDialogVisible"
+        title="Plagiarism Check Results"
+        width="50%"
+    >
+      <div v-if="plagiarismLoading" class="plagiarism-loading">
+        <el-icon class="is-loading"><Loading /></el-icon>
+        <span>Analyzing submissions...</span>
+      </div>
+      <div v-else class="plagiarism-result">
+        <div class="similarity-score">
+          <h3>Similarity Score: <span :class="getSimilarityClass">{{ plagiarismResult.similarityScore }}%</span></h3>
+          <p>Check Time: {{ formatDate(plagiarismResult.checkTime) }}</p>
+          <p>Status: <el-tag>{{ plagiarismResult.status }}</el-tag></p>
+        </div>
+        <div class="plagiarism-details">
+          <h4>Student Information:</h4>
+          <div class="student-info">
+            <div class="student">
+              <strong>Student A:</strong> {{ plagiarismResult.studentAName }}
+            </div>
+            <div class="student">
+              <strong>Student B:</strong> {{ plagiarismResult.studentBName }}
+            </div>
+          </div>
+          <h4>Similar Content:</h4>
+          <div class="similar-content" v-if="plagiarismResult.details && plagiarismResult.details.length > 0">
+            <el-collapse v-model="activeSegments">
+              <el-collapse-item
+                  v-for="(segment, index) in parsedDetails"
+                  :key="index"
+                  :title="`Similar Segment ${index + 1}`"
+                  :name="index"
+              >
+                <div class="segment-comparison">
+                  <div class="segment-a">
+                    <h5>Student A Code:</h5>
+                    <pre>{{ segment.segmentA }}</pre>
+                  </div>
+                  <div class="segment-b">
+                    <h5>Student B Code:</h5>
+                    <pre>{{ segment.segmentB }}</pre>
+                  </div>
+                </div>
+              </el-collapse-item>
+            </el-collapse>
+          </div>
+          <div v-else class="no-similar-content">
+            No obvious similar content found
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="plagiarismDialogVisible = false">Close</el-button>
+          <el-button type="primary" @click="handlePlagiarismReport">
+            Generate Report
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </el-main>
 </template>
 
@@ -62,6 +135,9 @@ import {cloneDeep, defaultTo} from "lodash-es";
 import apiRequest from "@/utils/apiUtils";
 import {useRoute, useRouter} from "vue-router";
 import {submissionsConversion} from "@/utils/DataFormatConversion";
+import { Loading } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
+import { formatDate} from "@/utils/formatDate";
 
 interface GradingForm {
   score: number;
@@ -98,6 +174,57 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 const totalSubmissions = computed(() => submissionsList.length);
 
+// 抄袭检查相关
+const selectedSubmissions = ref<Submission[]>([]);
+const plagiarismDialogVisible = ref(false);
+const plagiarismLoading = ref(false);
+const activeSegments = ref([0]);
+
+// 抄袭检查结果模型
+interface PlagiarismResult {
+  id?: number;
+  similarityScore: number;
+  studentAName: string;
+  studentBName: string;
+  checkTime: string;
+  status: string;
+  details: string;
+}
+
+const plagiarismResult = reactive<PlagiarismResult>({
+  similarityScore: 0,
+  studentAName: '',
+  studentBName: '',
+  checkTime: '',
+  status: '',
+  details: ''
+});
+
+const parsedDetails = computed(() => {
+  if (!plagiarismResult.details) return [];
+  try {
+    return JSON.parse(plagiarismResult.details);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (e) {
+    return [];
+  }
+});
+
+const getSimilarityClass = computed(() => {
+  if (plagiarismResult.similarityScore < 30) {
+    return 'similarity-low';
+  } else if (plagiarismResult.similarityScore < 70) {
+    return 'similarity-medium';
+  } else {
+    return 'similarity-high';
+  }
+});
+
+
+// 表格多选变更处理
+const handleSelectionChange = (selections: Submission[]) => {
+  selectedSubmissions.value = selections;
+};
 
 
 apiRequest<Submission[]>(`/teachers/submissions/assignment/${assignmentId}/latest`).then((data) => {
@@ -172,6 +299,42 @@ const getRowClassName = ({ row }: { row: Submission }) => {
   }
   return '';
 };
+
+// 检查抄袭
+const checkPlagiarism = async () => {
+  if (selectedSubmissions.value.length !== 2) {
+    ElMessage.warning('Please select two submissions for plagiarism check');
+    return;
+  }
+
+  plagiarismDialogVisible.value = true;
+  plagiarismLoading.value = true;
+  const submissionA = selectedSubmissions.value[0];
+  const submissionB = selectedSubmissions.value[1];
+  const response = await apiRequest<PlagiarismResult>({
+      url: `/plagiarism/check?submissionAId=${submissionA.id}&submissionBId=${submissionB.id}`,
+      requestType: 'POST'
+  });
+
+  if (response) {
+    plagiarismResult.similarityScore = response.similarityScore * 100; // 转换为百分比
+    plagiarismResult.studentAName = submissionA.studentName;
+    plagiarismResult.studentBName = submissionB.studentName;
+    plagiarismResult.checkTime = response.checkTime;
+    plagiarismResult.status = response.status;
+    plagiarismResult.details = response.details;
+  } else {
+    ElMessage.error('Failed to get plagiarism check results');
+  }
+  plagiarismLoading.value = false;
+};
+
+// 生成抄袭报告
+const handlePlagiarismReport = () => {
+  ElMessage.success('Plagiarism report generated and saved');
+  plagiarismDialogVisible.value = false;
+};
+
 // 监听过滤器变化，重置分页
 watch(statusFilter, () => {
   filteredSubmissions.value = submissionsList.filter((submission) => {
@@ -184,6 +347,12 @@ watch(statusFilter, () => {
 
 <style lang="scss" scoped>
 @use "@/assets/variables" as vars;
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
 
 .pagination-container {
   display: flex;
@@ -247,219 +416,6 @@ watch(statusFilter, () => {
         }
       }
     }
-
-    .submission-info {
-      margin-bottom: vars.$spacing-large;
-      padding-bottom: vars.$spacing-base;
-      border-bottom: 1px solid vars.$border-light;
-
-      .info-row {
-        display: flex;
-        margin: vars.$spacing-small 0;
-
-        .info-item {
-          flex: 1;
-          margin-right: vars.$spacing-large;
-          color: vars.$text-secondary;
-
-          strong {
-            color: vars.$text-primary;
-            font-weight: vars.$font-weight-medium;
-          }
-        }
-      }
-    }
-
-    .text-response {
-      margin-bottom: vars.$spacing-large;
-
-      h3 {
-        font-size: vars.$font-size-base;
-        font-weight: vars.$font-weight-medium;
-        margin-bottom: vars.$spacing-small;
-        color: vars.$text-primary;
-      }
-
-      .response-content {
-        background-color: vars.$background-lighter;
-        padding: vars.$spacing-base;
-        border-radius: vars.$border-radius-base;
-        white-space: pre-wrap;
-        border: 1px solid vars.$border-lighter;
-        color: vars.$text-secondary;
-      }
-    }
-
-    .code-submissions {
-      margin-bottom: vars.$spacing-large;
-
-      h3 {
-        font-size: vars.$font-size-base;
-        font-weight: vars.$font-weight-medium;
-        margin-bottom: vars.$spacing-small;
-        color: vars.$text-primary;
-      }
-
-      .code-header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: vars.$spacing-medium;
-        color: vars.$text-secondary;
-
-        strong {
-          color: vars.$text-primary;
-          font-weight: vars.$font-weight-medium;
-        }
-      }
-
-      .code-display {
-        background-color: #282c34;
-        color: #abb2bf;
-        padding: vars.$spacing-base;
-        border-radius: vars.$border-radius-base;
-        overflow-x: auto;
-        margin: 0;
-        box-shadow: vars.$box-shadow-light;
-      }
-    }
-
-    .attachments {
-      margin-bottom: vars.$spacing-large;
-
-      h3 {
-        font-size: vars.$font-size-base;
-        font-weight: vars.$font-weight-medium;
-        margin-bottom: vars.$spacing-small;
-        color: vars.$text-primary;
-      }
-    }
-
-    .grading-section {
-      padding-top: vars.$spacing-large;
-      border-top: 1px solid vars.$border-lighter;
-
-      h3 {
-        font-size: vars.$font-size-base;
-        font-weight: vars.$font-weight-medium;
-        margin-bottom: vars.$spacing-medium;
-        color: vars.$text-primary;
-      }
-
-      .form-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: vars.$spacing-medium;
-        margin-top: vars.$spacing-large;
-      }
-    }
-  }
-
-  .empty-state {
-    margin-top: vars.$spacing-extra-large;
-    color: vars.$text-tertiary;
-    text-align: center;
-    padding: vars.$spacing-extra-large;
-    background-color: vars.$background-lighter;
-    border-radius: vars.$border-radius-base;
-  }
-}
-
-.ai-grading-section {
-  margin-bottom: vars.$spacing-large;
-  padding: vars.$spacing-large;
-  background-color: vars.$background-lighter;
-  border-radius: vars.$border-radius-base;
-  border: 1px solid vars.$border-light;
-
-  h3 {
-    font-size: vars.$font-size-base;
-    font-weight: vars.$font-weight-medium;
-    margin-bottom: vars.$spacing-small;
-    color: vars.$text-primary;
-  }
-
-  .ai-disclaimer {
-    margin-bottom: vars.$spacing-medium;
-  }
-
-  .ai-score-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: vars.$spacing-medium;
-
-    .ai-score-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background-color: vars.$background-white;
-      border-radius: vars.$border-radius-base;
-      padding: vars.$spacing-base;
-      box-shadow: vars.$box-shadow-light;
-      min-width: 100px;
-
-      .ai-score-label {
-        font-size: vars.$font-size-small;
-        color: vars.$text-tertiary;
-        margin-bottom: vars.$spacing-mini;
-      }
-
-      .ai-score-value {
-        font-size: 24px;
-        font-weight: vars.$font-weight-bold;
-        color: vars.$primary-color;
-      }
-    }
-
-    .ai-confidence {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      margin-left: vars.$spacing-large;
-
-      .confidence-label {
-        margin-right: vars.$spacing-small;
-        color: vars.$text-secondary;
-        font-size: vars.$font-size-small;
-      }
-
-      .confidence-bar {
-        flex: 1;
-        margin: 0 vars.$spacing-small;
-      }
-
-      .confidence-value {
-        font-weight: vars.$font-weight-medium;
-        min-width: 40px;
-      }
-    }
-  }
-
-  .ai-feedback {
-    background-color: vars.$background-white;
-    border-radius: vars.$border-radius-base;
-    padding: vars.$spacing-base;
-    box-shadow: vars.$box-shadow-light;
-
-    .ai-feedback-label {
-      font-weight: vars.$font-weight-medium;
-      color: vars.$text-primary;
-      margin-bottom: vars.$spacing-small;
-    }
-
-    .ai-feedback-content {
-      color: vars.$text-secondary;
-      white-space: pre-line;
-      margin-bottom: vars.$spacing-medium;
-      padding: vars.$spacing-small;
-      background-color: vars.$background-lighter;
-      border-radius: vars.$border-radius-small;
-      border-left: 3px solid vars.$primary-color;
-    }
-
-    .use-ai-feedback {
-      margin-top: vars.$spacing-small;
-    }
   }
 }
 
@@ -467,5 +423,91 @@ watch(statusFilter, () => {
 :deep(.selected-row) {
   background-color: vars.$background-info-light !important;
   border-left: 3px solid vars.$primary-color;
+}
+
+// 抄袭检查相关样式
+.plagiarism-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px;
+
+  .el-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+}
+
+.plagiarism-result {
+  .similarity-score {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+
+    h3 {
+      margin: 0 0 10px 0;
+
+      .similarity-low {
+        color: #67c23a;
+      }
+
+      .similarity-medium {
+        color: #e6a23c;
+      }
+
+      .similarity-high {
+        color: #f56c6c;
+      }
+    }
+
+    p {
+      margin: 5px 0;
+    }
+  }
+
+  .plagiarism-details {
+    .student-info {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 20px;
+
+      .student {
+        flex: 1;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+      }
+    }
+
+    .similar-content {
+      margin-top: 15px;
+
+      .segment-comparison {
+        display: flex;
+        gap: 15px;
+
+        .segment-a, .segment-b {
+          flex: 1;
+
+          pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            border-left: 3px solid #409eff;
+          }
+        }
+      }
+    }
+
+    .no-similar-content {
+      text-align: center;
+      padding: 20px;
+      color: #909399;
+    }
+  }
 }
 </style>

@@ -3,7 +3,7 @@ import {ref, computed, onBeforeUnmount} from 'vue'
 import { ElMessage } from 'element-plus'
 import type {Attachment, CodeSubmission, Submission} from "@/types/interfaces";
 import {capitalize} from "lodash-es";
-import {Document, Picture, Folder, Download, CoffeeCup, Edit, Plus} from '@element-plus/icons-vue'
+import {Document, Picture, Folder, Download, CoffeeCup, Edit, Plus, MagicStick} from '@element-plus/icons-vue'
 import apiRequest from "@/utils/apiUtils";
 import {useRoute} from "vue-router";
 import {submissionConversion} from "@/utils/DataFormatConversion";
@@ -45,6 +45,14 @@ const currentAttachment = ref<Attachment | null>(null)
 const showCode = ref(false)
 const currentCodeSubmission = ref<CodeSubmission | null>(null)
 const gradingDialog = ref<InstanceType<typeof GradingDialog> | null>(null)
+const loadingAIGrading = ref<boolean>(false)
+const aiModels = [
+  { label: 'Qwen 3 (32B)', value: 'qwen3-32b' },
+  { label: 'Qwen 3 (235B)', value: 'qwen3-235b-a22b' },
+  { label: 'QWQ (32B)', value: 'qwq-32b' },
+  { label: 'DeepSeek (32B)', value: 'deepseek-r1-distill-qwen-32b' }
+]
+const selectedModel = ref('qwen3-32b')
 
 onBeforeUnmount(() => {
   if (blobUrl.value) {
@@ -190,6 +198,23 @@ const isPreviewable = computed<boolean>(() => {
   const fileExtension = currentAttachment.value.name.split('.').pop()?.toLowerCase() || '';
   return previewableExtensions.includes(fileExtension);
 })
+// 请求AI评分
+const requestAIGrading = async () => {
+  if (loadingAIGrading.value || !submission.value.id) return;
+  loadingAIGrading.value = true;
+  const aiGradingResult = await apiRequest({
+    url: `/ai-grading/grade?submissionId=${submission.value.id}&modelName=${selectedModel.value}`,
+    requestType: 'POST'
+  });
+
+  if (aiGradingResult) {
+    submission.value.aiGrading = aiGradingResult;
+    ElMessage.success('AI Grading completed successfully');
+  } else {
+    ElMessage.warning('AI Grading server is busy, please try later');
+  }
+  loadingAIGrading.value = false;
+}
 </script>
 
 <template>
@@ -271,15 +296,39 @@ const isPreviewable = computed<boolean>(() => {
         </div>
         <!-- 评分按钮 -->
         <div class="grading-actions">
-          <el-button
-              type="primary"
-              @click="openGradingDialog"
-              :icon="submission.status === 'graded' ? Edit : Plus"
-              class="grade-button"
-          >
-            {{ submission.status === 'graded' ? 'Edit Grade' : 'Submit Grade' }}
-          </el-button>
+          <div style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 10px">
+            <span style="font-size: 14px; color: var(--el-text-color-secondary);">AI Model:</span>
+            <el-select v-model="selectedModel" size="small" style="width: 50%">
+              <el-option
+                  v-for="model in aiModels"
+                  :key="model.value"
+                  :label="model.label"
+                  :value="model.value"
+              />
+            </el-select>
+          </div>
+          <el-button-group>
+            <el-button
+                type="primary"
+                @click="requestAIGrading"
+                :loading="loadingAIGrading"
+                :icon="MagicStick"
+                class="grade-button"
+            >
+              {{ submission.aiGrading ? 'Regrade with AI' : 'Grade with AI' }}
+            </el-button>
+            <el-button
+                type="primary"
+                @click="openGradingDialog"
+                :loading="loadingAIGrading"
+                :icon="submission.status === 'graded' ? Edit : Plus"
+                class="grade-button"
+            >
+              {{ submission.status === 'graded' ? 'Modify Grade' : 'Grade Submission' }}
+            </el-button>
+          </el-button-group>
         </div>
+
         <!-- Grade information -->
         <div class="score-section" v-if="submission.grade || submission.aiGrading">
           <h4>Grade Information</h4>
@@ -528,12 +577,18 @@ const isPreviewable = computed<boolean>(() => {
       }
     }
     .grading-actions {
+      padding: 0 10px 0;
       margin-top: 16px;
       display: flex;
+      gap: 12px;
+      flex-direction: column;
       justify-content: center;
-
+      align-items: center;
       .grade-button {
         width: 50%;
+      }
+      .grade-button + .grade-button {
+        margin-left: 0;
       }
     }
     .score-container {
