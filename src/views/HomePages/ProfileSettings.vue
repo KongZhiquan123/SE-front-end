@@ -1,18 +1,17 @@
 <script lang="ts" setup>
-import { ref, reactive } from 'vue';
+import {ref, reactive, computed} from 'vue';
 import { ElMessage } from 'element-plus';
 import { formatDate } from '@/utils/formatDate';
 import AvatarCropper from '@/components/Others/AvatarCropper.vue';
 import apiRequest from '@/utils/apiUtils';
-import {type UserState, useUserStore } from '@/stores/user'
+import {useUserStore } from '@/stores/user'
 
 //本地存储用户信息
 const isEditing = ref(false);
 const showCropper = ref(false);
 const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png';
 const userStore = useUserStore();
-const { id, username, email, role, createdAt, bio, avatarUrl } = userStore;
-const userInfo = reactive<Partial<UserState>>({id, username, email, role, createdAt, bio, avatarUrl});
+
 // 编辑表单
 const editForm = reactive({
   username: '',
@@ -25,12 +24,12 @@ const editForm = reactive({
 
 // 重置编辑表单
 const resetEditForm = () => {
-  editForm.username = userInfo.username || '';
-  editForm.bio = userInfo.bio || '';
-  editForm.avatarUrl = userInfo.avatarUrl || '';
+  editForm.username = userStore.username || '';
+  editForm.bio = userStore.bio || '';
+  editForm.avatarUrl = userStore.avatarUrl || '';
   editForm.oldPassword = '';
   editForm.newPassword = '';
-  editForm.email = userInfo.email || '';
+  editForm.email = userStore.email || '';
 };
 
 // 获取用户角色名称
@@ -103,9 +102,7 @@ const saveChanges = async () => {
 
   if (result) {
     // 更新本地状态
-    userStore.setUser({...result, authorized: true});
-    const { id, username, email, role, createdAt, bio, avatarUrl } = userStore;
-    Object.assign(userInfo, { id, username, email, role, createdAt, bio, avatarUrl });
+    userStore.setUser({id: result.userId, ...result, authorized: true});
     isEditing.value = false;
     resetEditForm();
     ElMessage.success('Profile updated successfully');
@@ -128,40 +125,35 @@ const showAvatarUploader = () => {
 };
 
 const onCropSuccess = async (avatarBase64) => {
-  try {
-    // 将Base64转换为Blob
-    const base64Data = avatarBase64.split(',')[1];
-    const blob = base64ToBlob(base64Data, 'image/jpeg');
+  // 将Base64转换为Blob
+  const base64Data = avatarBase64.split(',')[1];
+  const blob = base64ToBlob(base64Data, 'image/jpeg');
+  // 创建FormData对象
+  const formData = new FormData();
+  formData.append('file', blob, 'avatar.jpg');
 
-    // 创建FormData对象
-    const formData = new FormData();
-    formData.append('file', blob, 'avatar.jpg');
-
-    // 调用专门的头像上传API
-    const result = await apiRequest({
-      url: '/profile/avatar',
-      requestType: 'post',
-      errorMessage: 'Failed to upload avatar',
-      data: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-
-    if (result && result.avatarUrl) {
-      // 更新本地头像URL
-      editForm.avatarUrl = result.avatarUrl;
-      userStore.setAvatarUrl(result.avatarUrl);
-      ElMessage.success('头像上传成功');
+  // 调用专门的头像上传API
+  const result = await apiRequest({
+    url: '/profile/avatar',
+    requestType: 'post',
+    errorMessage: 'Failed to upload avatar',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
     }
-  } catch (error) {
-    console.error('Failed to upload avatar:', error)
-    ElMessage.error('Failed to upload avatar');
-  } finally {
-    showCropper.value = false;
-  }
-};
+  });
 
+  if (result && result.avatarUrl) {
+    // 更新本地头像URL
+    editForm.avatarUrl = result.avatarUrl;
+    userStore.setAvatarUrl(result.avatarUrl);
+    ElMessage.success('Avatar uploaded successfully');
+  }
+  showCropper.value = false;
+};
+const avatarUrl = computed(() => {
+  return 'http://' + (editForm.avatarUrl || userStore.avatarUrl || defaultAvatar);
+});
 </script>
 
 
@@ -176,7 +168,7 @@ const onCropSuccess = async (avatarBase64) => {
       </div>
 
       <div class="avatar-section">
-        <el-avatar :size="100" :src="editForm.avatarUrl || userInfo.avatarUrl || defaultAvatar" />
+        <el-avatar :size="100" :src="avatarUrl" />
         <div v-if="isEditing" class="avatar-actions">
           <el-button type="primary" size="small" @click="showAvatarUploader">
             Upload Avatar
@@ -187,7 +179,7 @@ const onCropSuccess = async (avatarBase64) => {
       <div class="profile-info">
         <div class="info-item">
           <span class="label">Username:</span>
-          <span v-if="!isEditing">{{ userInfo.username || 'No name yet' }}</span>
+          <span v-if="!isEditing">{{ userStore.username || 'No name yet' }}</span>
           <el-input
               v-else
               v-model="editForm.username"
@@ -199,7 +191,7 @@ const onCropSuccess = async (avatarBase64) => {
 
         <div class="info-item">
           <span class="label">Email:</span>
-          <span v-if="!isEditing">{{ userInfo.email || 'Not set' }}</span>
+          <span v-if="!isEditing">{{ userStore.email || 'Not set' }}</span>
           <el-input
             v-else
             v-model="editForm.email"
@@ -211,12 +203,12 @@ const onCropSuccess = async (avatarBase64) => {
 
         <div class="info-item">
           <span class="label">Role:</span>
-          <span>{{ getRoleName(userInfo.role) }}</span>
+          <span>{{ getRoleName(userStore.role) }}</span>
         </div>
 
         <div class="info-item">
           <span class="label">Account Created:</span>
-          <span>{{ formatDate(userInfo.createdAt) }}</span>
+          <span>{{ formatDate(userStore.createdAt) }}</span>
         </div>
 
 
@@ -242,7 +234,7 @@ const onCropSuccess = async (avatarBase64) => {
 
         <div class="info-item bio-item">
           <span class="label">Bio:</span>
-          <span v-if="!isEditing">{{ userInfo.bio || 'No bio provided' }}</span>
+          <span v-if="!isEditing">{{ userStore.bio || 'No bio provided' }}</span>
           <el-input
               v-else
               v-model="editForm.bio"

@@ -577,7 +577,7 @@ const requestAIGrading = async () => {
       }
     }
     .grading-actions {
-      padding: 0 10px 0;
+      padding: 0 20px 0;
       margin-top: 16px;
       display: flex;
       gap: 12px;

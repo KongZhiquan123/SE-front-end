@@ -26,7 +26,6 @@
           :data="filteredSubmissions"
           stripe
           style="width: 100%"
-          :row-class-name="getRowClassName"
           @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" />
@@ -131,7 +130,6 @@
 <script lang="ts" setup>
 import {ref, reactive, watch, computed} from 'vue';
 import type {Submission} from "@/types/interfaces";
-import {cloneDeep, defaultTo} from "lodash-es";
 import apiRequest from "@/utils/apiUtils";
 import {useRoute, useRouter} from "vue-router";
 import {submissionsConversion} from "@/utils/DataFormatConversion";
@@ -139,27 +137,6 @@ import { Loading } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { formatDate} from "@/utils/formatDate";
 
-interface GradingForm {
-  score: number;
-  feedback: string;
-}
-
-// 表单状态
-const grading = reactive<GradingForm>({
-  score: 0,
-  feedback: '',
-});
-
-const defaultSubmission: Submission = {
-  id: 0,
-  studentName: '',
-  submitTime: '',
-  status: 'pending',
-  attempts: 0,
-  textResponse: '',
-  codeSubmissions: [],
-  attachments: []
-}
 const submissionsList = reactive<Submission[]>([]);
 const filteredSubmissions = ref<Submission[]>([]);
 const route = useRoute();
@@ -167,8 +144,6 @@ const router = useRouter();
 const assignmentId = route.query.assignmentId;
 
 // UI 状态
-const selectedSubmission = ref<Submission>(cloneDeep(defaultSubmission));
-const activeCodeTab = ref('0');
 const statusFilter = ref('');
 const currentPage = ref(1);
 const pageSize = ref(10);
@@ -261,17 +236,9 @@ const goBack = async () => {
   })
 };
 
-const gradingDialogVisible = ref<boolean>(false);
-
 // 选择提交项进行评分
 const selectSubmission = (submission: Submission): void => {
-  selectedSubmission.value = { ...submission };
-  gradingDialogVisible.value = true;
-  // 根据选定的提交项初始化评分表单
-  grading.score = defaultTo(submission.grade?.score, 0);
-  grading.feedback = defaultTo(submission.grade?.feedback, '');
   // 重置代码标签
-  activeCodeTab.value = '0';
   router.push({
     path: '/teacher-course/grading-submission',
     query: {
@@ -292,13 +259,6 @@ const handleCurrentChange = (page: number) => {
   currentPage.value = page;
 };
 
-// 获取行类名
-const getRowClassName = ({ row }: { row: Submission }) => {
-  if (selectedSubmission.value && row.id === selectedSubmission.value.id) {
-    return 'selected-row';
-  }
-  return '';
-};
 
 // 检查抄袭
 const checkPlagiarism = async () => {
