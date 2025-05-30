@@ -71,6 +71,7 @@
       <div v-if="plagiarismLoading" class="plagiarism-loading">
         <el-icon class="is-loading"><Loading /></el-icon>
         <span>Analyzing submissions...</span>
+        <span>This will take a long time, please wait patiently.</span>
       </div>
       <div v-else class="plagiarism-result">
         <div class="similarity-score">
@@ -88,40 +89,17 @@
               <strong>Student B:</strong> {{ plagiarismResult.studentBName }}
             </div>
           </div>
-          <h4>Similar Content:</h4>
-          <div class="similar-content" v-if="plagiarismResult.details && plagiarismResult.details.length > 0">
-            <el-collapse v-model="activeSegments">
-              <el-collapse-item
-                  v-for="(segment, index) in parsedDetails"
-                  :key="index"
-                  :title="`Similar Segment ${index + 1}`"
-                  :name="index"
-              >
-                <div class="segment-comparison">
-                  <div class="segment-a">
-                    <h5>Student A Code:</h5>
-                    <pre>{{ segment.segmentA }}</pre>
-                  </div>
-                  <div class="segment-b">
-                    <h5>Student B Code:</h5>
-                    <pre>{{ segment.segmentB }}</pre>
-                  </div>
-                </div>
-              </el-collapse-item>
-            </el-collapse>
-          </div>
+          <h4>Details Content:</h4>
+          <template v-if="plagiarismResult.details">
+            <VueMarkdownRender :source="plagiarismResult.details"/>
+          </template>
           <div v-else class="no-similar-content">
             No obvious similar content found
           </div>
         </div>
       </div>
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="plagiarismDialogVisible = false">Close</el-button>
-          <el-button type="primary" @click="handlePlagiarismReport">
-            Generate Report
-          </el-button>
-        </span>
+        <el-button @click="plagiarismDialogVisible = false">Close</el-button>
       </template>
     </el-dialog>
   </el-main>
@@ -131,6 +109,7 @@
 import {ref, reactive, watch, computed} from 'vue';
 import type {Submission} from "@/types/interfaces";
 import apiRequest from "@/utils/apiUtils";
+import VueMarkdownRender from 'vue-markdown-render';
 import {useRoute, useRouter} from "vue-router";
 import {submissionsConversion} from "@/utils/DataFormatConversion";
 import { Loading } from '@element-plus/icons-vue';
@@ -153,7 +132,6 @@ const totalSubmissions = computed(() => submissionsList.length);
 const selectedSubmissions = ref<Submission[]>([]);
 const plagiarismDialogVisible = ref(false);
 const plagiarismLoading = ref(false);
-const activeSegments = ref([0]);
 
 // 抄袭检查结果模型
 interface PlagiarismResult {
@@ -173,16 +151,6 @@ const plagiarismResult = reactive<PlagiarismResult>({
   checkTime: '',
   status: '',
   details: ''
-});
-
-const parsedDetails = computed(() => {
-  if (!plagiarismResult.details) return [];
-  try {
-    return JSON.parse(plagiarismResult.details);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (e) {
-    return [];
-  }
 });
 
 const getSimilarityClass = computed(() => {
@@ -289,12 +257,6 @@ const checkPlagiarism = async () => {
   plagiarismLoading.value = false;
 };
 
-// 生成抄袭报告
-const handlePlagiarismReport = () => {
-  ElMessage.success('Plagiarism report generated and saved');
-  plagiarismDialogVisible.value = false;
-};
-
 // 监听过滤器变化，重置分页
 watch(statusFilter, () => {
   filteredSubmissions.value = submissionsList.filter((submission) => {
@@ -302,6 +264,7 @@ watch(statusFilter, () => {
     return submission.status === statusFilter.value;
   });
   currentPage.value = 1;
+  selectedSubmissions.value = [];
 });
 </script>
 
@@ -441,27 +404,7 @@ watch(statusFilter, () => {
       }
     }
 
-    .similar-content {
-      margin-top: 15px;
 
-      .segment-comparison {
-        display: flex;
-        gap: 15px;
-
-        .segment-a, .segment-b {
-          flex: 1;
-
-          pre {
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 4px;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            border-left: 3px solid #409eff;
-          }
-        }
-      }
-    }
 
     .no-similar-content {
       text-align: center;

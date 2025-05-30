@@ -6,7 +6,7 @@ import {useUserStore} from "@/stores/user";
 
 const request = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL,
-    timeout: 5000
+    timeout: 120000
 })
 
 // 请求拦截器，主要是为了添加 token
