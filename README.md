@@ -23,6 +23,7 @@
 ## 配置环境
 - nodejs版本要求：>= 20.0.0
 - npm版本要求：>= 9.0.0
+
 首先确保您已经安装了Node.js和npm。然后克隆项目并安装依赖：
 ```bash
 git clone https://github.com/KongZhiquan123/SE-front-end
