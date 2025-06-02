@@ -16,10 +16,6 @@
         <el-icon><Calendar /></el-icon>
         <span>Calendar</span>
       </el-menu-item>
-      <el-menu-item index="/archived-classes">
-        <el-icon><Files /></el-icon>
-        <span>Archived classes</span>
-      </el-menu-item>
       <el-menu-item index="/settings">
         <el-icon><Setting /></el-icon>
         <span>Profile Settings</span>
@@ -35,7 +31,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ElMenu, ElMenuItem } from 'element-plus'
-import {House, Calendar, Files, Setting, Notification} from '@element-plus/icons-vue'
+import {House, Calendar, Setting, Notification} from '@element-plus/icons-vue'
 
 defineProps<{
   isCollapse: boolean

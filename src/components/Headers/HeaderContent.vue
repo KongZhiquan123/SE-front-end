@@ -18,25 +18,6 @@
       </el-icon>
     </div>
     <div class="right-section">
-      <el-dropdown placement="bottom">
-        <el-icon size="20px"><Plus /></el-icon>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item>Join a class</el-dropdown-item>
-            <el-dropdown-item>Create a class</el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-      <el-dropdown placement="bottom">
-        <el-icon size="20px"><Grid /></el-icon>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item>Help</el-dropdown-item>
-            <el-dropdown-item>Administer</el-dropdown-item>
-            <el-dropdown-item>Teacher</el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
       <el-button v-if="userStore.authorized" link type="primary" @click="logout">Log Out</el-button>
       <el-button v-else link type="primary" @click="login">Log In</el-button>
     </div>
@@ -44,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import {Fold, Grid, HomeFilled, Plus} from '@element-plus/icons-vue'
+import {Fold, HomeFilled} from '@element-plus/icons-vue'
 import { useRouter } from "vue-router"
 import { useUserStore } from '@/stores/user'
 //向父组件发送事件toggle-collapse，父组件监听到事件后，执行toggleCollapse方法，实现侧边栏的展开和收缩

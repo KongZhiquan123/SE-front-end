@@ -23,10 +23,6 @@ const router = createRouter({
                     component: () => import('@/views/HomePages/Calendar.vue'),
                 },
                 {
-                    path: 'archived-classes',
-                    component: () => import('@/views/HomePages/ArchivedClasses.vue'),
-                },
-                {
                     path: 'settings',
                     component: () => import('@/views/HomePages/ProfileSettings.vue'),
                 },
