@@ -47,12 +47,10 @@ const currentCodeSubmission = ref<CodeSubmission | null>(null)
 const gradingDialog = ref<InstanceType<typeof GradingDialog> | null>(null)
 const loadingAIGrading = ref<boolean>(false)
 const aiModels = [
-  { label: 'Qwen 3 (32B)', value: 'qwen3-32b' },
-  { label: 'Qwen 3 (235B)', value: 'qwen3-235b-a22b' },
-  { label: 'QWQ (32B)', value: 'qwq-32b' },
-  { label: 'DeepSeek (32B)', value: 'deepseek-r1-distill-qwen-32b' }
+  { label: 'ChatGPT-4o', value: 'gpt-4o' },
+  { label: 'ChatGPT-4o-mini', value: 'gpt-4o-mini' },
 ]
-const selectedModel = ref('qwen3-32b')
+const selectedModel = ref('gpt-4o') // 默认选择的 AI 模型
 
 onBeforeUnmount(() => {
   if (blobUrl.value) {
@@ -192,12 +190,21 @@ const openGradingDialog = () => {
     gradingDialog.value.open();
   }
 }
+
+const isImageFile = computed<boolean>(() => {
+  if (!currentAttachment.value) return false;
+  const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+  const fileExtension = currentAttachment.value.name.split('.').pop()?.toLowerCase() || '';
+  return imageExtensions.includes(fileExtension);
+});
+
 const isPreviewable = computed<boolean>(() => {
   if (!currentAttachment.value) return false;
-  const previewableExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'htm', 'txt', 'docx', 'doc'];
+  const previewableExtensions = [ 'pdf', 'html', 'htm', 'txt', 'docx', 'doc'];
   const fileExtension = currentAttachment.value.name.split('.').pop()?.toLowerCase() || '';
-  return previewableExtensions.includes(fileExtension);
+  return previewableExtensions.includes(fileExtension) || isImageFile.value;
 })
+
 // 请求AI评分
 const requestAIGrading = async () => {
   if (loadingAIGrading.value || !submission.value.id) return;
@@ -215,6 +222,42 @@ const requestAIGrading = async () => {
   }
   loadingAIGrading.value = false;
 }
+
+// OCR 识别相关的变量
+const ocrResultText = ref<string>('')
+const showOcrResult = ref<boolean>(false)
+const loadingOcr = ref<boolean>(false)
+
+// 调用API识别图片
+const recognizeImage = async () => {
+  if (!currentAttachment.value || !currentAttachment.value.id) return
+  loadingOcr.value = true
+  showOcrResult.value = true
+  const result = await apiRequest<string>({
+      url: `/ocr/recognize-path?attachmentId=${currentAttachment.value.id}`,
+      requestType: 'POST'
+  })
+  if (result) {
+    ocrResultText.value = result
+    ElMessage.success('OCR recognition successful')
+  } else {
+    ocrResultText.value = 'Unable to recognize text in image'
+    ElMessage.warning('OCR recognition returned no results')
+  }
+  loadingOcr.value = false;
+}
+
+// 关闭该结果
+const closeOcrResult = () => {
+  showOcrResult.value = false
+}
+const copyToClipboard = (text: string) => {
+  navigator.clipboard.writeText(text).then(() => {
+    ElMessage.success('Copied to clipboard');
+  }).catch(() => {
+    ElMessage.error('Failed to copy text');
+  });
+}
 </script>
 
 <template>
@@ -227,9 +270,17 @@ const requestAIGrading = async () => {
           <template v-if="showCode && currentCodeSubmission">
             <h3>Code Submission - {{ getLanguageDisplay(currentCodeSubmission.language) }}</h3>
           </template>
-          <template v-else-if="currentAttachment">
+          <div v-else-if="currentAttachment" class="image-preview-header-content">
             <h3>{{ currentAttachment.name }}</h3>
-          </template>
+            <el-button
+                v-if="isImageFile"
+                type="primary"
+                size="default"
+                :loading="loadingOcr"
+                @click="recognizeImage">
+              <el-icon><Picture /></el-icon> OCR Recognition
+            </el-button>
+          </div>
           <template v-else>
             <h3>No File Selected</h3>
           </template>
@@ -242,7 +293,14 @@ const requestAIGrading = async () => {
               <pre><code>{{ currentCodeSubmission.script }}</code></pre>
             </div>
           </template>
-
+          <template v-else-if="isImageFile">
+            <el-image
+                :src="blobUrl"
+                fit="contain"
+                :preview-src-list="[blobUrl]"
+                class="preview-image"
+            />
+          </template>
           <template v-else-if="isPreviewable">
             <div class="preview-container preview-able" v-loading="loadingBlob">
               <iframe
@@ -427,14 +485,36 @@ const requestAIGrading = async () => {
         </div>
       </div>
     </div>
-    <grading-dialog
-        ref="gradingDialog"
-        :submission-id="submission.id"
-        :current-grade="submission.grade"
-        :ai-grading="submission.aiGrading"
-        @grade-submitted="handleGradeSubmitted"
-    />
   </el-main>
+  <grading-dialog
+      ref="gradingDialog"
+      :submission-id="submission.id"
+      :current-grade="submission.grade"
+      :ai-grading="submission.aiGrading"
+      @grade-submitted="handleGradeSubmitted"
+  />
+  <!-- OCR 结果 -->
+  <el-drawer
+      v-model="showOcrResult"
+      title="OCR Recognition Result"
+      direction="rtl"
+      size="30%">
+    <div v-loading="loadingOcr" class="ocr-result-container">
+      <pre v-if="!loadingOcr" class="ocr-text">{{ ocrResultText }}</pre>
+      <div v-else class="ocr-loading">Recognizing text from image...</div>
+    </div>
+    <template #footer>
+      <div style="flex: auto; text-align: right">
+        <el-button @click="closeOcrResult">Close</el-button>
+        <el-button
+            type="primary"
+            v-if="ocrResultText"
+            @click="copyToClipboard(ocrResultText)">
+          Copy Text
+        </el-button>
+      </div>
+    </template>
+  </el-drawer>
 </template>
 
 <style lang="scss" scoped>
@@ -585,6 +665,7 @@ const requestAIGrading = async () => {
       justify-content: center;
       align-items: center;
       .grade-button {
+        font-size: 12px;
         width: 50%;
       }
       .grade-button + .grade-button {
@@ -720,6 +801,36 @@ const requestAIGrading = async () => {
         }
       }
     }
+  }
+}
+
+
+.image-preview-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ocr-result-container {
+  padding: 16px;
+  height: calc(100% - 32px);
+  overflow-y: auto;
+
+  .ocr-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .ocr-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: var(--el-text-color-secondary);
   }
 }
 </style>

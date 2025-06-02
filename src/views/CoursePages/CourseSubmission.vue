@@ -2,10 +2,9 @@
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {ElMessage, ElMessageBox, type UploadFile, type UploadRawFile} from 'element-plus';
-import {Document, Upload, Close, ArrowLeft, InfoFilled, View, Download} from '@element-plus/icons-vue';
+import {Document, Upload, Close, ArrowLeft, InfoFilled, View} from '@element-plus/icons-vue';
 import { formatDate } from '@/utils/formatDate';
 import type { Assignment } from "@/types/interfaces";
-import downloadFile from "@/utils/downloadFile";
 import request from "@/utils/request";
 import apiRequest from "@/utils/apiUtils";
 import convertWordToHtml from "@/utils/convertWordToHtml";
@@ -327,17 +326,6 @@ const goBack = () => {
                         <el-icon size="20"><View /></el-icon>
                       </el-button>
                     </el-tooltip>
-                    <el-tooltip content="Download file" placement="top">
-                      <el-button
-                          type="success"
-                          text
-                          circle
-                          @click="downloadFile(file?.url)"
-                          class="action-button"
-                      >
-                        <el-icon size="20"><Download /></el-icon>
-                      </el-button>
-                    </el-tooltip>
                     <el-tooltip content="Remove file" placement="top">
                       <el-button
                           type="danger"
@@ -406,12 +394,6 @@ const goBack = () => {
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="closePreview">Close</el-button>
-        <el-button
-            type="primary"
-            @click="downloadFile(previewFile?.url)"
-        >
-          Download
-        </el-button>
       </span>
     </template>
   </el-dialog>

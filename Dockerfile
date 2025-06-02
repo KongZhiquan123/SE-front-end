@@ -32,7 +32,7 @@ RUN echo 'server {\
         try_files $uri $uri/ /index.html;\
     }\
     location /api/ {\
-        proxy_pass http://10.26.170.123:8080;\
+        proxy_pass http://backend:8080;\
         proxy_set_header Host $host;\
         proxy_set_header X-Real-IP $remote_addr;\
     }\
