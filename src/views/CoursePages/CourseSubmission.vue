@@ -23,14 +23,14 @@ const previewFile = ref<UploadFile | null>(null);
 
 apiRequest<Assignment>(`/students/assignments/${assignmentId}/details`).then(data => {
   assignment.value = data ?? {
-    id: '',
+    id: 0,
     title: '',
     type: '',
     description: '',
     dueDate: '',
     maxScore: 100,
     openDate: '',
-    status: 'unknown',
+    status: 'closed' as const,
     instructions: ''
   };
   loading.value = false;
@@ -61,9 +61,9 @@ const beforeFileUpload = (file: UploadRawFile) => {
   return true;
 };
 
-const afterFileUpload = (_, file: UploadFile) => {
+const afterFileUpload = (_: never, file: UploadFile) => {
   // 上传完成后，文件会被添加到fileList中
-  if (file.status === 'success') {
+  if (file.status === 'success' && file.raw) {
     file.url = URL.createObjectURL(file.raw);
   }
 };
@@ -311,7 +311,7 @@ const goBack = () => {
                     <el-icon class="file-icon"><Document /></el-icon>
                     <div class="file-details">
                       <div class="file-name" :title="file.name">{{ file.name }}</div>
-                      <div class="file-size">{{ (file.size / 1024).toFixed(1) }} KB</div>
+                      <div class="file-size">{{ (file.size! / 1024).toFixed(1) }} KB</div>
                     </div>
                   </div>
                   <div class="file-actions">

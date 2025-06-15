@@ -1,4 +1,4 @@
-import {Attachment} from "@/types/interfaces";
+import type {Attachment} from "@/types/interfaces";
 import apiRequest from "@/utils/apiUtils";
 import {ElMessage} from "element-plus";
 

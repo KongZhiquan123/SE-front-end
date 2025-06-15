@@ -1,15 +1,28 @@
 <script setup lang="ts">
 import {ref, onMounted, onBeforeUnmount, shallowRef} from 'vue';
+import type * as Monaco from 'monaco-editor';
 import {ElMessage} from "element-plus";
 import {useRoute, useRouter} from 'vue-router';
 import { Document, Monitor, Cpu, Timer, Collection, Upload } from '@element-plus/icons-vue'
 import apiRequest from "@/utils/apiUtils";
 import {type ProgrammingLanguage, codeTemplates, languageVersions } from './supportLanguages';
 import type {Assignment, CodeAssignmentConfig} from "@/types/interfaces";
+// 编辑器实例类型
+type EditorInstance = Monaco.editor.IStandaloneCodeEditor | null;
+// 编辑器模型类型
+type EditorModels = Record<ProgrammingLanguage, Monaco.editor.ITextModel | undefined>;
 // editorContainer元素的引用，它在挂载到DOM后会被用来初始化monaco编辑器
-const editorContainer = shallowRef<HTMLElement | null>(null);
+const editorContainer = shallowRef<HTMLElement>();
 // 用于导入monaco-editor
-const monaco = shallowRef(null);
+const monaco = shallowRef<typeof Monaco>();
+/*
+对于monaco.editor.IStandaloneCodeEditor这种复杂的对象（该对象属性有成千上万个），一定要使用shallowRef。
+否则如果使用ref，递归的对它的所有属性都进行响应式处理的话，一旦调用它的任何方法，引发更新，就会直接卡死。
+详见https://cn.vuejs.org/guide/extras/reactivity-in-depth#how-reactivity-works-in-vue
+*/
+const editorInstance = shallowRef<EditorInstance>();
+// 用于存储不同语言的编辑器模型，避免切换语言时重新创建模型实例
+const editorModels = shallowRef<EditorModels>({} as EditorModels);
 
 const allowedLanguages = ref<ProgrammingLanguage[]>(['python3', 'java', 'cpp']);
 // 默认选择python语言
@@ -18,12 +31,7 @@ const codeLanguage = ref<ProgrammingLanguage>('python3');
 const selectedVersionIndex = ref<number>(0);
 // 亮色主题默认开启
 const isLightTheme = ref<boolean>(true);
-/*
-对于monaco.editor.IStandaloneCodeEditor这种复杂的对象（该对象属性有成千上万个），一定要使用shallowRef。
-否则如果使用ref，递归的对它的所有属性都进行响应式处理的话，一旦调用它的任何方法，引发更新，就会直接卡死。
-详见https://cn.vuejs.org/guide/extras/reactivity-in-depth#how-reactivity-works-in-vue
-*/
-const editorInstance = shallowRef(null);
+
 // 添加加载状态标识
 const isEditorLoading = ref(false);
 // 问题描述
@@ -53,7 +61,7 @@ const assignmentId = route.query.assignmentId;
 Promise.all([
   apiRequest<CodeAssignmentConfig>(`/teachers/code-config/${assignmentId}`),
   apiRequest<Assignment>(`/students/assignments/${assignmentId}/details`)
-]).then(([codeConfigResponse, assignmentResponse]: [CodeAssignmentConfig, Assignment]) => {
+]).then(([codeConfigResponse, assignmentResponse]: [CodeAssignmentConfig | null, Assignment | null]) => {
   if (codeConfigResponse) {
     Object.assign(problem.value, codeConfigResponse);
     allowedLanguages.value = codeConfigResponse.allowedLanguages.split(',').map(lang => lang.trim()) as ProgrammingLanguage[];
@@ -81,7 +89,7 @@ const loadMonacoEditor = async () => {
 };
 
 // 设置编辑器函数
-const setupEditor = async (monaco) => {
+const setupEditor = async (monaco: typeof Monaco) => {
   // 设置编辑器主题
   setupEditorThemes(monaco);
 
@@ -112,7 +120,7 @@ const setupEditor = async (monaco) => {
 };
 
 // vscode主题
-const setupEditorThemes = (monaco) => {
+const setupEditorThemes = (monaco: typeof Monaco) => {
   // Dark theme
   monaco.editor.defineTheme('customDarkTheme', {
     base: 'vs-dark',
@@ -163,18 +171,15 @@ onBeforeUnmount(() => {
     editorInstance.value = null;
   }
   // 销毁所有编辑器的模型
-  if (monaco.value.editor) {
+  if (monaco.value?.editor) {
     monaco.value.editor.getModels().forEach(model => {
-      if (model && typeof model.dispose === 'function') {
+      if (model) {
         model.dispose();
       }
     });
-    editorModels.value = {};
+    editorModels.value = {} as EditorModels; // 重置模型存储
   }
 });
-
-// 用于存储不同语言的编辑器模型，避免切换语言时重新创建模型实例
-const editorModels = shallowRef({});
 
 // 切换语言处理函数
 const handleLanguageChange = (newLanguage: ProgrammingLanguage) => {
@@ -207,7 +212,7 @@ const submitCode = async () => {
   };
 
 
-  const data = await apiRequest(
+  const data = await apiRequest<{id: number; [key: string]: unknown}>(
       `/students/submissions/assignments/${assignmentId}/submissions/code`,
       'post',
       'Failed to submit code',
