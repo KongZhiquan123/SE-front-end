@@ -69,7 +69,7 @@ const fetchExecutionResults = async () => {
     // Wait 10 seconds before fetching (as requested)
     await new Promise(resolve => setTimeout(resolve, 21000));
 
-    const response = await apiRequest(`/students/submissions/assignments/submissions/code/${submissionId}`);
+    const response = await apiRequest<CodeExecutionResult>(`/students/submissions/assignments/submissions/code/${submissionId}`);
     executionResult.value = response ?? executionResult.value;
     loadingProgress.value = 100;
     // Delay for smooth animation completion

@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus';
 import { formatDate } from '@/utils/formatDate';
 import AvatarCropper from '@/components/Others/AvatarCropper.vue';
 import apiRequest from '@/utils/apiUtils';
-import {useUserStore } from '@/stores/user'
+import {useUserStore, type UserState} from '@/stores/user'
 
 //本地存储用户信息
 const isEditing = ref(false);
@@ -12,8 +12,22 @@ const showCropper = ref(false);
 const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png';
 const userStore = useUserStore();
 
+
+// 定义角色类型
+type UserRole = 'admin' | 'student' | 'teacher' | 'null' | string;
+
+// 定义编辑表单接口
+interface EditFormInterface {
+  username: string;
+  bio: string;
+  avatarUrl: string;
+  oldPassword: string;
+  newPassword: string;
+  email: string;
+}
+
 // 编辑表单
-const editForm = reactive({
+const editForm = reactive<EditFormInterface>({
   username: '',
   bio: '',
   avatarUrl: '',
@@ -33,8 +47,8 @@ const resetEditForm = () => {
 };
 
 // 获取用户角色名称
-const getRoleName = (role) => {
-  const roleMap = {
+const getRoleName = (role: UserRole) => {
+  const roleMap: Record<string, string> = {
     'admin': 'Administrator',
     'student': 'Student',
     'teacher': 'Teacher',
@@ -44,7 +58,7 @@ const getRoleName = (role) => {
 };
 
 // Base64转Blob工具函数
-const base64ToBlob = (base64Data, contentType) => {
+const base64ToBlob = (base64Data: string, contentType: string) => {
   const byteCharacters = atob(base64Data);
   const byteArrays = [];
 
@@ -70,12 +84,6 @@ const saveChanges = async () => {
     return;
   }
 
-  // 创建不包含头像URL的数据对象
-  const profileData = {
-    username: editForm.username,
-    bio: editForm.bio,
-    email: editForm.email
-  };
 
   // 如果用户修改了密码，添加密码字段
   if (editForm.oldPassword && editForm.newPassword) {
@@ -87,8 +95,6 @@ const saveChanges = async () => {
       ElMessage.warning('New password must be at least 4 characters long');
       return;
     }
-    profileData.oldPassword = editForm.oldPassword;
-    profileData.newPassword = editForm.newPassword;
   }
 
 
@@ -124,7 +130,7 @@ const showAvatarUploader = () => {
   showCropper.value = true;
 };
 
-const onCropSuccess = async (avatarBase64) => {
+const onCropSuccess = async (avatarBase64: string) => {
   // 将Base64转换为Blob
   const base64Data = avatarBase64.split(',')[1];
   const blob = base64ToBlob(base64Data, 'image/jpeg');
@@ -133,13 +139,15 @@ const onCropSuccess = async (avatarBase64) => {
   formData.append('file', blob, 'avatar.jpg');
 
   // 调用专门的头像上传API
-  const result = await apiRequest({
+  const result = await apiRequest<UserState>({
     url: '/profile/avatar',
     requestType: 'post',
     errorMessage: 'Failed to upload avatar',
     data: formData,
-    headers: {
-      'Content-Type': 'multipart/form-data'
+    config: {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     }
   });
 

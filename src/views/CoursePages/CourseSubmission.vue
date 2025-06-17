@@ -83,7 +83,7 @@ const previewFileHandler = async (file: UploadFile) => {
   if (!file.url && file.raw) {
     if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
       // 如果是Word文件，转换为HTML
-      file.url = await convertWordToHtml(file.raw);
+      file.url = await convertWordToHtml(file.raw) ?? "";
     } else {
       // 其他文件类型直接创建URL
       file.url = URL.createObjectURL(file.raw);
@@ -148,7 +148,9 @@ const processSubmission = async () => {
     formData.append('content', textResponse.value);
     //后端要求文件字段名为files
     fileList.value.forEach(file => {
+      if (file.raw) {
       formData.append('files', file.raw);
+      }
     });
 
     await request.post(
@@ -163,7 +165,8 @@ const processSubmission = async () => {
     ElMessage.success('Assignment submitted successfully!');
     goBack();
   } catch (error) {
-    ElMessage.error('Error submitting assignment: ' + (error.response?.data?.message || error.message));
+    const err = error as import('axios').AxiosError;
+    ElMessage.error('Error submitting assignment: ' + (err.response?.data || err.message));
   } finally {
     submitting.value = false;
   }

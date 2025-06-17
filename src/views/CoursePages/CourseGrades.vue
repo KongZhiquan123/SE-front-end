@@ -34,12 +34,12 @@ const filteredGrades = computed(() => {
   )
 
   const iteratees = {
-    'score': (item) => item.score ?? -1,
-    'dueDate': (item) => new Date(item.dueDate).getTime(),
+    'score': (item: Grade) => item.score ?? -1,
+    'dueDate': (item: Grade) => new Date(item.dueDate).getTime(),
+    'title': (item: Grade) => item.title?.toString().toLowerCase() ?? ''
   }
 
-  const iteratee = iteratees[sortBy.value] ||
-      ((item) => item[sortBy.value]?.toLowerCase())
+  const iteratee = iteratees[sortBy.value]
 
   return orderBy(
       filtered,

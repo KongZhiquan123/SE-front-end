@@ -1,6 +1,6 @@
 import { ElMessage } from 'element-plus';
 import request from '@/utils/request';
-import type { AxiosRequestConfig } from "axios";
+import type { AxiosRequestConfig, AxiosError } from "axios";
 
 /**
  * 支持字典形式参数的API请求函数
@@ -71,8 +71,9 @@ async function apiRequest<T>(
 
         return response?.data;
     } catch (error) {
-        if (error.response?.data && typeof error.response.data === 'string' && error.response.data.trim()) {
-            ElMessage.error(error.response.data);
+        const err = error as AxiosError;
+        if (err.response?.data && typeof err.response.data === 'string' && err.response.data.trim()) {
+            ElMessage.error(err.response.data);
         } else {
             ElMessage.error(errorMessage);
         }

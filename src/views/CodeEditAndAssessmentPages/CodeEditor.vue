@@ -7,6 +7,8 @@ import { Document, Monitor, Cpu, Timer, Collection, Upload } from '@element-plus
 import apiRequest from "@/utils/apiUtils";
 import {type ProgrammingLanguage, codeTemplates, languageVersions } from './supportLanguages';
 import type {Assignment, CodeAssignmentConfig} from "@/types/interfaces";
+
+
 // 编辑器实例类型
 type EditorInstance = Monaco.editor.IStandaloneCodeEditor | null;
 // 编辑器模型类型
@@ -114,6 +116,136 @@ const setupEditor = async (monaco: typeof Monaco) => {
         horizontal: 'visible',
         verticalScrollbarSize: 12,
         horizontalScrollbarSize: 12,
+      },
+      // 添加自动补全相关配置
+      suggestOnTriggerCharacters: true,  // 触发字符时显示建议
+      quickSuggestions: {                // 快速建议设置
+        other: true,
+        comments: true,
+        strings: true
+      },
+      snippetSuggestions: 'inline',      // 代码片段建议显示方式
+      acceptSuggestionOnEnter: 'on',     // 按Enter键接受建议
+      tabCompletion: 'on',               // Tab键补全
+      wordBasedSuggestions: "currentDocument",        // 基于单词的建议
+      parameterHints: {                  // 参数提示
+        enabled: true
+      }
+    });
+
+    // 为不同语言注册补全提供者
+    setupCompletionProviders(monaco);
+  }
+};
+
+
+const getCompletionRange = (model: Monaco.editor.ITextModel, position: Monaco.Position): Monaco.IRange => {
+  const wordInfo = model.getWordUntilPosition(position);
+  return {
+    startLineNumber: position.lineNumber,
+    endLineNumber: position.lineNumber,
+    startColumn: wordInfo.startColumn,
+    endColumn: wordInfo.endColumn
+  };
+};
+
+
+// 配置自动补全提供者
+const setupCompletionProviders = (monaco: typeof Monaco) => {
+  // Python 自定义补全提供者示例
+  if (allowedLanguages.value.includes('python3')) {
+    monaco.languages.registerCompletionItemProvider('python', {
+      provideCompletionItems: (model, position) => {
+        const range = getCompletionRange(model, position);
+        return {
+          suggestions: [
+            {
+              label: 'print',
+              kind: monaco.languages.CompletionItemKind.Function,
+              insertText: 'print(${1:value})',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'print a value to the console',
+              range: range
+            },
+            {
+              label: 'if',
+              kind: monaco.languages.CompletionItemKind.Keyword,
+              insertText: 'if ${1:condition}:\n\t${2}',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'if statement',
+              range: range
+            },
+            {
+              label: 'for',
+              kind: monaco.languages.CompletionItemKind.Keyword,
+              insertText: 'for ${1:item} in ${2:items}:\n\t${3}',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'for loop',
+              range: range
+            }
+          ],
+          incomplete: false
+        };
+      }
+    });
+  }
+
+  // Java 自定义补全提供者示例
+  if (allowedLanguages.value.includes('java')) {
+    monaco.languages.registerCompletionItemProvider('java', {
+      provideCompletionItems: (model, position) => {
+        const range = getCompletionRange(model, position);
+        return {
+          suggestions: [
+            {
+              label: 'sout',
+              kind: monaco.languages.CompletionItemKind.Snippet,
+              insertText: 'System.out.println(${1:value});',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'print to console',
+              range: range
+            },
+            {
+              label: 'psvm',
+              kind: monaco.languages.CompletionItemKind.Snippet,
+              insertText: 'public static void main(String[] args) {\n\t${1}\n}',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'main method',
+              range: range
+            }
+          ],
+          incomplete: false
+        };
+      }
+    });
+  }
+
+  // C++ 自定义补全提供者示例
+  if (allowedLanguages.value.includes('cpp')) {
+    monaco.languages.registerCompletionItemProvider('cpp', {
+      provideCompletionItems: (model, position) => {
+        const range = getCompletionRange(model, position);
+        return {
+          suggestions: [
+            {
+              label: 'cout',
+              kind: monaco.languages.CompletionItemKind.Snippet,
+              insertText: 'std::cout << ${1:value} << std::endl;',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'print to console',
+              range: range
+            },
+            {
+              label: 'for',
+              kind: monaco.languages.CompletionItemKind.Snippet,
+              insertText: 'for(int ${1:i} = 0; ${1:i} < ${2:n}; ${1:i}++) {\n\t${3}\n}',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'for loop',
+              range: range
+            }
+          ],
+          incomplete: false
+        };
       }
     });
   }
@@ -185,20 +317,24 @@ onBeforeUnmount(() => {
 const handleLanguageChange = (newLanguage: ProgrammingLanguage) => {
   if (!editorInstance.value || !monaco.value) return;
 
+  const monacoLanguage = newLanguage === 'python3' ? 'python' : newLanguage;
+
   if (!editorModels.value[newLanguage]) {
     editorModels.value[newLanguage] = monaco.value.editor.createModel(
         codeTemplates[newLanguage],
-        newLanguage === 'python3' ? 'python' : newLanguage
+        monacoLanguage
     );
   }
 
   editorInstance.value.setModel(editorModels.value[newLanguage]);
   codeLanguage.value = newLanguage;
+
   // 切换语言时重置版本选择为该语言的第一个可用版本
   if (languageVersions[newLanguage] && languageVersions[newLanguage].length > 0) {
     selectedVersionIndex.value = languageVersions[newLanguage][0].versionIndex;
   }
 };
+
 const router = useRouter();
 // 提交代码函数
 const submitCode = async () => {

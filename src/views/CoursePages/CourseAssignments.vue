@@ -26,7 +26,7 @@ const loading = ref<boolean>(true)
 apiRequest<Assignment[]>(`students/assignments/course/${route.query.courseId}/active`).then(data => {
   assignments.value = defaultTo(data, []).map(assignment => ({
     ...assignment,
-    status: assignment.status.toLowerCase(),
+    status: assignment.status.toLowerCase() as Assignment['status'],
   }))
   loading.value = false;
 })
@@ -36,13 +36,15 @@ const filteredAssignments = computed(() => {
   const filtered = filter(assignments.value, assignment =>
       filterStatus.value === 'all' || assignment.status === filterStatus.value
   );
+  const iteratees = {
+    'maxScore': (item: Assignment) => item.maxScore,
+    'dueDate': (item: Assignment) => new Date(item.dueDate).getTime(),
+    'title': (item: Assignment) => item.title.toLowerCase(),
+  }
+  const iteratee = iteratees[sortBy.value];
   return orderBy(
       filtered,
-      [
-        sortBy.value === 'maxScore' ? 'maxScore' :
-        sortBy.value === 'dueDate' ? (item) => new Date(item.dueDate).getTime() :
-        (item) => item[sortBy.value]?.toLowerCase() // 字符串排序统一转小写
-      ],
+      [iteratee],
       [sortOrder.value === 'ascending' ? 'asc' : 'desc']
   );
 });
@@ -73,7 +75,7 @@ const getStatusType = (status: string) => {
   return get(statusMap, status, 'info')
 }
 const submitAssignment = (activeAssignmentId: number) => {
-  const path = activeAssignment.value.type === 'code'
+  const path = activeAssignment.value?.type === 'code'
       ? '/code-edit-and-run/code-edit'
       : '/student-course/submit-assignments'
   router.push({
